@@ -1,0 +1,91 @@
+# Biblioteca: banco PostgreSQL, cache Redis e a API em Python (FastAPI).
+#
+#   docker compose up -d --build     sobe tudo (na primeira vez o banco gera os dados: ~1 minuto)
+#   docker compose down -v           apaga tudo, inclusive os dados, para recomeçar do zero
+#
+# Variáveis opcionais (no ambiente ou num arquivo .env): CACHE_TTL_SEGUNDOS, WORKERS,
+# CONEXOES_POR_WORKER, PORTA_API, PORTA_BANCO e PORTA_CACHE.
+name: biblioteca
+
+services:
+  banco:
+    image: postgres:17
+    container_name: biblioteca-banco
+    environment:
+      POSTGRES_DB: biblioteca
+      POSTGRES_USER: biblioteca
+      POSTGRES_PASSWORD: biblioteca
+    command:
+      - postgres
+      # a base inteira cabe na memória do banco, para as medições não dependerem do disco
+      - -c
+      - shared_buffers=256MB
+      # estatísticas por comando SQL (pg_stat_statements)
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+      - -c
+      - max_connections=200
+    ports:
+      - "${PORTA_BANCO:-5432}:5432"
+    volumes:
+      - ./banco:/docker-entrypoint-initdb.d:ro
+      - dados-banco:/var/lib/postgresql/data
+    healthcheck:
+      # -h força TCP: durante a carga inicial o servidor temporário só escuta no socket local
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U biblioteca -d biblioteca"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+
+  cache:
+    image: redis:8.10-alpine
+    container_name: biblioteca-cache
+    # Uso exclusivo como cache: nada é gravado em disco e, se a memória acabar, saem as chaves
+    # usadas há mais tempo.
+    command: ["redis-server", "--save", "", "--appendonly", "no",
+              "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "${PORTA_CACHE:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: ./api
+    container_name: biblioteca-api
+    environment:
+      URL_BANCO: postgresql+psycopg://biblioteca:biblioteca@banco:5432/biblioteca
+      URL_CACHE: redis://cache:6379/0
+      # tempo de vida das fichas de livro no cache (seção 3.4 do enunciado)
+      CACHE_TTL_SEGUNDOS: ${CACHE_TTL_SEGUNDOS:-600}
+      # processos da API e conexões com o banco em cada um
+      WORKERS: ${WORKERS:-4}
+      CONEXOES_POR_WORKER: ${CONEXOES_POR_WORKER:-20}
+    ports:
+      - "${PORTA_API:-8000}:8000"
+    depends_on:
+      banco:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+
+  # Gerador de carga (Grafana k6), na mesma rede da API. Não sobe com "docker compose up":
+  #   docker compose run --rm k6 run k6/cache.js -e VERSAO=com-cache-quente
+  # Painel web ao vivo em http://localhost:5665:
+  #   docker compose run --rm --service-ports -e K6_WEB_DASHBOARD=true k6 run k6/cache.js
+  k6:
+    image: grafana/k6:2.3.0
+    profiles: ["carga"]
+    working_dir: /testes
+    environment:
+      BASE_URL: http://api:8000
+      K6_WEB_DASHBOARD_HOST: 0.0.0.0
+    volumes:
+      - ./testes-carga:/testes
+    ports:
+      - "5665:5665"
+
+volumes:
+  dados-banco:

@@ -1,0 +1,40 @@
+SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, livro.id AS livro_id, livro.titulo, leitor.id AS leitor_id, leitor.nome 
+FROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id JOIN leitor ON leitor.id = emprestimo.leitor_id 
+WHERE emprestimo.data_devolucao IS NULL AND emprestimo.data_prevista < %(data_prevista_1)s::DATE ORDER BY emprestimo.data_prevista, emprestimo.id 
+ LIMIT %(param_1)s::INTEGER
+
+Limit  (cost=8.39..110.98 rows=50 width=78) (actual time=0.175..0.205 rows=50 loops=1)
+  Buffers: shared hit=453
+  ->  Incremental Sort  (cost=8.39..8086.21 rows=3937 width=78) (actual time=0.174..0.202 rows=50 loops=1)
+        Sort Key: emprestimo.data_prevista, emprestimo.id
+        Presorted Key: emprestimo.data_prevista
+        Full-sort Groups: 1  Sort Method: quicksort  Average Memory: 33kB  Peak Memory: 33kB
+        Pre-sorted Groups: 3  Sort Methods: top-N heapsort, quicksort  Average Memory: 26kB  Peak Memory: 26kB
+        Buffers: shared hit=453
+        ->  Nested Loop  (cost=0.87..7978.57 rows=3937 width=78) (actual time=0.011..0.184 rows=74 loops=1)
+              Buffers: shared hit=453
+              ->  Nested Loop  (cost=0.58..6404.78 rows=3937 width=56) (actual time=0.008..0.100 rows=74 loops=1)
+                    Buffers: shared hit=231
+                    ->  Index Scan using idx_emprestimo_em_aberto on emprestimo  (cost=0.28..129.19 rows=3937 width=28) (actual time=0.003..0.010 rows=74 loops=1)
+                          Index Cond: (data_prevista < '2026-11-15'::date)
+                          Buffers: shared hit=9
+                    ->  Memoize  (cost=0.30..1.74 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=74)
+                          Cache Key: emprestimo.livro_id
+                          Cache Mode: logical
+                          Hits: 0  Misses: 74  Evictions: 0  Overflows: 0  Memory Usage: 10kB
+                          Buffers: shared hit=222
+                          ->  Index Scan using livro_pkey on livro  (cost=0.29..1.73 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=74)
+                                Index Cond: (id = emprestimo.livro_id)
+                                Buffers: shared hit=222
+              ->  Memoize  (cost=0.30..0.46 rows=1 width=26) (actual time=0.001..0.001 rows=1 loops=74)
+                    Cache Key: emprestimo.leitor_id
+                    Cache Mode: logical
+                    Hits: 0  Misses: 74  Evictions: 0  Overflows: 0  Memory Usage: 10kB
+                    Buffers: shared hit=222
+                    ->  Index Scan using leitor_pkey on leitor  (cost=0.29..0.45 rows=1 width=26) (actual time=0.001..0.001 rows=1 loops=74)
+                          Index Cond: (id = emprestimo.leitor_id)
+                          Buffers: shared hit=222
+Planning:
+  Buffers: shared hit=20
+Planning Time: 0.152 ms
+Execution Time: 0.219 ms

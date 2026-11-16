@@ -1,0 +1,30 @@
+-- sem índice; leitor 150 (58 empréstimos)
+-- índices em emprestimo: emprestimo_pkey, idx_emprestimo_livro
+-- random_page_cost: padrão (4)
+
+SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo 
+FROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id 
+WHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC
+
+Gather Merge  (cost=5846.56..5848.63 rows=18 width=60) (actual time=7.191..9.106 rows=58 loops=1)
+  Workers Planned: 1
+  Workers Launched: 1
+  Buffers: shared hit=2680
+  ->  Sort  (cost=4846.55..4846.59 rows=18 width=60) (actual time=5.396..5.398 rows=29 loops=2)
+        Sort Key: emprestimo.data_emprestimo DESC
+        Sort Method: quicksort  Memory: 28kB
+        Buffers: shared hit=2680
+        Worker 0:  Sort Method: quicksort  Memory: 26kB
+        ->  Nested Loop  (cost=0.29..4846.17 rows=18 width=60) (actual time=0.309..5.371 rows=29 loops=2)
+              Buffers: shared hit=2673
+              ->  Parallel Seq Scan on emprestimo  (cost=0.00..4703.88 rows=18 width=32) (actual time=0.294..5.268 rows=29 loops=2)
+                    Filter: (leitor_id = 150)
+                    Rows Removed by Filter: 149971
+                    Buffers: shared hit=2498
+              ->  Index Scan using livro_pkey on livro  (cost=0.29..7.90 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=58)
+                    Index Cond: (id = emprestimo.livro_id)
+                    Buffers: shared hit=175
+Planning:
+  Buffers: shared hit=14
+Planning Time: 0.101 ms
+Execution Time: 9.120 ms

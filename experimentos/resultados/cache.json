@@ -1,0 +1,126 @@
+{
+  "passos": [
+    {
+      "passo": "1",
+      "operacao": "GET com cache (cache vazio)",
+      "status": 200,
+      "x_cache": "MISS",
+      "consultas_sql": 3,
+      "tempo_no_servidor_ms": 2.97,
+      "titulo": "A Biblioteca Eterna dos Esquecidos",
+      "gerada_em": "23:33:02.697",
+      "ttl_restante_s": 20,
+      "observacao": "falha: monta a ficha no banco e guarda"
+    },
+    {
+      "passo": "2",
+      "operacao": "GET com cache de novo",
+      "status": 200,
+      "x_cache": "HIT",
+      "consultas_sql": 0,
+      "tempo_no_servidor_ms": 0.37,
+      "titulo": "A Biblioteca Eterna dos Esquecidos",
+      "gerada_em": "23:33:02.697",
+      "ttl_restante_s": 20,
+      "observacao": "acerto: nenhuma consulta ao banco"
+    },
+    {
+      "passo": "3",
+      "operacao": "PUT /api/livros/{id} (novo título)",
+      "status": 200,
+      "x_cache": "–",
+      "consultas_sql": 5,
+      "tempo_no_servidor_ms": 5.26,
+      "titulo": "A Biblioteca Eterna dos Esquecidos (edição revista)",
+      "gerada_em": "–",
+      "ttl_restante_s": null,
+      "observacao": "ficha removida do cache (X-Cache-Invalidado: sim)"
+    },
+    {
+      "passo": "4a",
+      "operacao": "GET com cache depois do PUT",
+      "status": 200,
+      "x_cache": "MISS",
+      "consultas_sql": 3,
+      "tempo_no_servidor_ms": 2.72,
+      "titulo": "A Biblioteca Eterna dos Esquecidos (edição revista)",
+      "gerada_em": "23:33:02.710",
+      "ttl_restante_s": 20,
+      "observacao": "falha: busca a versão nova no banco"
+    },
+    {
+      "passo": "4b",
+      "operacao": "GET com cache de novo",
+      "status": 200,
+      "x_cache": "HIT",
+      "consultas_sql": 0,
+      "tempo_no_servidor_ms": 0.36,
+      "titulo": "A Biblioteca Eterna dos Esquecidos (edição revista)",
+      "gerada_em": "23:33:02.710",
+      "ttl_restante_s": 20,
+      "observacao": "acerto, já com o título novo"
+    },
+    {
+      "passo": "5a",
+      "operacao": "UPDATE direto no banco (por fora da API)",
+      "status": "–",
+      "x_cache": "–",
+      "consultas_sql": null,
+      "tempo_no_servidor_ms": null,
+      "titulo": "A Biblioteca Eterna dos Esquecidos (edição revista) [alterado direto no banco]",
+      "gerada_em": "–",
+      "ttl_restante_s": null,
+      "observacao": "nada avisa o cache"
+    },
+    {
+      "passo": "5b",
+      "operacao": "GET com cache",
+      "status": 200,
+      "x_cache": "HIT",
+      "consultas_sql": 0,
+      "tempo_no_servidor_ms": 0.77,
+      "titulo": "A Biblioteca Eterna dos Esquecidos (edição revista)",
+      "gerada_em": "23:33:02.710",
+      "ttl_restante_s": 20,
+      "observacao": "acerto com o título ANTIGO: dado desatualizado"
+    },
+    {
+      "passo": "5c",
+      "operacao": "GET com cache depois do TTL",
+      "status": 200,
+      "x_cache": "MISS",
+      "consultas_sql": 3,
+      "tempo_no_servidor_ms": 4.54,
+      "titulo": "A Biblioteca Eterna dos Esquecidos (edição revista) [alterado direto no banco]",
+      "gerada_em": "23:33:24.422",
+      "ttl_restante_s": 20,
+      "observacao": "a ficha expirou: falha e título atual"
+    }
+  ],
+  "tempos": {
+    "sem cache": {
+      "requisicoes": 300,
+      "consultas_sql_por_requisicao": 3.0,
+      "acertos": 0,
+      "servidor_mediana_ms": 2.23,
+      "servidor_p95_ms": 2.4410000000000003,
+      "cliente_mediana_ms": 2.7208499996049795
+    },
+    "com cache, falha (cache vazio)": {
+      "requisicoes": 300,
+      "consultas_sql_por_requisicao": 3.0,
+      "acertos": 0,
+      "servidor_mediana_ms": 2.53,
+      "servidor_p95_ms": 2.8605,
+      "cliente_mediana_ms": 3.0022499995538965
+    },
+    "com cache, acerto (mesmos livros de novo)": {
+      "requisicoes": 300,
+      "consultas_sql_por_requisicao": 0.0,
+      "acertos": 300,
+      "servidor_mediana_ms": 0.37,
+      "servidor_p95_ms": 0.46,
+      "cliente_mediana_ms": 0.8546000008209376
+    }
+  }
+}

@@ -1,0 +1,33 @@
+-- índice (leitor_id, data_emprestimo DESC); leitor 4322 (243 empréstimos)
+-- índices em emprestimo: emprestimo_pkey, idx_emprestimo_leitor_data, idx_emprestimo_livro
+-- random_page_cost: padrão (4)
+
+SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo 
+FROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id 
+WHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC
+
+Sort  (cost=2172.81..2173.43 rows=250 width=60) (actual time=0.433..0.441 rows=243 loops=1)
+  Sort Key: emprestimo.data_emprestimo DESC
+  Sort Method: quicksort  Memory: 44kB
+  Buffers: shared hit=959
+  ->  Nested Loop  (cost=6.66..2162.85 rows=250 width=60) (actual time=0.033..0.401 rows=243 loops=1)
+        Buffers: shared hit=959
+        ->  Bitmap Heap Scan on emprestimo  (cost=6.36..743.71 rows=250 width=32) (actual time=0.029..0.110 rows=243 loops=1)
+              Recheck Cond: (leitor_id = 4322)
+              Heap Blocks: exact=235
+              Buffers: shared hit=239
+              ->  Bitmap Index Scan on idx_emprestimo_leitor_data  (cost=0.00..6.30 rows=250 width=0) (actual time=0.014..0.014 rows=243 loops=1)
+                    Index Cond: (leitor_id = 4322)
+                    Buffers: shared hit=4
+        ->  Memoize  (cost=0.30..5.71 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=243)
+              Cache Key: emprestimo.livro_id
+              Cache Mode: logical
+              Hits: 3  Misses: 240  Evictions: 0  Overflows: 0  Memory Usage: 31kB
+              Buffers: shared hit=720
+              ->  Index Scan using livro_pkey on livro  (cost=0.29..5.70 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=240)
+                    Index Cond: (id = emprestimo.livro_id)
+                    Buffers: shared hit=720
+Planning:
+  Buffers: shared hit=14
+Planning Time: 0.086 ms
+Execution Time: 0.457 ms

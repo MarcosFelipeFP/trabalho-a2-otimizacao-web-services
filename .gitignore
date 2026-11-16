@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Conferências rápidas dos testes de carga (--rapido); as execuções completas ficam versionadas
+testes-carga/resultados/*-rapido/
+
+# IDEs e sistema
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Enunciado, rascunhos e pacotes de entrega ficam fora do repositório
+*.docx
+*.zip
+
+# Arquivos locais de ferramentas
+.claude/
+CLAUDE.md
+.mcp.json
+settings.local.json

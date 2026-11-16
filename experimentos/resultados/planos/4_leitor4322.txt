@@ -1,0 +1,20 @@
+-- índice proposto + random_page_cost 1,1; leitor 4322 (243 empréstimos)
+-- índices em emprestimo: emprestimo_pkey, idx_emprestimo_leitor_data, idx_emprestimo_livro
+-- random_page_cost: 1.1
+
+SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo 
+FROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id 
+WHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC
+
+Nested Loop  (cost=0.71..692.72 rows=240 width=60) (actual time=0.009..0.299 rows=243 loops=1)
+  Buffers: shared hit=968
+  ->  Index Scan using idx_emprestimo_leitor_data on emprestimo  (cost=0.42..257.62 rows=240 width=32) (actual time=0.006..0.070 rows=243 loops=1)
+        Index Cond: (leitor_id = 4322)
+        Buffers: shared hit=239
+  ->  Index Scan using livro_pkey on livro  (cost=0.29..1.81 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=243)
+        Index Cond: (id = emprestimo.livro_id)
+        Buffers: shared hit=729
+Planning:
+  Buffers: shared hit=14
+Planning Time: 0.090 ms
+Execution Time: 0.313 ms
