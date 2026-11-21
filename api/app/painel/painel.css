@@ -72,3 +72,8 @@ td .etiqueta { display: inline-block; padding: 1px 8px; border-radius: 10px; fon
 .chip.novo { background: var(--verde-claro); color: var(--verde); font-weight: 700; }
 pre#comando-k6 { font: 13px Consolas, monospace; white-space: pre-wrap; background: #1b2230; color: #9fe0a4; padding: 10px 12px; border-radius: 4px; }
 code { font: 13px Consolas, monospace; background: #eef2f6; padding: 0 4px; border-radius: 3px; }
+.frase { font-size: 19px; margin: 0 0 12px; color: #1d252c; }
+.frase strong { color: var(--verde); }
+.barra-tempo { height: 16px; border-radius: 3px; background: var(--laranja); min-width: 3px; }
+.barra-tempo.melhor { background: var(--verde); }
+td.ganho { font-weight: 700; color: var(--verde); }

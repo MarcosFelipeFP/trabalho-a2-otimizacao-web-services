@@ -56,6 +56,16 @@
     <thead><tr><th>#</th><th>Operação</th><th>Resultado</th><th class="n">Consultas SQL</th><th class="n">Tempo no banco</th><th class="n">Tempo no servidor</th><th>Título devolvido</th></tr></thead>
     <tbody id="historico-cache"><tr class="vazio"><td colspan="7">Nenhuma requisição ainda.</td></tr></tbody>
   </table>
+  <h2>Em volume: muitas leituras seguidas</h2>
+  <p class="explica">Uma leitura só esconde o ganho. Aqui a mesma sequência de leituras roda duas vezes, sem cache e com
+    cache (que começa vazio), com 6 requisições ao mesmo tempo, como um navegador.</p>
+  <div class="controles">
+    <label>Leituras <select id="vol-cache-n"><option>50</option><option selected>100</option><option>200</option></select></label>
+    <label>Livros diferentes <select id="vol-cache-livros"><option>1</option><option selected>10</option><option>50</option></select></label>
+    <button id="btn-vol-cache" class="principal">Comparar sem cache × com cache</button>
+    <span class="aviso" id="prog-cache"></span>
+  </div>
+  <div id="vol-cache"></div>
 </section>
 
 <!-- ============================================================ LAZY x EAGER -->
@@ -75,6 +85,17 @@
     <thead><tr><th>Estratégia</th><th class="n">Consultas SQL</th><th class="barra-col">Consultas</th><th class="n">Tempo no banco</th><th class="n">Tempo no servidor</th><th></th></tr></thead>
     <tbody id="tabela-estrategias"></tbody>
   </table>
+  <h2>Em volume: várias páginas seguidas</h2>
+  <p class="explica">Várias páginas pedidas em sequência, 6 ao mesmo tempo. Com 20 por página, aparece o N+1 do LAZY. Com
+    100 ou 500 por página, o LAZY fica de fora (levaria minutos) e aparece o custo das 89 colunas do EAGER contra as 8 da
+    otimizada, no tempo e nos dados lidos do banco.</p>
+  <div class="controles">
+    <label>Páginas <select id="vol-emp-n"><option>5</option><option selected>10</option><option>20</option></select></label>
+    <label>Empréstimos por página <select id="vol-emp-q"><option selected>20</option><option>100</option><option>500</option></select></label>
+    <button id="btn-vol-emp" class="principal">Comparar em volume</button>
+    <span class="aviso" id="prog-emp"></span>
+  </div>
+  <div id="vol-emp"></div>
   <div class="cartao" id="cartao-sql" hidden>
     <h2 id="titulo-sql">SQL executado</h2>
     <p class="detalhe" id="resumo-sql"></p>
@@ -100,6 +121,16 @@
     <div class="cartao" id="plano-com"><h2>Com o índice</h2><p class="detalhe">Crie o índice e rode o EXPLAIN de novo.</p></div>
   </div>
   <p class="detalhe" id="resultado-historico"></p>
+  <h2>Em volume: muitos leitores</h2>
+  <p class="explica">O EXPLAIN ANALYZE do histórico de muitos leitores diferentes, sem e com o índice (o painel cria e
+    remove o índice sozinho). A soma do tempo de execução mostra quanto trabalho o banco faz em cada caso: é esse
+    trabalho que, sob carga, limita a vazão.</p>
+  <div class="controles">
+    <label>Leitores <select id="vol-idx-n"><option>20</option><option selected>50</option><option>100</option></select></label>
+    <button id="btn-vol-idx" class="principal">Comparar sem índice × com índice</button>
+    <span class="aviso" id="prog-idx"></span>
+  </div>
+  <div id="vol-idx"></div>
 </section>
 
 <!-- ============================================================ CARGA -->
