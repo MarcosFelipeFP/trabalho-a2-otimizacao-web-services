@@ -275,6 +275,33 @@ def secao_cenario(cenario, grupos, linhas_csv, pasta, duracao):
     return saida
 
 
+def secao_memoria(grupos):
+    """Memória dos contêineres locais em cada nível de carga; a do servidor do banco não é acessível
+    no Supabase."""
+    cargas = sorted({k[3] for k in grupos if k[0] in ORDEM})
+    saida = ['## Memória', '',
+             'Maior leitura de memória do contêiner na janela de medição (memory.current do cgroup), em MB, '
+             'média das repetições. A memória do servidor do banco não é acessível no Supabase.', '',
+             '| cenário | versão | ' + ' | '.join(f'API com {vus} VUs' for vus in cargas) + ' | Redis (todos os níveis) |',
+             '|---|---|' + '---:|' * (len(cargas) + 1)]
+    sem_registro = False
+    for cenario in ('cache', 'persistencia', 'indice'):
+        for versao in ORDEM[cenario]:
+            niveis = [grupos.get((cenario, versao, '', vus)) for vus in cargas]
+            if not any(niveis):
+                continue
+            api = [f(g['mem_api_mb'] if g else None, 0) for g in niveis]
+            sem_registro = sem_registro or '–' in api
+            redis = [g['mem_cache_mb'] for g in niveis if g and g['mem_cache_mb'] is not None]
+            minimo, maximo = (f(min(redis), 0), f(max(redis), 0)) if redis else ('–', '–')
+            faixa = minimo if minimo == maximo else f'{minimo} a {maximo}'
+            saida.append(f'| {TITULOS[cenario].split(":")[0]} | {NOMES[versao]} | ' + ' | '.join(api) + f' | {faixa} |')
+    saida.append('')
+    if sem_registro:
+        saida += ['Traço: memória não registrada nessa execução.', '']
+    return saida
+
+
 def grafico_cenario(cenario, grupos, pasta):
     chaves = sorted({k[3] for k in grupos if k[0] == cenario})
     versoes = [v for v in ORDEM[cenario] if any(k[0] == cenario and k[1] == v for k in grupos)]
@@ -386,6 +413,7 @@ def main():
         resumo += secao_cenario(cenario, grupos, linhas, pasta, ambiente['parametros']['duracao'])
         grafico_cenario(cenario, grupos, pasta)
     resumo += secao_ttl(grupos, linhas, pasta, ambiente['parametros']['duracao_ttl'])
+    resumo += secao_memoria(grupos)
     (pasta / 'resumo.md').write_text('\n'.join(resumo), encoding='utf-8')
     print(f'Gravados {pasta / "resumo.md"} e os gráficos em {pasta / "graficos"}')
 

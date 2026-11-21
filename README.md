@@ -164,15 +164,15 @@ seções 3 e 4; os roteiros que os produzem estão em [`experimentos/`](experime
 
 A operação escolhida é a ficha do livro: dados de catálogo, autor, categoria, total de
 empréstimos e outros livros do mesmo autor. Montá-la custa três consultas (uma com JOIN entre
-livro, autor e categoria, uma contagem na tabela de empréstimos e uma busca por autor), e ela é a
-leitura mais comum de um catálogo. A decisão sobre cada parte da ficha seguiu os critérios da 3.1
-do enunciado:
+livro, autor e categoria, uma contagem na tabela de empréstimos e uma busca por autor), cerca de
+480 ms com o banco no Supabase (seção 3.5), e ela é a leitura mais comum de um catálogo. A
+decisão sobre cada parte da ficha seguiu os critérios da 3.1 do enunciado:
 
-| Dado | Frequência de acesso | Volatilidade | Se ficar desatualizado | Decisão |
-|---|---|---|---|---|
-| Título, autor, categoria, sinopse, editora | alta: toda consulta ao catálogo | muito baixa: só muda quando a biblioteca corrige o cadastro | um título ou sinopse antiga por alguns minutos | cache com TTL longo e invalidação na alteração |
-| Total de empréstimos e data do último | alta (faz parte da ficha) | média: muda a cada empréstimo | um indicador de popularidade atrasado em minutos, sem prejuízo | vai junto com a ficha; o atraso fica limitado pelo TTL |
-| Exemplares disponíveis | alta | alta: muda a cada empréstimo e devolução | o leitor vai à estante e não encontra o livro | **fora do cache**: rota própria, sempre lida do banco |
+| Dado | Frequência de acesso | Volatilidade | Custo de buscar no banco | Se ficar desatualizado | Decisão e invalidação |
+|---|---|---|---|---|---|
+| Título, autor, categoria, sinopse, editora | alta: toda consulta ao catálogo | muito baixa: só muda quando a biblioteca corrige o cadastro | 2 consultas: o livro com autor e categoria (JOIN) e os outros livros do autor | um título ou sinopse antiga por alguns minutos | cache com TTL longo; a alteração pela API apaga a ficha do cache |
+| Total de empréstimos e data do último | alta (faz parte da ficha) | média: muda a cada empréstimo | 1 contagem na tabela de 300.000 empréstimos | um indicador de popularidade atrasado em minutos, sem prejuízo | vai junto com a ficha, sem invalidar a cada empréstimo; o atraso fica limitado pelo TTL |
+| Exemplares disponíveis | alta | alta: muda a cada empréstimo e devolução | 1 consulta pela chave do livro | o leitor vai à estante e não encontra o livro | **fora do cache**: rota própria, sempre lida do banco |
 
 ### 3.2 As duas versões
 
@@ -400,35 +400,47 @@ estratégias com N+1, que chegam a levar dois minutos e meio por requisição, d
 
 | Tempo no servidor, em ms (mediana) | 10 | 50 | 100 | 200 | 500 |
 |---|---:|---:|---:|---:|---:|
-| LAZY | 3.177,8 | 15.086,9 | 29.950,9 | 59.339,2 | 145.958,6 |
-| EAGER (`lazy="joined"`) | 150,4 | 154,9 | 155,6 | 162,6 | 177,5 |
-| EAGER com `selectinload` | 448,7 | 455,6 | 461,5 | 466,6 | 486,3 |
-| EAGER com `immediateload` | 3.121,6 | 15.032,6 | 29.734,3 | 59.059,1 | 144.658,2 |
-| JOIN FETCH (`joinedload`) | 149,9 | 154,8 | 155,7 | 158,0 | 299,1 |
-| otimizada (projeção) | 150,6 | 150,7 | 151,2 | 153,3 | 154,5 |
-| SQL nativo | 150,4 | 151,9 | 152,9 | 153,1 | 153,7 |
+| LAZY | 3.385,6 | 16.078,1 | 31.874,2 | 63.484,4 | 157.635,5 |
+| EAGER (`lazy="joined"`) | 162,1 | 167,7 | 172,3 | 190,1 | 205,7 |
+| EAGER com `selectinload` | 484,8 | 487,1 | 501,4 | 518,0 | 550,2 |
+| EAGER com `immediateload` | 3.350,2 | 16.066,2 | 31.860,0 | 63.252,3 | 157.603,9 |
+| JOIN FETCH (`joinedload`) | 165,8 | 167,4 | 177,6 | 189,6 | 212,5 |
+| otimizada (projeção) | 160,7 | 161,4 | 163,3 | 164,2 | 166,9 |
+| SQL nativo | 160,1 | 161,5 | 163,2 | 164,0 | 167,6 |
+
+| Volume lido do banco, em KB | 10 | 50 | 100 | 200 | 500 |
+|---|---:|---:|---:|---:|---:|
+| LAZY, `selectinload` e `immediateload` (entidades inteiras) | 13,5 | 68,8 | 136,6 | 272,2 | 674,9 |
+| EAGER e JOIN FETCH (entidades inteiras, num JOIN) | 13,5 | 68,8 | 137,5 | 273,8 | 685,1 |
+| otimizada e SQL nativo (só as 8 colunas da resposta) | 1,1 | 5,4 | 10,8 | 21,6 | 54,1 |
+| resposta da API, em JSON (igual em todas) | 2,3 | 11,4 | 22,8 | 45,6 | 114,2 |
 
 O N+1 faz o número de consultas e o tempo crescerem na proporção do tamanho da página: com 500
-empréstimos, o LAZY fez 983 consultas e levou 146 s, mais de 800 vezes o EAGER (178 ms). Executar
+empréstimos, o LAZY fez 983 consultas e levou 158 s, mais de 750 vezes o EAGER (206 ms). Executar
 cada consulta custa décimos de milissegundo ao banco, mas cada uma paga a viagem até ele: o tempo
-no banco medido pela API foi de 148 ms por consulta, quase todo rede. Com o banco remoto, o N+1
-deixa de ser um custo e vira um defeito: uma página de só 10 empréstimos já leva 3,2 s. As
+no banco medido pela API foi de 160 ms por consulta, quase todo rede. Com o banco remoto, o N+1
+deixa de ser um custo e vira um defeito: uma página de só 10 empréstimos já leva 3,4 s. As
 estratégias de uma consulta, ao contrário, quase não sentem o tamanho da página: de 10 para 500
-empréstimos, o EAGER passou de 150 para 178 ms.
+empréstimos, o EAGER passou de 162 para 206 ms, e a projeção, de 161 para 167 ms.
 
-**Volume de informações e dados desnecessários.** Para 500 empréstimos, o banco devolveu 263 KB
-ao EAGER (500 linhas largas, com a sinopse de cada livro), 259 KB ao LAZY (1.482 linhas, em 983
-consultas) e 54 KB à versão otimizada, para a mesma resposta de 114 KB. O custo do EAGER aparece
-quando a resposta não usa os relacionamentos: nas versões "resumo", que devolvem só os dados do
-empréstimo, o mapeamento EAGER continua fazendo o JOIN e trazendo todas as colunas de livro e
-leitor, quase 9 vezes mais dados que o LAZY:
+**Volume de informações e dados desnecessários.** Para a mesma resposta de 114 KB com 500
+empréstimos, o banco devolveu 685 KB ao EAGER (500 linhas de 89 colunas, com a sinopse e o sumário
+de cada livro), 675 KB ao LAZY (1.482 linhas, em 983 consultas) e 54 KB à versão otimizada, quase
+13 vezes menos que o EAGER. Com páginas grandes, esse volume já aparece no tempo: com 500
+empréstimos, o EAGER levou 206 ms e a projeção, 167 ms; com 10, a diferença não passou de 2 ms. O
+custo do EAGER aparece também quando a resposta não usa os relacionamentos: nas versões "resumo",
+que devolvem só os dados do empréstimo, o mapeamento EAGER continua fazendo o JOIN e trazendo todas
+as colunas de livro e leitor, cerca de 13 vezes mais dados que o LAZY:
 
 | Versão "resumo" (sem livro e leitor) | Consultas | Lido do banco | Tempo no servidor |
 |---|---:|---:|---:|
-| LAZY, 20 empréstimos | 1 | 1,2 KB | 145,75 ms |
-| EAGER, 20 empréstimos | 1 | 10,5 KB | 149,08 ms |
-| LAZY, 500 empréstimos | 1 | 30,4 KB | 152,57 ms |
-| EAGER, 500 empréstimos | 1 | 262,8 KB | 171,23 ms |
+| LAZY, 20 empréstimos | 1 | 2,0 KB | 160,67 ms |
+| EAGER, 20 empréstimos | 1 | 27,1 KB | 164,44 ms |
+| LAZY, 500 empréstimos | 1 | 51,7 KB | 169,20 ms |
+| EAGER, 500 empréstimos | 1 | 685,1 KB | 205,98 ms |
+
+Com 500 empréstimos, os dados que a resposta não usa custaram 37 ms a mais no servidor (206 contra
+169 ms).
 
 **Quando usar cada um.** LAZY é o padrão mais seguro: não carrega o que não é usado e funciona bem
 para objetos isolados ou relacionamentos raramente acessados; o perigo é percorrer uma lista
@@ -468,25 +480,26 @@ SQL_NATIVO = text("""
     WHERE e.id >= :desde_id ORDER BY e.id LIMIT :quantidade""")
 ```
 
-O `JOIN FETCH` gera o mesmo SQL do EAGER e teve o mesmo tempo, sem impor o JOIN às outras
-consultas. Na tabela, com 500 empréstimos, ele aparece com 299 ms contra 178 ms do EAGER, mas
-intercalando os dois (8 requisições de cada, alternadas) as medianas foram 178 e 181 ms. A
-diferença era da rede: de vez em quando uma resposta leva uma viagem a mais (~150 ms) para chegar,
-e isso pesou na sequência de medições do JOIN FETCH. A versão otimizada foi a mais rápida das que
-usam o ORM: com 500 empréstimos, 154 ms contra 178 ms do EAGER e 146 s do LAZY. Ela lê 5 vezes
-menos dados (54 KB contra 263 KB) e não cria entidades; com o banco longe, quase todo o resto é a
-própria viagem. Sob carga, a comparação está na seção 5.
+O `JOIN FETCH` gera o mesmo SQL do EAGER (o mesmo JOIN, com as 89 colunas) e teve praticamente o
+mesmo tempo (212,5 contra 205,7 ms com 500 empréstimos), sem impor o JOIN às outras consultas. A
+versão otimizada foi a mais rápida das que usam o ORM: com 500 empréstimos, 167 ms contra 206 ms
+do EAGER e 158 s do LAZY. Ela lê quase 13 vezes menos dados (54 KB contra 685 KB) e não cria
+entidades; com o banco longe, quase todo o resto é a própria viagem. Sob carga, a comparação está
+na seção 5.
 
 **O SQL nativo trouxe benefício real?** Não. Ele executa a mesma consulta da versão otimizada (as
-duas leram 54 KB e gastaram praticamente o mesmo tempo no banco); a diferença, de até 1 ms por
-requisição, é o trabalho do SQLAlchemy de montar a consulta e processar o resultado pelo ORM, e
-com o banco a 150 ms ela some no ruído da rede. O ganho grande (cerca de 950 vezes com 500
-empréstimos, de 146 s para 0,15 s) veio de eliminar o N+1 e de buscar só as colunas usadas, e o ORM
-faz as duas coisas. Em troca, o SQL nativo cobra na manutenção: é texto que o ORM não confere (um
-nome de coluna errado só aparece quando a rota roda), não acompanha uma mudança no mapeamento,
-exige converter as linhas à mão e depende do dialeto do banco (`LIMIT` e as conversões de tipo
-mudam entre PostgreSQL, SQL Server e Oracle). Faz sentido usá-lo em consultas que o ORM não
-expressa bem (funções de janela, CTEs recursivas, dicas específicas do banco), não como regra.
+duas leram 54 KB), e a diferença de tempo entre as duas ficou abaixo de 1 ms em todos os tamanhos
+de página, ora a favor de uma, ora da outra: o trabalho que o SQLAlchemy faz a mais para montar a
+consulta e ler o resultado some perto da viagem de 160 ms. Sob carga (seção 5.3), o SQL nativo
+usou um pouco menos de CPU na API (16% contra 21% de um núcleo com 50 VUs), e as diferenças de
+vazão e de latência entre os dois ficaram dentro da variação entre as repetições. O ganho grande
+(cerca de 940 vezes com 500 empréstimos, de 158 s para 0,17 s) veio de eliminar o N+1 e de buscar
+só as colunas usadas, e o ORM faz as duas coisas. Em troca, o SQL nativo cobra na manutenção: é
+texto que o ORM não confere (um nome de coluna errado só aparece quando a rota roda), não acompanha
+uma mudança no mapeamento, exige converter as linhas à mão e depende do dialeto do banco (`LIMIT` e
+as conversões de tipo mudam entre PostgreSQL, SQL Server e Oracle). Faz sentido usá-lo em consultas
+que o ORM não expressa bem (funções de janela, CTEs recursivas, dicas específicas do banco), não
+como regra.
 
 ### 4.5 Índices (seção 5 do enunciado)
 
@@ -508,64 +521,64 @@ em [`experimentos/resultados/planos/`](experimentos/resultados/planos):
 
 | Situação | Leitor | Operações na tabela `emprestimo` | Sort | Linhas descartadas | Execução no banco |
 |---|---|---|---|---:|---:|
-| 1. sem índice | 150 | Parallel Seq Scan | sim | 299.942 | 18,300 ms |
-| 1. sem índice | 4322 | Parallel Seq Scan | sim | 299.756 | 18,807 ms |
+| 1. sem índice | 150 | Parallel Seq Scan | sim | 299.942 | 21,930 ms |
+| 1. sem índice | 4322 | Parallel Seq Scan | sim | 299.756 | 22,764 ms |
 | 2. índice só em `leitor_id` | 150 | Bitmap Index Scan + Bitmap Heap Scan | sim | 0 | 0,387 ms |
-| 2. índice só em `leitor_id` | 4322 | Bitmap Index Scan + Bitmap Heap Scan | sim | 0 | 1,275 ms |
-| 3. índice proposto | 150 | Index Scan, já na ordem | não | 0 | 0,315 ms |
-| 3. índice proposto | 4322 | Index Scan, já na ordem | não | 0 | 1,076 ms |
-| 4. índice proposto, `random_page_cost` = 4 | 150 | Bitmap Index Scan + Bitmap Heap Scan | sim | 0 | 0,399 ms |
-| 4. índice proposto, `random_page_cost` = 4 | 4322 | Bitmap Index Scan + Bitmap Heap Scan | sim | 0 | 1,466 ms |
-| 5. índice proposto, `LIMIT 10` | 150 | Index Scan, já na ordem | não | 0 | 0,101 ms |
-| 5. índice proposto, `LIMIT 10` | 4322 | Index Scan, já na ordem | não | 0 | 0,107 ms |
+| 2. índice só em `leitor_id` | 4322 | Bitmap Index Scan + Bitmap Heap Scan | sim | 0 | 1,308 ms |
+| 3. índice proposto | 150 | Index Scan, já na ordem | não | 0 | 0,332 ms |
+| 3. índice proposto | 4322 | Index Scan, já na ordem | não | 0 | 1,103 ms |
+| 4. índice proposto, `random_page_cost` = 4 | 150 | Bitmap Index Scan + Bitmap Heap Scan | sim | 0 | 0,407 ms |
+| 4. índice proposto, `random_page_cost` = 4 | 4322 | Bitmap Index Scan + Bitmap Heap Scan | sim | 0 | 1,495 ms |
+| 5. índice proposto, `LIMIT 10` | 150 | Index Scan, já na ordem | não | 0 | 0,107 ms |
+| 5. índice proposto, `LIMIT 10` | 4322 | Index Scan, já na ordem | não | 0 | 0,111 ms |
 
 Execução no banco: mediana de 15 `EXPLAIN ANALYZE`, com o `random_page_cost` de 1,1 do Supabase,
 exceto na situação 4. Trechos dos planos (`EXPLAIN (ANALYZE, BUFFERS)`):
 
 ```
--- 1. sem índice: lê a tabela inteira (2.512 páginas) e descarta quase tudo
-Gather Merge  (cost=5845.36..5852.14 rows=59 width=60) (actual time=14.697..18.480 rows=58 loops=1)
+-- 1. sem índice: lê a tabela inteira (4.265 páginas) e descarta quase tudo
+Gather Merge  (cost=7514.38..7516.45 rows=18 width=60) (actual time=17.366..21.683 rows=58 loops=1)
   Workers Planned: 1
   Workers Launched: 1
-  ->  Sort  (cost=4845.35..4845.49 rows=59 width=60) (actual time=11.494..11.499 rows=29 loops=2)
+  ->  Sort  (cost=6514.37..6514.41 rows=18 width=60) (actual time=14.197..14.203 rows=29 loops=2)
         Sort Key: emprestimo.data_emprestimo DESC
-        ->  Nested Loop  (cost=0.29..4843.61 rows=59 width=60) (actual time=0.563..11.459 rows=29 loops=2)
-              ->  Parallel Seq Scan on emprestimo  (cost=0.00..4717.88 rows=59 width=32) (actual time=0.542..11.264 rows=29 loops=2)
+        ->  Nested Loop  (cost=0.29..6513.99 rows=18 width=60) (actual time=0.175..14.158 rows=29 loops=2)
+              ->  Parallel Seq Scan on emprestimo  (cost=0.00..6470.88 rows=18 width=32) (actual time=0.134..13.894 rows=29 loops=2)
                     Filter: (leitor_id = 150)
                     Rows Removed by Filter: 149971
-                    Buffers: shared hit=2512
-              ->  Index Scan using livro_pkey on livro  (cost=0.29..2.13 rows=1 width=32) (actual time=0.006..0.006 rows=1 loops=58)
+                    Buffers: shared hit=4265
+              ->  Index Scan using livro_pkey on livro  (cost=0.29..2.40 rows=1 width=32) (actual time=0.008..0.008 rows=1 loops=58)
                     Index Cond: (id = emprestimo.livro_id)
-Execution Time: 18.530 ms
+Execution Time: 21.734 ms
 
 -- 3. índice proposto: só as 58 linhas do leitor, já na ordem pedida; o Sort sumiu
-Nested Loop  (cost=0.71..106.90 rows=30 width=60) (actual time=0.022..0.279 rows=58 loops=1)
-  ->  Index Scan using idx_emprestimo_leitor_data on emprestimo  (cost=0.42..35.05 rows=30 width=32) (actual time=0.012..0.076 rows=58 loops=1)
+Nested Loop  (cost=0.71..386.72 rows=120 width=60) (actual time=0.029..0.324 rows=58 loops=1)
+  ->  Index Scan using idx_emprestimo_leitor_data on emprestimo  (cost=0.42..134.52 rows=120 width=32) (actual time=0.013..0.090 rows=58 loops=1)
         Index Cond: (leitor_id = 150)
         Buffers: shared hit=61
-  ->  Index Scan using livro_pkey on livro  (cost=0.29..2.40 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=58)
+  ->  Index Scan using livro_pkey on livro  (cost=0.29..2.10 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=58)
         Index Cond: (id = emprestimo.livro_id)
-Execution Time: 0.308 ms
+Execution Time: 0.359 ms
 
 -- 4. o mesmo índice com random_page_cost = 4: só acha as linhas (bitmap) e o Sort volta
-Sort  (cost=353.08..353.16 rows=30 width=60) (actual time=0.329..0.333 rows=58 loops=1)
+Sort  (cost=355.37..355.44 rows=30 width=60) (actual time=0.381..0.385 rows=58 loops=1)
   Sort Key: emprestimo.data_emprestimo DESC
-  ->  Nested Loop  (cost=4.94..352.35 rows=30 width=60) (actual time=0.034..0.304 rows=58 loops=1)
-        ->  Bitmap Heap Scan on emprestimo  (cost=4.66..115.19 rows=30 width=32) (actual time=0.025..0.101 rows=58 loops=1)
+  ->  Nested Loop  (cost=4.94..354.63 rows=30 width=60) (actual time=0.036..0.333 rows=58 loops=1)
+        ->  Bitmap Heap Scan on emprestimo  (cost=4.66..117.48 rows=30 width=32) (actual time=0.026..0.105 rows=58 loops=1)
               Recheck Cond: (leitor_id = 150)
               Heap Blocks: exact=58
-              ->  Bitmap Index Scan on idx_emprestimo_leitor_data  (cost=0.00..4.65 rows=30 width=0) (actual time=0.013..0.014 rows=58 loops=1)
+              ->  Bitmap Index Scan on idx_emprestimo_leitor_data  (cost=0.00..4.65 rows=30 width=0) (actual time=0.013..0.013 rows=58 loops=1)
                     Index Cond: (leitor_id = 150)
         ->  Index Scan using livro_pkey on livro  (cost=0.29..7.90 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=58)
               Index Cond: (id = emprestimo.livro_id)
-Execution Time: 0.393 ms
+Execution Time: 0.423 ms
 ```
 
-Na API, o histórico do leitor 150 passou de 168,3 ms para 147,7 ms no servidor. Também foi medida
+Na API, o histórico do leitor 150 passou de 183,8 ms para 162,7 ms no servidor. Também foi medida
 a busca por intervalo (os 50 empréstimos atrasados mais antigos: `data_devolucao IS NULL AND
-data_prevista < hoje ORDER BY data_prevista`): sem índice, 19,8 ms com Parallel Seq Scan; com o
+data_prevista < hoje ORDER BY data_prevista`): sem índice, 23,1 ms com Parallel Seq Scan; com o
 índice parcial `ON emprestimo (data_prevista) WHERE data_devolucao IS NULL`, de apenas 48 KB,
-0,77 ms.
+0,78 ms.
 
 **O índice foi efetivamente utilizado?** Sim: a varredura completa (Seq Scan) deu lugar ao
 `Index Scan` em `idx_emprestimo_leitor_data`, e as 299.942 linhas descartadas pelo filtro caíram
@@ -574,40 +587,40 @@ ordem de `data_emprestimo DESC`, e o `Sort` sumiu do plano. O índice só em `le
 mesmas linhas, mas precisa ordená-las depois. O plano também mostra outro índice que já existia,
 `livro_pkey`, usado no JOIN com `livro` em todas as situações (como o enunciado alerta na 5.2).
 
-**Houve redução no tempo de execução?** Sim, de 18,3 ms para 0,32 ms no banco, cerca de 58 vezes.
-Na API, porém, o histórico passou de 168 para 148 ms: os 18 ms economizados no banco são pouco
-perto da viagem de 150 ms até ele. O ganho grande aparece quando o banco fica ocupado, sob carga
-(seção 5): sem índice, cada requisição ocupa o banco por 18 ms; com índice, por 0,3 ms.
+**Houve redução no tempo de execução?** Sim, de 21,9 ms para 0,33 ms no banco, cerca de 66 vezes.
+Na API, porém, o histórico passou de 184 para 163 ms: os 21 ms economizados no banco são pouco
+perto da viagem de ~160 ms até ele. O ganho grande aparece quando o banco fica ocupado, sob carga
+(seção 5): sem índice, cada requisição ocupa o banco por 22 ms; com índice, por 0,3 ms.
 
 **Quais fatores influenciaram o resultado?**
 
 - *Seletividade*: o leitor 150 tem 58 dos 300.000 empréstimos (0,02%). Com tão poucas linhas, o
-  índice vence com folga; para o leitor com 243 empréstimos, o tempo com índice subiu para 1,08 ms
-  (cresce com as linhas do leitor), enquanto a varredura completa custa o mesmo para todos.
+  índice vence com folga; para o leitor com 243 empréstimos, o tempo com índice subiu para 1,10 ms
+  (cresce com as linhas do leitor), enquanto a varredura completa custa quase o mesmo para todos.
 - *Modelo de custos do planejador*: o `random_page_cost` diz quanto custa ler uma página fora de
   ordem. O padrão do PostgreSQL é 4, pensado para disco magnético; o Supabase usa 1,1, valor
   indicado para SSD. Com 1,1, percorrer o índice na ordem pedida sai barato, e o `Sort` some. Com 4
   (situação 4), o mesmo índice só serve para achar as linhas, que são lidas na ordem física da
   tabela e ordenadas depois. O plano depende da configuração do banco, não só do índice.
 - *LIMIT*: pedindo só os 10 mais recentes, o banco lê as 10 primeiras entradas do leitor e para:
-  0,10 ms, seja qual for o leitor.
+  0,11 ms, seja qual for o leitor.
 - *Correlação física*: os empréstimos de um leitor estão espalhados pela tabela, uma página para
   cada (58 linhas em 58 páginas, `Heap Blocks: exact=58` no plano 4), porque a tabela está em
   ordem de data e não de leitor.
 
 **Quais podem ser os custos de manter índices adicionais?** Espaço e escrita. O índice proposto
 ocupa 9,0 MB, quatro vezes o índice só em `leitor_id` (2,2 MB), que se beneficia da deduplicação
-de chaves repetidas do PostgreSQL; a tabela inteira tem 20 MB. E todo `INSERT` precisa atualizar
-cada índice: inserir 20.000 empréstimos (numa transação desfeita no fim; tempo de execução no
-banco, mediana de 5) levou 30,7 µs por linha sem os índices do experimento, 37,4 µs com o índice
-proposto (+22%) e 47,8 µs com os três (+56%). Também há mais trabalho de `VACUUM` e mais páginas
-disputando a memória do banco.
+de chaves repetidas do PostgreSQL; a tabela inteira tem 33 MB (as 4.265 páginas que a varredura
+completa lê). E todo `INSERT` precisa atualizar cada índice: inserir 20.000 empréstimos (numa
+transação desfeita no fim; tempo de execução no banco, mediana de 5) levou 32,8 µs por linha sem
+os índices do experimento, 37,5 µs com o índice proposto (+14%) e 41,9 µs com os três (+28%).
+Também há mais trabalho de `VACUUM` e mais páginas disputando a memória do banco.
 
 | Índices extras em `emprestimo` | Tamanho dos índices | Inserir 20.000 empréstimos | Por linha |
 |---|---:|---:|---:|
-| nenhum (só chave primária e `livro_id`) | 8,9 MB | 614 ms | 30,7 µs |
-| `(leitor_id, data_emprestimo DESC)` | 17,9 MB | 747 ms | 37,4 µs |
-| os três do experimento | 20,1 MB | 957 ms | 47,8 µs |
+| nenhum (só chave primária e `livro_id`) | 8,9 MB | 655 ms | 32,8 µs |
+| `(leitor_id, data_emprestimo DESC)` | 17,9 MB | 749 ms | 37,5 µs |
+| os três do experimento | 20,1 MB | 837 ms | 41,9 µs |
 
 **Criar índices em todas as colunas consultadas seria uma boa estratégia?** Não. Cada índice só
 ajuda as consultas que filtram ou ordenam pelas colunas dele, na ordem certa e com seletividade
@@ -645,8 +658,8 @@ thresholds[`http_req_failed{fase:medicao,carga:${vus}}`] = ['rate<0.01'];
 ```
 
 Os limites (p95 abaixo de 1 s, p99 abaixo de 2 s e menos de 1% de erros) levam em conta a
-distância do banco: sem carga nenhuma, uma ficha montada no banco já leva cerca de 0,45 s (três
-consultas de ~150 ms). Eles marcam o nível de carga a partir do qual a fila pesa mais que o
+distância do banco: sem carga nenhuma, uma ficha montada no banco já leva cerca de 0,48 s (três
+consultas de ~160 ms). Eles marcam o nível de carga a partir do qual a fila pesa mais que o
 trabalho. O k6 espera até 60 s por resposta; depois disso, a requisição conta como erro.
 
 Além das métricas do k6, cada requisição registra três métricas próprias, lidas dos cabeçalhos da
@@ -680,10 +693,11 @@ medida (6.3 do enunciado).
 - o k6 roda num contêiner na mesma rede da API: medido antes, o encaminhamento de portas do Docker
   Desktop para o Windows acrescentava cerca de 1 ms por requisição e limitava a vazão (4.900 req/s
   contra 6.217 req/s no mesmo endpoint com cache);
-- CPU e memória dos contêineres locais (API, Redis e k6) são lidas a cada segundo dos contadores do
-  cgroup, mais exatos que o `docker stats`. O banco no Supabase não mostra a CPU; no lugar dela, um
-  `psql` conectado lê a cada segundo o tempo de execução acumulado no `pg_stat_statements`, e os
-  comandos de cada execução (a diferença entre o antes e o depois) ficam guardados;
+- a CPU dos contêineres locais (API, Redis e k6) e a memória da API e do Redis são lidas a cada
+  segundo dos contadores do cgroup, mais exatos que o `docker stats`. O banco no Supabase não
+  mostra a CPU; no lugar dela, um `psql` conectado lê a cada segundo o tempo de execução acumulado
+  no `pg_stat_statements`, e os comandos de cada execução (a diferença entre o antes e o depois)
+  ficam guardados;
 - o banco é um projeto do Supabase criado só para este trabalho, e a carga respeita os limites do
   plano gratuito (a 6.5 do enunciado pede ambientes próprios ou autorizados);
 - dois contêineres de outro projeto (`petmotion`) ficaram ligados na máquina durante as medições;
@@ -807,8 +821,9 @@ mesmo tempo. Variação: maior distância entre a vazão de uma repetição e a 
   execução, contra 0,6 ms da projeção e 0,8 ms do SQL nativo, lendo as mesmas 20 linhas e os mesmos
   127 blocos. A diferença é montar e enviar 89 colunas, com a sinopse e o sumário de cada livro, em
   vez de 8, e, na API, transformá-las em objetos. Com o banco a 155 ms, esse milissegundo some na
-  viagem; com páginas maiores (seção 4.3: 263 KB contra 54 KB com 500 empréstimos) ou um banco
-  próximo, ele vira tempo de resposta, e a mesma CPU atenderia menos requisições.
+  viagem; com páginas maiores ou um banco próximo, ele vira tempo de resposta (seção 4.3: com 500
+  empréstimos, 685 KB contra 54 KB lidos do banco e 206 contra 167 ms), e a mesma CPU atenderia
+  menos requisições.
 
 #### Cenário 3: índices
 
@@ -828,17 +843,49 @@ mesmo tempo. Variação: maior distância entre a vazão de uma repetição e a 
 - **Sem índice**, o gargalo foi o próprio banco. Cada requisição percorreu a tabela de
   empréstimos (4.487 blocos por consulta, contra 132 com o índice), e o banco executando passou de
   370% a partir de 50 VUs: em média, quase quatro varreduras ao mesmo tempo. Disputando a CPU da
-  instância, cada varredura levou em média 77 ms no banco, quatro vezes os 18 ms medidos com uma
-  consulta por vez (seção 4.5), e a vazão parou em ~50 req/s.
+  instância, cada varredura levou em média 77 ms no banco, três vezes e meia os 22 ms medidos com
+  uma consulta por vez (seção 4.5), e a vazão parou em ~50 req/s.
 - **Com o índice**, o banco quase não trabalha (2% a 5% na maioria dos níveis, 2,3 ms de execução
   por consulta), e a vazão subiu até o teto das conexões. Com 50 VUs: 58% mais vazão (76,7 contra
   48,5 req/s), latência média 38% menor (659 contra 1.059 ms) e p95 66% menor (765 contra 2.220 ms).
-  Com uma requisição por vez, o ganho na API tinha sido de só 20 ms (seção 4.5): o índice vale mais
+  Com uma requisição por vez, o ganho na API tinha sido de só 21 ms (seção 4.5): o índice vale mais
   justamente quando o banco está ocupado.
 - Na repetição 3, com 100 VUs, o banco ficou mais lento: 27 ms de execução por consulta com o
   índice, em média, contra 0,2 ms nas outras repetições, lendo as mesmas linhas e blocos. Isso
   explica os 54% de banco executando e a variação de ±14,7% nesse nível; a instância Nano do
   Supabase tem CPU compartilhada.
+
+#### Memória
+
+A memória dos contêineres foi lida junto com a CPU: a maior leitura de cada janela de medição
+(`memory.current` do cgroup), em MB, média das repetições. A memória do servidor do banco não é
+acessível no Supabase.
+
+| Cenário | Versão | API, 10 VUs | API, 50 VUs | API, 100 VUs | API, 200 VUs | Redis (todos os níveis) |
+|---|---|---:|---:|---:|---:|---:|
+| 1. Cache | sem cache | 380 | 378 | 390 | 398 | 27 a 28 |
+| 1. Cache | cache frio | 372 | 383 | 394 | 401 | 28 a 30 |
+| 1. Cache | cache quente | 574 | 552 | 554 | 540 | 52 a 53 |
+| 2. Persistência | LAZY | – | – | – | – | 28 a 30 |
+| 2. Persistência | EAGER | 372 | 390 | 401 | 411 | 27 a 30 |
+| 2. Persistência | otimizada | 368 | 374 | 382 | 392 | 27 a 28 |
+| 2. Persistência | SQL nativo | 368 | 369 | 382 | 380 | 27 |
+| 3. Índices | sem índice | 365 | 377 | 383 | 391 | 27 |
+| 3. Índices | com índice | 366 | 377 | 381 | 394 | 27 a 29 |
+
+- A memória não foi limite em nenhum cenário. Fora do cache quente, a API ficou entre 365 e
+  411 MB, menos de 7% dos 5,8 GB da máquina virtual do Docker, e cresceu no máximo 11% de 10 para
+  200 VUs, com mais requisições em andamento ao mesmo tempo. O EAGER foi o que mais cresceu (de
+  372 para 411 MB, contra 368 a 380 MB do SQL nativo): cada requisição em andamento mantém na
+  memória objetos com as 89 colunas.
+- O Redis passou de ~27 MB, vazio, para 52 MB com as 20.000 fichas: os 25 MB das fichas (seção
+  3.3) são o custo de memória do cache.
+- No cache quente, a API ocupou de 140 a 190 MB a mais que sem cache, desde o nível de 10 VUs, e
+  a memória não cresceu com a carga. O acréscimo vem do preparo, não das requisições: para encher
+  o cache, um dos processos monta as 20.000 fichas de uma vez (`POST /api/laboratorio/cache/encher`)
+  e continua com essa memória. Medido à parte, com a API recém-recriada, esse processo passou de
+  107 para 302 MB, e o contêiner, de 348 para 544 MB.
+- No LAZY, a memória da API não foi registrada (ver as observações abaixo).
 
 #### Extra: efeito do TTL
 
@@ -886,9 +933,10 @@ observações abaixo).
   10 e 50 VUs; a vazão dessa repetição ficou dentro da faixa das outras (4.005 req/s com 10 VUs,
   entre os 3.965 e os 5.907 das repetições 3 e 2).
 - No LAZY, a API é recriada logo depois de cada execução, para descartar as requisições
-  abandonadas, e a CPU dela acabou registrada junto com a de outros contêineres: por isso a coluna
-  ficou vazia. Ela ficou em torno de 11% de um núcleo; a API passa o tempo esperando o banco. O
-  roteiro foi corrigido para ler os contêineres antes de recriar a API.
+  abandonadas. Por isso a CPU dela acabou registrada junto com a de outros contêineres, e a memória
+  não foi registrada: as duas colunas ficaram vazias. A CPU ficou em torno de 11% de um núcleo; a
+  API passa o tempo esperando o banco. O roteiro foi corrigido para ler os contêineres antes de
+  recriar a API.
 
 ## 6. Discussão
 
@@ -896,7 +944,7 @@ observações abaixo).
 ficha passou de 25 para 5.713 req/s (225 vezes) e de 2.009 para 8,6 ms de latência média, sem
 nenhuma consulta ao banco. Em seguida vem a eliminação do N+1: com 10 VUs, a página de 20
 empréstimos passou de 0,8 req/s e 10,7 s de latência média (LAZY) para 45 a 58 req/s e 0,17 a
-0,23 s com uma consulta só; com 500 empréstimos e uma requisição por vez, de 146 s para 0,15 s
+0,23 s com uma consulta só; com 500 empréstimos e uma requisição por vez, de 158 s para 0,17 s
 (seção 4.3). O índice teve o menor ganho relativo, mas foi a única otimização que tirou trabalho do
 próprio banco: 58% mais vazão com 50 VUs e um tempo de execução por consulta 33 vezes menor (de 77
 para 2,3 ms).
@@ -923,16 +971,18 @@ p95 e o p99.
 **Alguma otimização apresentou resultados inferiores aos esperados?** Sim:
 
 - a projeção (8 colunas no lugar de 89) e o SQL nativo não ganharam do EAGER sob carga: os três
-  pararam em ~75 req/s, com as mesmas latências. Eles leem 5 vezes menos dados, custam menos CPU na
-  API e um terço do tempo de execução no banco, mas o gargalo era o número de conexões vezes a
-  viagem até o banco, não o volume de dados. O ganho ficou nos recursos e não chegou ao usuário;
+  pararam em ~75 req/s, com as mesmas latências. Eles leem quase 13 vezes menos dados, custam menos
+  CPU na API e de um terço à metade do tempo de execução no banco, mas o gargalo era o número de
+  conexões vezes a viagem até o banco, não o volume de dados. Com a página de 20 empréstimos do
+  teste de carga, o ganho ficou nos recursos e não chegou ao usuário; no tempo de resposta, ele só
+  apareceu com páginas grandes (com 500 empréstimos, 167 contra 206 ms, seção 4.3);
 - o cache frio, com 9% a 14% de acertos, quase não aliviou o banco: com 10 VUs, a vazão foi a
   mesma de sem cache;
-- o índice, medido com uma requisição por vez, reduziu o histórico na API de 168 para 148 ms
-  (seção 4.5), muito menos que os 58 vezes medidos no banco, porque a viagem domina; o tamanho real
+- o índice, medido com uma requisição por vez, reduziu o histórico na API de 184 para 163 ms
+  (seção 4.5), muito menos que as 66 vezes medidas no banco, porque a viagem domina; o tamanho real
   do ganho só apareceu sob carga;
 - o `selectinload`, um EAGER sem N+1, fez 3 consultas e ficou três vezes mais lento que o JOIN
-  (449 contra 150 ms com 10 empréstimos, seção 4.3): com o banco longe, cada consulta a mais pesa.
+  (485 contra 162 ms com 10 empréstimos, seção 4.3): com o banco longe, cada consulta a mais pesa.
 
 **Quais foram os principais gargalos identificados?**
 
@@ -957,7 +1007,10 @@ req/s; de 3 consultas para nenhuma (acerto no cache), a vazão foi de 25 para 5.
 acelerar cada consulta só fez diferença quando o banco estava saturado, como no caso do índice.
 Neste ambiente, reduzir viagens valeu mais que reduzir o trabalho de cada consulta.
 
-**Quais são os possíveis custos ou riscos das otimizações adotadas?**
+**Quais são os possíveis custos ou riscos das otimizações adotadas?** Cada otimização troca um
+custo por outro (*trade-off*): o cache troca atualidade dos dados por velocidade, a projeção troca
+flexibilidade por eficiência, o SQL nativo troca portabilidade e conferência pelo ORM por
+controle, e o índice troca escrita e espaço por leitura.
 
 - *Cache*: dados desatualizados durante o TTL (seção 3.4); a invalidação precisa existir em toda
   rota que altera os dados, inclusive nas que forem criadas depois; mais um serviço para operar;
@@ -966,13 +1019,13 @@ Neste ambiente, reduzir viagens valeu mais que reduzir o trabalho de cada consul
   cache frio. Nesta implementação, se o Redis cair, as rotas com cache respondem com erro; o
   certo seria cair para o banco.
 - *EAGER no mapeamento*: vale para todas as consultas da entidade, inclusive as que não usam os
-  relacionamentos (as versões "resumo" da seção 4.3 leram 9 vezes mais dados); com coleções, o
+  relacionamentos (as versões "resumo" da seção 4.3 leram 13 vezes mais dados); com coleções, o
   JOIN multiplica as linhas da consulta principal.
 - *Projeções*: uma consulta e um formato de resposta por tela, e o resultado não é uma entidade:
   não dá para alterá-lo e salvá-lo pelo ORM. O *SQL nativo* ainda perde a conferência do ORM e a
   portabilidade entre bancos (seção 4.4).
-- *Índices*: espaço (9 MB para o índice proposto), escrita mais cara (+22% por `INSERT` com um
-  índice, +56% com três) e mais trabalho de `VACUUM`; e o plano depende da configuração do banco
+- *Índices*: espaço (9 MB para o índice proposto), escrita mais cara (+14% por `INSERT` com um
+  índice, +28% com três) e mais trabalho de `VACUUM`; e o plano depende da configuração do banco
   (`random_page_cost`), não só do índice.
 - *Tabelas largas*: toda consulta que carrega a entidade inteira paga por todas as colunas. Quanto
   mais larga a tabela, mais importa buscar só o que a resposta usa.
@@ -1008,20 +1061,22 @@ prende. Daí os principais resultados:
   o `joined` fez 1, o `selectinload` 3 e o `immediateload` 41. A regra que fica é manter o
   mapeamento LAZY e pedir o carregamento antecipado em cada consulta que precisa dele;
 - as **tabelas largas** mostraram o custo de carregar entidades inteiras: 89 colunas para usar 8. A
-  projeção leu 5 vezes menos dados e gastou menos CPU na API e no banco, mas não melhorou a
-  latência sob carga, porque o gargalo era outro. Uma otimização só chega ao usuário quando ataca
+  projeção leu quase 13 vezes menos dados e gastou menos CPU na API e no banco; com páginas de 500
+  empréstimos, respondeu em 167 ms contra 206 ms do EAGER. Sob carga, com páginas de 20, não
+  melhorou a latência, porque o gargalo era outro. Uma otimização só chega ao usuário quando ataca
   o gargalo da vez;
 - o **índice** quase não mudou uma consulta isolada, porque a viagem domina, mas sob carga tirou o
   banco da saturação: 58% mais vazão com 50 VUs. O `EXPLAIN ANALYZE` mostrou que ele é usado e
   como, e o custo de escrita mostrou por que não vale indexar todas as colunas.
 
-O principal aprendizado é o método do enunciado: identificar o problema, implementar uma
-alternativa, medir, comparar e justificar. Para afirmar que uma mudança melhorou o sistema, foi
-preciso medir as versões no mesmo ambiente, com as mesmas cargas, aquecimento e repetições; olhar
-os percentis, porque a média esconde a cauda; acompanhar os recursos (consultas, CPU, banco), e não
-só o tempo de resposta; e explicar o mecanismo por trás de cada número. Sem isso, a projeção
-pareceria inútil e o índice, irrelevante; com isso, fica claro onde cada um ajuda e qual é o
-próximo gargalo.
+**Como demonstrar, por meio de evidências, que uma mudança realmente melhorou o desempenho de um
+sistema?** É a pergunta que o enunciado deixa para o fim, e a resposta deste trabalho é o próprio
+método: identificar o problema, implementar uma alternativa, medir, comparar e justificar. Na
+prática, foi preciso medir as versões no mesmo ambiente, com as mesmas cargas, aquecimento e
+repetições; olhar os percentis, porque a média esconde a cauda; acompanhar os recursos (consultas,
+CPU, memória, banco), e não só o tempo de resposta; e explicar o mecanismo por trás de cada número.
+Sem isso, a projeção pareceria inútil e o índice, irrelevante; com isso, fica claro onde cada um
+ajuda e qual é o próximo gargalo.
 
 ## Como executar
 

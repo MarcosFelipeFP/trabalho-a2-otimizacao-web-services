@@ -134,3 +134,21 @@ Limites do k6 (p95 < 1 s, p99 < 2 s, erros < 1%) estourados em: sem índice com 
 | 600 s | 33 | 1.553 | 2.285 | 18% | 24% | ±3,5% |
 
 ![Taxa de acerto ao longo do tempo](graficos/ttl.svg)
+
+## Memória
+
+Maior leitura de memória do contêiner na janela de medição (memory.current do cgroup), em MB, média das repetições. A memória do servidor do banco não é acessível no Supabase.
+
+| cenário | versão | API com 10 VUs | API com 50 VUs | API com 100 VUs | API com 200 VUs | Redis (todos os níveis) |
+|---|---|---:|---:|---:|---:|---:|
+| Cenário 1 | sem cache | 380 | 378 | 390 | 398 | 27 a 28 |
+| Cenário 1 | cache frio | 372 | 383 | 394 | 401 | 28 a 30 |
+| Cenário 1 | cache quente | 574 | 552 | 554 | 540 | 52 a 53 |
+| Cenário 2 | LAZY | – | – | – | – | 28 a 30 |
+| Cenário 2 | EAGER | 372 | 390 | 401 | 411 | 27 a 30 |
+| Cenário 2 | otimizada | 368 | 374 | 382 | 392 | 27 a 28 |
+| Cenário 2 | SQL nativo | 368 | 369 | 382 | 380 | 27 |
+| Cenário 3 | sem índice | 365 | 377 | 383 | 391 | 27 |
+| Cenário 3 | com índice | 366 | 377 | 381 | 394 | 27 a 29 |
+
+Traço: memória não registrada nessa execução.
