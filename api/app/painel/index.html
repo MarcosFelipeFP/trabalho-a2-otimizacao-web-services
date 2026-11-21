@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biblioteca · Painel de demonstração</title>
+<link rel="stylesheet" href="painel.css">
+</head>
+<body>
+<header>
+  <div>
+    <h1>Biblioteca · Painel de demonstração</h1>
+    <p id="estado">Conectando à API…</p>
+  </div>
+  <nav>
+    <a href="/docs" target="_blank">Documentação da API (/docs)</a>
+  </nav>
+</header>
+
+<div class="abas" role="tablist">
+  <button class="aba ativa" data-aba="cache">1 · Cache</button>
+  <button class="aba" data-aba="carregamento">2 · LAZY × EAGER</button>
+  <button class="aba" data-aba="indices">3 · Índices</button>
+  <button class="aba" data-aba="carga">4 · Testes de carga</button>
+</div>
+
+<main>
+<!-- ============================================================ CACHE -->
+<section id="cache" class="painel ativo">
+  <p class="explica">A ficha do livro custa <strong>3 consultas</strong> ao banco. Com cache, a primeira leitura é uma
+    falha (<strong>MISS</strong>) e as seguintes vêm do Redis (<strong>HIT</strong>), sem consultar o banco. Alterar o
+    livro apaga a ficha do cache (invalidação), e a leitura seguinte busca a versão nova.</p>
+  <div class="controles">
+    <label>Livro <input id="livro" type="number" min="1" max="20000" value="42"></label>
+    <button id="btn-sem-cache">Ficha sem cache</button>
+    <button id="btn-com-cache" class="principal">Ficha com cache</button>
+    <span class="separador"></span>
+    <label>Novo título <input id="novo-titulo" type="text" value="Novo título"></label>
+    <button id="btn-alterar" class="alerta">Alterar título (PUT)</button>
+    <span class="separador"></span>
+    <button id="btn-restaurar">Restaurar título</button>
+    <button id="btn-esvaziar">Esvaziar cache</button>
+  </div>
+  <div class="cartao" id="cartao-cache">
+    <div class="selo" id="selo-cache">—</div>
+    <div class="metricas">
+      <div><span class="rotulo">Consultas SQL</span><span class="valor" id="m-consultas">—</span></div>
+      <div><span class="rotulo">Tempo no banco</span><span class="valor" id="m-banco">—</span></div>
+      <div><span class="rotulo">Tempo no servidor</span><span class="valor" id="m-total">—</span></div>
+      <div><span class="rotulo">TTL restante no cache</span><span class="valor" id="m-ttl">—</span></div>
+    </div>
+    <div class="detalhe" id="detalhe-cache">Clique em um dos botões acima.</div>
+  </div>
+  <h2>Histórico desta sessão</h2>
+  <table>
+    <thead><tr><th>#</th><th>Operação</th><th>Resultado</th><th class="n">Consultas SQL</th><th class="n">Tempo no banco</th><th class="n">Tempo no servidor</th><th>Título devolvido</th></tr></thead>
+    <tbody id="historico-cache"><tr class="vazio"><td colspan="7">Nenhuma requisição ainda.</td></tr></tbody>
+  </table>
+</section>
+
+<!-- ============================================================ LAZY x EAGER -->
+<section id="carregamento" class="painel">
+  <p class="explica">A mesma página de empréstimos, com o título do livro e o nome do leitor, buscada de sete jeitos.
+    No <strong>LAZY</strong>, cada livro e cada leitor é uma consulta a mais (o problema <strong>N+1</strong>). O
+    <strong>EAGER</strong> faz um JOIN, mas traz as 89 colunas; a <strong>otimizada</strong> (projeção) traz só as 8 usadas.
+    As sete devolvem exatamente o mesmo JSON.</p>
+  <div class="controles">
+    <label>Empréstimos por página
+      <select id="quantidade"><option>5</option><option>10</option><option selected>20</option><option>50</option></select>
+    </label>
+    <button id="btn-comparar" class="principal">Comparar as 7 estratégias</button>
+    <span class="aviso">O LAZY com 20 empréstimos leva uns 7 segundos: são 41 viagens até o banco.</span>
+  </div>
+  <table>
+    <thead><tr><th>Estratégia</th><th class="n">Consultas SQL</th><th class="barra-col">Consultas</th><th class="n">Tempo no banco</th><th class="n">Tempo no servidor</th><th></th></tr></thead>
+    <tbody id="tabela-estrategias"></tbody>
+  </table>
+  <div class="cartao" id="cartao-sql" hidden>
+    <h2 id="titulo-sql">SQL executado</h2>
+    <p class="detalhe" id="resumo-sql"></p>
+    <ol id="lista-sql" class="sql"></ol>
+  </div>
+</section>
+
+<!-- ============================================================ ÍNDICES -->
+<section id="indices" class="painel">
+  <p class="explica">Histórico de empréstimos de um leitor: filtro por <code>leitor_id</code>, JOIN com o livro e ordenação
+    por data. Sem índice, o banco lê a tabela inteira (<strong>Seq Scan</strong>) e ainda ordena. Com o índice
+    <code>(leitor_id, data_emprestimo DESC)</code>, ele vai direto às linhas do leitor, já na ordem (<strong>Index Scan</strong>).</p>
+  <div class="controles">
+    <label>Leitor <input id="leitor" type="number" min="1" max="10000" value="150"></label>
+    <button id="btn-explain" class="principal">EXPLAIN ANALYZE</button>
+    <button id="btn-criar-indice" class="alerta">Criar índice</button>
+    <button id="btn-remover-indice">Remover índice</button>
+    <button id="btn-historico">Histórico pela API</button>
+  </div>
+  <p class="detalhe">Índices da tabela <code>emprestimo</code>: <span id="lista-indices">—</span></p>
+  <div class="comparacao">
+    <div class="cartao" id="plano-sem"><h2>Sem o índice</h2><p class="detalhe">Rode o EXPLAIN sem o índice criado.</p></div>
+    <div class="cartao" id="plano-com"><h2>Com o índice</h2><p class="detalhe">Crie o índice e rode o EXPLAIN de novo.</p></div>
+  </div>
+  <p class="detalhe" id="resultado-historico"></p>
+</section>
+
+<!-- ============================================================ CARGA -->
+<section id="carga" class="painel">
+  <p class="explica">Os testes de carga usam o <strong>Grafana k6</strong>, que roda num contêiner e não pela página.
+    Abra um terminal na pasta do projeto, rode o comando abaixo e, enquanto o teste roda (cerca de 1 minuto), abra o
+    painel do k6.</p>
+  <div class="cartao">
+    <h2>1. Rodar o teste (cache quente, 50 usuários virtuais)</h2>
+    <pre id="comando-k6">docker compose run --rm --service-ports -e K6_WEB_DASHBOARD=true k6 run k6/cache.js -e VERSAO=com-cache-quente -e CARGAS=50</pre>
+    <button id="btn-copiar">Copiar comando</button> <span id="copiado" class="aviso"></span>
+    <h2>2. Abrir o painel do k6 enquanto o teste roda</h2>
+    <p><a class="botao principal" href="http://localhost:5665" target="_blank">Abrir o painel do k6 (localhost:5665)</a>
+      <span class="aviso">Só abre durante o teste. Se recusar, use 127.0.0.1:5665.</span></p>
+    <p class="detalhe">Depois desse teste o cache fica cheio: para repetir a demonstração do cache, use “Esvaziar cache” na aba 1.</p>
+  </div>
+  <h2>Resultados da matriz completa, com 50 usuários virtuais (README, seção 5.3)</h2>
+  <table>
+    <thead><tr><th>Cenário</th><th>Versão</th><th class="n">Latência média</th><th class="n">p95</th><th class="n">p99</th><th class="n">Vazão</th><th class="n">Erros</th><th class="n">SQL por req.</th></tr></thead>
+    <tbody>
+      <tr><td>1. Cache</td><td>sem cache</td><td class="n">2.009 ms</td><td class="n">2.888 ms</td><td class="n">5.433 ms</td><td class="n">25,4 req/s</td><td class="n">0%</td><td class="n">3</td></tr>
+      <tr><td>1. Cache</td><td>cache frio</td><td class="n">1.662 ms</td><td class="n">3.611 ms</td><td class="n">3.638 ms</td><td class="n">30,6 req/s</td><td class="n">0%</td><td class="n">2,6</td></tr>
+      <tr class="destaque"><td>1. Cache</td><td>cache quente</td><td class="n">8,6 ms</td><td class="n">18,5 ms</td><td class="n">28,9 ms</td><td class="n">5.713 req/s</td><td class="n">0%</td><td class="n">0</td></tr>
+      <tr><td>2. Persistência</td><td>LAZY</td><td class="n">22.453 ms</td><td class="n">29.729 ms</td><td class="n">30.050 ms</td><td class="n">0,8 req/s</td><td class="n">0%</td><td class="n">41</td></tr>
+      <tr><td>2. Persistência</td><td>EAGER</td><td class="n">674 ms</td><td class="n">808 ms</td><td class="n">1.217 ms</td><td class="n">75,0 req/s</td><td class="n">0%</td><td class="n">1</td></tr>
+      <tr class="destaque"><td>2. Persistência</td><td>otimizada</td><td class="n">659 ms</td><td class="n">922 ms</td><td class="n">1.140 ms</td><td class="n">76,8 req/s</td><td class="n">0%</td><td class="n">1</td></tr>
+      <tr><td>2. Persistência</td><td>SQL nativo</td><td class="n">725 ms</td><td class="n">1.115 ms</td><td class="n">1.309 ms</td><td class="n">71,1 req/s</td><td class="n">0%</td><td class="n">1</td></tr>
+      <tr><td>3. Índices</td><td>sem índice</td><td class="n">1.059 ms</td><td class="n">2.220 ms</td><td class="n">2.479 ms</td><td class="n">48,5 req/s</td><td class="n">0%</td><td class="n">1</td></tr>
+      <tr class="destaque"><td>3. Índices</td><td>com índice</td><td class="n">659 ms</td><td class="n">765 ms</td><td class="n">1.118 ms</td><td class="n">76,7 req/s</td><td class="n">0%</td><td class="n">1</td></tr>
+    </tbody>
+  </table>
+  <p class="detalhe">Média de 3 repetições. Tabelas por nível de carga e gráficos no README do repositório, seção 5.3.</p>
+</section>
+</main>
+<script src="painel.js"></script>
+</body>
+</html>

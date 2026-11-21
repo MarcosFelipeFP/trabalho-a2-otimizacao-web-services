@@ -27,8 +27,9 @@ pedido na seção 7.2 do enunciado; as instruções de execução estão em [Com
 ## 1. Introdução
 
 A aplicação é a API de uma biblioteca: catálogo de livros (com autor e categoria), leitores e
-empréstimos. Não há interface gráfica; tudo é acessado por HTTP, e a documentação interativa em
-`/docs` permite chamar cada rota pelo navegador.
+empréstimos. O enunciado não exige interface gráfica: tudo é acessado por HTTP, e a documentação
+interativa em `/docs` permite chamar cada rota pelo navegador. Para a apresentação, um painel de
+demonstração em `/painel` chama as mesmas rotas e mostra em destaque os números de cada resposta.
 
 O objetivo do trabalho é aplicar três técnicas de otimização e provar o efeito de cada uma com
 medições, seguindo a ideia central do enunciado: identificar o problema, implementar uma
@@ -150,6 +151,7 @@ As cinco tabelas, com os índices, ocupam 74 MB e cabem inteiras na memória do 
 | `POST /api/emprestimos` e `POST /api/emprestimos/{id}/devolucao` | registram empréstimo e devolução, com bloqueio da linha do livro |
 | `GET /api/leitores/{id}/emprestimos` | histórico de empréstimos do leitor (consulta do experimento de índices) |
 | `/api/laboratorio/...` | preparam e observam os experimentos: esvaziar ou encher o cache, criar e remover índices, `EXPLAIN ANALYZE`, SQL executado por uma operação, estatísticas dos comandos no banco, ida e volta até o banco |
+| `/painel/` | painel de demonstração: uma página (HTML, CSS e JavaScript, sem dependências) com os experimentos de cache, LAZY × EAGER e índices e os resultados dos testes de carga |
 
 **Instrumentação.** Um ouvinte de eventos do SQLAlchemy (`before_cursor_execute` e
 `after_cursor_execute`) conta cada comando SQL e o tempo dele, e um middleware escreve em toda
@@ -1131,7 +1133,8 @@ docker compose up -d --build
 ```
 
 A documentação interativa fica em <http://localhost:8000/docs>, onde dá para chamar todas as rotas
-sem Postman. Alguns exemplos com curl:
+sem Postman, e o painel de demonstração, em <http://localhost:8000/painel/> (a raiz,
+<http://localhost:8000>, leva até ele). Alguns exemplos com curl:
 
 ```bash
 curl -i http://localhost:8000/api/livros/42/com-cache          # X-Cache: MISS e depois HIT
@@ -1211,6 +1214,9 @@ Uma sequência de uns 7 minutos que cobre o que a 7.3 do enunciado pede, com a A
 7. **Teste de desempenho**: um cenário com o painel do k6 ao vivo em <http://localhost:5665>.
 8. **Resultados**: as tabelas e os gráficos da seção 5.3 e a discussão.
 
+Os passos 2 a 6 também podem ser feitos pelo painel (<http://localhost:8000/painel/>), uma aba por
+item, com os números de cada resposta em destaque.
+
 ```bash
 curl -s -D - -o /dev/null http://localhost:8000/api/livros/42/com-cache | grep -i -E "^(x-cache|server-timing)"
 curl -s -D - -o /dev/null -X PUT http://localhost:8000/api/livros/42 -H "Content-Type: application/json" -d '{"titulo": "Novo título"}' | grep -i x-cache-invalidado
@@ -1228,6 +1234,7 @@ api/                  Web Services (FastAPI + SQLAlchemy)
   app/rotas/          livros (cache), emprestimos (EAGER x LAZY), leitores (índice) e laboratório
   app/cache.py        cache das fichas no Redis
   app/medicao.py      contagem de comandos SQL e tempos de cada requisição
+  app/painel/         painel de demonstração (HTML, CSS e JavaScript), servido em /painel
 banco/                criação das tabelas e geração dos dados (semente fixa), executadas pelo psql
   experimentos/       índices do experimento da seção 5, para execução manual
 experimentos/         roteiros dos experimentos dos itens 1 e 2 e os resultados deles

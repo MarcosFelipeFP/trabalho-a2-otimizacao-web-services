@@ -1,9 +1,12 @@
 """Aplicação FastAPI: junta as rotas, o middleware de medição e o ciclo de vida."""
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from anyio import to_thread
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from . import config
 from .banco import engine
@@ -44,3 +47,13 @@ app.include_router(laboratorio.rotas)
 @app.get("/api/saude", tags=["Laboratório (preparo e observação dos experimentos)"], summary="A API está no ar?")
 async def saude():
     return {"status": "ok"}
+
+
+# Painel de demonstração: uma página estática (HTML, CSS e JavaScript, sem dependências) que chama as
+# rotas acima e mostra os números de cada resposta. Não faz parte do enunciado; serve para apresentar.
+app.mount("/painel", StaticFiles(directory=Path(__file__).parent / "painel", html=True), name="painel")
+
+
+@app.get("/", include_in_schema=False)
+async def inicio():
+    return RedirectResponse("/painel/")
