@@ -3,168 +3,521 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
 <title>Biblioteca · Painel de demonstração</title>
 <link rel="stylesheet" href="painel.css">
 </head>
 <body>
-<header>
-  <div>
-    <h1>Biblioteca · Painel de demonstração</h1>
-    <p id="estado">Conectando à API…</p>
+<!-- textura de tinta dos carimbos -->
+<svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+  <filter id="tinta" x="-5%" y="-5%" width="110%" height="110%">
+    <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="4" result="ruido"/>
+    <feColorMatrix in="ruido" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -2.4 0 0 0 1.9" result="falhas"/>
+    <feComposite in="SourceGraphic" in2="falhas" operator="in"/>
+  </filter>
+</svg>
+
+<a class="pular" href="#conteudo">Ir para o conteúdo</a>
+
+<div class="app">
+<aside class="trilho">
+  <div class="marca">
+    <span class="marca-nome">Biblioteca</span>
+    <span class="marca-sub">Otimização de Web Services · Trabalho A2</span>
   </div>
-  <nav>
-    <a href="/docs" target="_blank">Documentação da API (/docs)</a>
+
+  <nav class="sumario" aria-label="Seções do painel">
+    <a href="#visao" data-secao="visao"><span class="ref">§2</span><span class="nome">Visão geral</span></a>
+    <a href="#cache" data-secao="cache"><span class="ref">§3</span><span class="nome">Cache</span><span class="item">item 1</span></a>
+    <a href="#carregamento" data-secao="carregamento"><span class="ref">§4</span><span class="nome">LAZY × EAGER</span><span class="item">item 2</span></a>
+    <a href="#indices" data-secao="indices"><span class="ref">§5</span><span class="nome">Índices</span><span class="item">item 2</span></a>
+    <a href="#carga" data-secao="carga"><span class="ref">§6</span><span class="nome">Testes de carga</span><span class="item">item 3</span></a>
+    <a href="#resultados" data-secao="resultados"><span class="ref">§6.6</span><span class="nome">Resultados e conclusões</span></a>
   </nav>
-</header>
 
-<div class="abas" role="tablist">
-  <button class="aba ativa" data-aba="cache">1 · Cache</button>
-  <button class="aba" data-aba="carregamento">2 · LAZY × EAGER</button>
-  <button class="aba" data-aba="indices">3 · Índices</button>
-  <button class="aba" data-aba="carga">4 · Testes de carga</button>
-</div>
-
-<main>
-<!-- ============================================================ CACHE -->
-<section id="cache" class="painel ativo">
-  <p class="explica">A ficha do livro custa <strong>3 consultas</strong> ao banco. Com cache, a primeira leitura é uma
-    falha (<strong>MISS</strong>) e as seguintes vêm do Redis (<strong>HIT</strong>), sem consultar o banco. Alterar o
-    livro apaga a ficha do cache (invalidação), e a leitura seguinte busca a versão nova.</p>
-  <div class="controles">
-    <label>Livro <input id="livro" type="number" min="1" max="20000" value="42"></label>
-    <button id="btn-sem-cache">Ficha sem cache</button>
-    <button id="btn-com-cache" class="principal">Ficha com cache</button>
-    <span class="separador"></span>
-    <label>Novo título <input id="novo-titulo" type="text" value="Novo título"></label>
-    <button id="btn-alterar" class="alerta">Alterar título (PUT)</button>
-    <span class="separador"></span>
-    <button id="btn-restaurar">Restaurar título</button>
-    <button id="btn-esvaziar">Esvaziar cache</button>
+  <div class="instrumentos" id="estado" aria-live="polite">
+    <p class="luz-linha"><span class="luz" id="luz"></span><span id="estado-titulo">Conectando à API…</span></p>
+    <dl id="estado-lista"></dl>
   </div>
-  <div class="cartao" id="cartao-cache">
-    <div class="selo" id="selo-cache">—</div>
-    <div class="metricas">
-      <div><span class="rotulo">Consultas SQL</span><span class="valor" id="m-consultas">—</span></div>
-      <div><span class="rotulo">Tempo no banco</span><span class="valor" id="m-banco">—</span></div>
-      <div><span class="rotulo">Tempo no servidor</span><span class="valor" id="m-total">—</span></div>
-      <div><span class="rotulo">TTL restante no cache</span><span class="valor" id="m-ttl">—</span></div>
+
+  <a class="docs" href="/docs" target="_blank" rel="noopener">Documentação da API (/docs) <span aria-hidden="true">↗</span></a>
+</aside>
+
+<main id="conteudo" tabindex="-1">
+
+<!-- ============================================================ VISÃO GERAL -->
+<section id="visao" class="secao" aria-labelledby="t-visao">
+  <header class="cabeca">
+    <p class="sobrancelha">Visão geral · seções 2 e 7.3 do enunciado</p>
+    <h1 id="t-visao">Uma API de biblioteca, medida de verdade</h1>
+    <p class="lide">Cada botão deste painel chama a API REST e mostra o que ela devolve nos cabeçalhos: quantos comandos SQL
+      a requisição executou, quanto tempo ficou no banco e se a resposta veio do cache. A barra no rodapé mostra cada
+      chamada HTTP, com o método, a rota, o status e esses cabeçalhos.</p>
+  </header>
+
+  <section class="bloco" aria-labelledby="t-arquitetura">
+    <h2 id="t-arquitetura">Arquitetura</h2>
+    <div class="arquitetura">
+      <div class="no no-cliente" style="grid-area: nav">
+        <span class="no-lugar">nesta máquina</span>
+        <strong>Navegador</strong>
+        <span>este painel, /docs, curl</span>
+      </div>
+      <div class="no no-cliente" style="grid-area: k6">
+        <span class="no-lugar">contêiner</span>
+        <strong>Grafana k6</strong>
+        <span>testes de carga, na rede da API</span>
+      </div>
+      <div class="seta" style="grid-area: s1"><span>HTTP</span></div>
+      <div class="seta seta-2" style="grid-area: s2"><span>HTTP</span></div>
+      <div class="no no-api" style="grid-area: api">
+        <span class="no-lugar">contêiner</span>
+        <strong>API REST</strong>
+        <span>FastAPI + uvicorn</span>
+        <span id="arq-processos">4 processos × 3 conexões com o banco</span>
+        <span>SQLAlchemy 2.1 (ORM) + psycopg 3</span>
+      </div>
+      <div class="seta" style="grid-area: s3"><span>redis-py</span></div>
+      <div class="seta seta-longe" style="grid-area: s4"><span>SQL · ~155 ms por viagem</span></div>
+      <div class="no no-cache" style="grid-area: redis">
+        <span class="no-lugar">contêiner</span>
+        <strong>Redis <span id="arq-redis"></span></strong>
+        <span id="arq-ttl">fichas dos livros, TTL de 600 s</span>
+      </div>
+      <div class="no no-banco" style="grid-area: pg">
+        <span class="no-lugar">nuvem · Supabase, Ohio (EUA)</span>
+        <strong>PostgreSQL <span id="arq-pg"></span></strong>
+        <span>pelo pooler do Supabase</span>
+      </div>
     </div>
-    <div class="detalhe" id="detalhe-cache">Clique em um dos botões acima.</div>
-  </div>
-  <h2>Histórico desta sessão</h2>
-  <table>
-    <thead><tr><th>#</th><th>Operação</th><th>Resultado</th><th class="n">Consultas SQL</th><th class="n">Tempo no banco</th><th class="n">Tempo no servidor</th><th>Título devolvido</th></tr></thead>
-    <tbody id="historico-cache"><tr class="vazio"><td colspan="7">Nenhuma requisição ainda.</td></tr></tbody>
-  </table>
-  <h2>Em volume: muitas leituras seguidas</h2>
-  <p class="explica">Uma leitura só esconde o ganho. Aqui a mesma sequência de leituras roda duas vezes, sem cache e com
-    cache (que começa vazio), com 6 requisições ao mesmo tempo, como um navegador.</p>
+    <p class="nota">Com o banco a ~155 ms de distância, o tempo de uma requisição é quase todo o número de viagens até o
+      banco. Por isso as três otimizações atacam o número de consultas e o trabalho de cada uma.</p>
+  </section>
+
+  <section class="bloco" aria-labelledby="t-dados">
+    <h2 id="t-dados">Entidades e volume de dados</h2>
+    <div class="entidades">
+      <div class="tabela-no" style="grid-area: cat"><code>categoria</code><span class="qtd" data-tabela="categoria">20</span><span>2 colunas · gêneros</span></div>
+      <div class="rel rel-h" style="grid-area: r1"><span>1 : N</span></div>
+      <div class="tabela-no" style="grid-area: liv"><code>livro</code><span class="qtd" data-tabela="livro">20.000</span><span>47 colunas · a ficha catalográfica inteira</span></div>
+      <div class="rel rel-h rel-volta" style="grid-area: r2"><span>N : 1</span></div>
+      <div class="tabela-no" style="grid-area: aut"><code>autor</code><span class="qtd" data-tabela="autor">5.000</span><span>9 colunas · nome, biografia, prêmios</span></div>
+      <div class="rel rel-v" style="grid-area: r3"><span>1 : N</span></div>
+      <div class="tabela-no" style="grid-area: lei"><code>leitor</code><span class="qtd" data-tabela="leitor">10.000</span><span>28 colunas · o cadastro completo</span></div>
+      <div class="rel rel-h" style="grid-area: r4"><span>1 : N</span></div>
+      <div class="tabela-no tabela-principal" style="grid-area: emp"><code>emprestimo</code><span class="qtd" data-tabela="emprestimo">300.000</span><span>14 colunas · entidade principal</span></div>
+      <div class="entidades-resumo" style="grid-area: res" id="resumo-dados">
+        <span>74 MB nas cinco tabelas, com os índices</span>
+      </div>
+    </div>
+    <p class="nota">Tabelas largas de propósito: a listagem de empréstimos usa 8 colunas, mas carregar as entidades
+      inteiras traz 89. Os números acima vêm do banco agora (seção 6.5: registrar a quantidade de dados).</p>
+  </section>
+
+  <section class="bloco" aria-labelledby="t-metodo">
+    <h2 id="t-metodo">O método de cada seção</h2>
+    <ol class="metodo-geral">
+      <li><span>Identificar o problema</span></li>
+      <li><span>Implementar uma alternativa</span></li>
+      <li><span>Medir o desempenho</span></li>
+      <li><span>Comparar os resultados</span></li>
+      <li><span>Justificar as conclusões</span></li>
+    </ol>
+    <p class="nota">A ideia central do enunciado. Em cada seção, o problema e a alternativa estão no topo; os botões medem
+      e comparam; a frase do resultado justifica com os números medidos.</p>
+    <div class="cabecalhos">
+      <div><code>X-Consultas-SQL</code><span>comandos SQL que a requisição executou, contados por um ouvinte de eventos do SQLAlchemy</span></div>
+      <div><code>Server-Timing</code><span><b>banco</b>: tempo nos comandos SQL; <b>total</b>: tempo da requisição no servidor</span></div>
+      <div><code>X-Cache</code><span><b>HIT</b>: a ficha veio do Redis; <b>MISS</b>: veio do banco e foi guardada</span></div>
+    </div>
+  </section>
+</section>
+
+<!-- ============================================================ CACHE -->
+<section id="cache" class="secao" aria-labelledby="t-cache" hidden>
+  <header class="cabeca">
+    <p class="sobrancelha">Item 1 · seção 3 do enunciado</p>
+    <h1 id="t-cache">Cache da ficha do livro</h1>
+  </header>
+  <dl class="metodo">
+    <div class="problema"><dt>Problema</dt><dd>A ficha do livro custa 3 consultas. Com o banco a ~155 ms, cada leitura leva quase meio segundo.</dd></div>
+    <div class="alternativa"><dt>Alternativa</dt><dd>Guardar a ficha no Redis (cache-aside) por 600 s. Alterar o livro pela API apaga a ficha depois do commit.</dd></div>
+    <div class="evidencia"><dt>Evidência</dt><dd><code>X-Cache</code>, <code>X-Consultas-SQL</code> e o horário em que a ficha foi montada.</dd></div>
+  </dl>
+
   <div class="controles">
-    <label>Leituras <select id="vol-cache-n"><option>50</option><option selected>100</option><option>200</option></select></label>
-    <label>Livros diferentes <select id="vol-cache-livros"><option>1</option><option selected>10</option><option>50</option></select></label>
-    <button id="btn-vol-cache" class="principal">Comparar sem cache × com cache</button>
-    <span class="aviso" id="prog-cache"></span>
+    <label class="campo">Livro <input id="livro" type="number" min="1" max="20000" value="42"></label>
+    <button id="btn-esvaziar" class="botao">Esvaziar o cache</button>
+    <button id="btn-com-cache" class="botao principal">Ler com cache</button>
+    <button id="btn-sem-cache" class="botao">Ler sem cache</button>
   </div>
-  <div id="vol-cache"></div>
+  <div class="controles">
+    <label class="campo">Novo título <input id="novo-titulo" type="text" value="Novo título"></label>
+    <button id="btn-alterar" class="botao escrita">Alterar pela API (PUT)</button>
+    <button id="btn-restaurar" class="botao">Restaurar o título</button>
+  </div>
+
+  <div class="bancada">
+    <figure class="ficha" aria-labelledby="ficha-legenda">
+      <div class="ficha-papel">
+        <p class="ficha-chamada" id="ficha-chamada"><span>Livro —</span><span></span></p>
+        <p class="ficha-autor" id="ficha-autor">Leia a ficha de um livro.</p>
+        <p class="ficha-titulo" id="ficha-titulo">A primeira leitura com cache é uma falha (MISS); a segunda vem do Redis (HIT).</p>
+        <p class="ficha-imprenta" id="ficha-imprenta"></p>
+        <p class="ficha-notas" id="ficha-notas"></p>
+        <p class="ficha-gerada" id="ficha-gerada"></p>
+      </div>
+      <div class="carimbos" id="carimbos" aria-live="polite"></div>
+      <figcaption id="ficha-legenda" class="visualmente-oculto">Ficha do livro devolvida pela API</figcaption>
+    </figure>
+
+    <div class="medicao">
+      <div class="leituras">
+        <div class="leitura"><span class="rotulo">Consultas SQL</span><span class="valor" id="m-consultas">—</span></div>
+        <div class="leitura"><span class="rotulo">Tempo no banco</span><span class="valor" id="m-banco">—</span></div>
+        <div class="leitura"><span class="rotulo">Tempo no servidor</span><span class="valor" id="m-total">—</span></div>
+      </div>
+      <div class="ttl">
+        <div class="ttl-topo"><span class="rotulo">Tempo de vida no cache (TTL)</span><span class="ttl-valor" id="m-ttl">—</span></div>
+        <div class="medidor" role="img" aria-labelledby="ttl-nota"><div class="medidor-fill" id="ttl-barra"></div></div>
+        <p class="ttl-nota" id="ttl-nota">A ficha ainda não foi lida.</p>
+      </div>
+      <p class="detalhe" id="detalhe-cache">Comece pelo cache vazio: clique em “Esvaziar o cache” e depois em “Ler com cache” duas vezes.</p>
+    </div>
+  </div>
+
+  <section class="bloco" aria-labelledby="t-exp">
+    <div class="bloco-topo">
+      <h2 id="t-exp">Experimento obrigatório da seção 3.4</h2>
+      <button id="btn-recomecar" class="botao discreto">Recomeçar a marcação</button>
+    </div>
+    <p class="nota">Os cinco passos do enunciado, com o livro acima. Cada passo é marcado quando a resposta da API mostra o
+      comportamento esperado.</p>
+    <ol class="passos" id="passos">
+      <li data-passo="1"><span class="passo-n">1</span><div><strong>Consultar e registrar o comportamento do cache</strong>
+        <span class="prova">Com o cache vazio, “Ler com cache”: MISS, 3 consultas.</span></div></li>
+      <li data-passo="2"><span class="passo-n">2</span><div><strong>Repetir a consulta: houve reaproveitamento?</strong>
+        <span class="prova">“Ler com cache” de novo: HIT, nenhuma consulta, a mesma ficha.</span></div></li>
+      <li data-passo="3"><span class="passo-n">3</span><div><strong>Modificar a informação por uma operação da aplicação</strong>
+        <span class="prova">“Alterar pela API (PUT)”: a API apaga a ficha do cache.</span></div></li>
+      <li data-passo="4"><span class="passo-n">4</span><div><strong>Consultar de novo: a informação veio atualizada?</strong>
+        <span class="prova">“Ler com cache”: MISS, já com o título novo.</span></div></li>
+      <li data-passo="5"><span class="passo-n">5</span><div><strong>Demonstrar a expiração (TTL) e o risco do dado desatualizado</strong>
+        <span class="prova">Com a ficha no cache, altere por fora da API e leia com cache: HIT com o título antigo. Encurte
+          o TTL e, quando ele acabar, leia de novo: MISS com o título do banco.</span>
+        <span class="acoes-passo">
+          <button id="btn-por-fora" class="botao escrita">Alterar direto no banco</button>
+          <button id="btn-encurtar" class="botao">Encurtar o TTL para 15 s</button>
+        </span></div></li>
+    </ol>
+  </section>
+
+  <section class="bloco" aria-labelledby="t-volatil">
+    <h2 id="t-volatil">O que não vai para o cache</h2>
+    <div class="volatil">
+      <p>A <strong>disponibilidade</strong> muda a cada empréstimo e devolução. Um valor guardado deixaria emprestar um
+        livro que já saiu, por isso ela é sempre lida do banco (seção 3.1: volatilidade e consequências do dado
+        desatualizado).</p>
+      <button id="btn-disponibilidade" class="botao">Ver a disponibilidade</button>
+    </div>
+    <p class="resultado-linha" id="disponibilidade"></p>
+  </section>
+
+  <section class="bloco" aria-labelledby="t-hist">
+    <h2 id="t-hist">Histórico desta sessão</h2>
+    <div class="rolagem">
+      <table>
+        <thead><tr><th class="n">#</th><th>Operação</th><th>Resultado</th><th class="n">Consultas SQL</th><th class="n">Tempo no banco</th><th class="n">Tempo no servidor</th><th>Título devolvido</th></tr></thead>
+        <tbody id="historico-cache"><tr class="vazio"><td colspan="7">Nenhuma requisição ainda.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="bloco volume" aria-labelledby="t-vol-cache">
+    <h2 id="t-vol-cache">Em volume: muitas leituras seguidas</h2>
+    <p class="nota">Uma leitura só esconde o ganho. Aqui as mesmas leituras rodam duas vezes, sem cache e com cache
+      (começando vazio), 6 de cada vez, como um navegador. A tabela traz as métricas da seção 6.4.</p>
+    <div class="controles">
+      <label class="campo">Leituras <select id="vol-cache-n"><option>50</option><option selected>100</option><option>200</option></select></label>
+      <label class="campo">Livros diferentes <select id="vol-cache-livros"><option>1</option><option selected>10</option><option>50</option></select></label>
+      <button id="btn-vol-cache" class="botao principal">Comparar sem cache × com cache</button>
+      <span class="progresso" id="prog-cache" aria-live="polite"></span>
+    </div>
+    <div id="vol-cache"></div>
+  </section>
 </section>
 
 <!-- ============================================================ LAZY x EAGER -->
-<section id="carregamento" class="painel">
-  <p class="explica">A mesma página de empréstimos, com o título do livro e o nome do leitor, buscada de sete jeitos.
-    No <strong>LAZY</strong>, cada livro e cada leitor é uma consulta a mais (o problema <strong>N+1</strong>). O
-    <strong>EAGER</strong> faz um JOIN, mas traz as 89 colunas; a <strong>otimizada</strong> (projeção) traz só as 8 usadas.
-    As sete devolvem exatamente o mesmo JSON.</p>
+<section id="carregamento" class="secao" aria-labelledby="t-carregamento" hidden>
+  <header class="cabeca">
+    <p class="sobrancelha">Item 2 · seção 4 do enunciado</p>
+    <h1 id="t-carregamento">LAZY, EAGER e a consulta otimizada</h1>
+  </header>
+  <dl class="metodo">
+    <div class="problema"><dt>Problema</dt><dd>A página de empréstimos mostra o título do livro e o nome do leitor. Com LAZY, cada um vira uma consulta a mais: o N+1.</dd></div>
+    <div class="alternativa"><dt>Alternativa</dt><dd>EAGER com JOIN, JOIN FETCH na consulta e a projeção, que traz só as 8 colunas usadas. SQL nativo para comparar.</dd></div>
+    <div class="evidencia"><dt>Evidência</dt><dd>Consultas SQL por requisição, tempo no banco e bytes lidos do banco. As sete devolvem o mesmo JSON.</dd></div>
+  </dl>
+
   <div class="controles">
-    <label>Empréstimos por página
+    <label class="campo">Empréstimos por página
       <select id="quantidade"><option>5</option><option>10</option><option selected>20</option><option>50</option></select>
     </label>
-    <button id="btn-comparar" class="principal">Comparar as 7 estratégias</button>
-    <span class="aviso">O LAZY com 20 empréstimos leva uns 7 segundos: são 41 viagens até o banco.</span>
+    <button id="btn-comparar" class="botao principal">Comparar as 7 estratégias</button>
+    <span class="progresso">O LAZY com 20 empréstimos leva uns 7 s: são 41 viagens até o banco.</span>
   </div>
-  <table>
-    <thead><tr><th>Estratégia</th><th class="n">Consultas SQL</th><th class="barra-col">Consultas</th><th class="n">Tempo no banco</th><th class="n">Tempo no servidor</th><th></th></tr></thead>
-    <tbody id="tabela-estrategias"></tbody>
-  </table>
-  <h2>Em volume: várias páginas seguidas</h2>
-  <p class="explica">Várias páginas pedidas em sequência, 6 ao mesmo tempo. Com 20 por página, aparece o N+1 do LAZY. Com
-    100 ou 500 por página, o LAZY fica de fora (levaria minutos) e aparece o custo das 89 colunas do EAGER contra as 8 da
-    otimizada, no tempo e nos dados lidos do banco.</p>
-  <div class="controles">
-    <label>Páginas <select id="vol-emp-n"><option>5</option><option selected>10</option><option>20</option></select></label>
-    <label>Empréstimos por página <select id="vol-emp-q"><option selected>20</option><option>100</option><option>500</option></select></label>
-    <button id="btn-vol-emp" class="principal">Comparar em volume</button>
-    <span class="aviso" id="prog-emp"></span>
+
+  <div class="rolagem">
+    <table class="estrategias">
+      <thead><tr><th>Estratégia</th><th class="n">Consultas SQL</th><th class="col-marcas">Uma marca por consulta</th><th class="n">Tempo no banco</th><th class="n">Tempo no servidor</th><th><span class="visualmente-oculto">SQL</span></th></tr></thead>
+      <tbody id="tabela-estrategias"></tbody>
+    </table>
   </div>
-  <div id="vol-emp"></div>
-  <div class="cartao" id="cartao-sql" hidden>
+  <p class="frase" id="conclusao-estrategias" hidden></p>
+
+  <div class="cartao sql" id="cartao-sql" hidden>
     <h2 id="titulo-sql">SQL executado</h2>
     <p class="detalhe" id="resumo-sql"></p>
-    <ol id="lista-sql" class="sql"></ol>
+    <ol id="lista-sql" class="lista-sql"></ol>
   </div>
+
+  <section class="bloco volume" aria-labelledby="t-vol-emp">
+    <h2 id="t-vol-emp">Em volume: várias páginas seguidas</h2>
+    <p class="nota">Várias páginas em sequência, 6 ao mesmo tempo. Com 20 por página aparece o N+1 do LAZY. Com 100 ou 500,
+      o LAZY fica de fora (levaria minutos) e aparece o custo das 89 colunas do EAGER contra as 8 da otimizada, no tempo e
+      nos dados lidos do banco (seção 4.3: diferentes quantidades de registros e volume de informações recuperadas).</p>
+    <div class="controles">
+      <label class="campo">Páginas <select id="vol-emp-n"><option>5</option><option selected>10</option><option>20</option></select></label>
+      <label class="campo">Empréstimos por página <select id="vol-emp-q"><option selected>20</option><option>100</option><option>500</option></select></label>
+      <button id="btn-vol-emp" class="botao principal">Comparar em volume</button>
+      <span class="progresso" id="prog-emp" aria-live="polite"></span>
+    </div>
+    <div id="vol-emp"></div>
+  </section>
 </section>
 
 <!-- ============================================================ ÍNDICES -->
-<section id="indices" class="painel">
-  <p class="explica">Histórico de empréstimos de um leitor: filtro por <code>leitor_id</code>, JOIN com o livro e ordenação
-    por data. Sem índice, o banco lê a tabela inteira (<strong>Seq Scan</strong>) e ainda ordena. Com o índice
-    <code>(leitor_id, data_emprestimo DESC)</code>, ele vai direto às linhas do leitor, já na ordem (<strong>Index Scan</strong>).</p>
+<section id="indices" class="secao" aria-labelledby="t-indices" hidden>
+  <header class="cabeca">
+    <p class="sobrancelha">Item 2 · seção 5 do enunciado</p>
+    <h1 id="t-indices">Índice no histórico do leitor</h1>
+  </header>
+  <dl class="metodo">
+    <div class="problema"><dt>Problema</dt><dd>O histórico filtra 300 mil empréstimos por <code>leitor_id</code>, faz JOIN com o livro e ordena por data. Sem índice, o banco lê a tabela inteira.</dd></div>
+    <div class="alternativa"><dt>Alternativa</dt><dd><code>CREATE INDEX idx_emprestimo_leitor_data ON emprestimo (leitor_id, data_emprestimo DESC)</code></dd></div>
+    <div class="evidencia"><dt>Evidência</dt><dd><code>EXPLAIN ANALYZE</code>: tipo de varredura, linhas examinadas, blocos lidos, ordenação e tempo de execução.</dd></div>
+  </dl>
+
   <div class="controles">
-    <label>Leitor <input id="leitor" type="number" min="1" max="10000" value="150"></label>
-    <button id="btn-explain" class="principal">EXPLAIN ANALYZE</button>
-    <button id="btn-criar-indice" class="alerta">Criar índice</button>
-    <button id="btn-remover-indice">Remover índice</button>
-    <button id="btn-historico">Histórico pela API</button>
+    <label class="campo">Leitor <input id="leitor" type="number" min="1" max="10000" value="150"></label>
+    <button id="btn-explain" class="botao principal">Rodar EXPLAIN ANALYZE</button>
+    <button id="btn-criar-indice" class="botao escrita">Criar o índice</button>
+    <button id="btn-remover-indice" class="botao">Remover o índice</button>
+    <button id="btn-historico" class="botao">Ler o histórico pela API</button>
   </div>
-  <p class="detalhe">Índices da tabela <code>emprestimo</code>: <span id="lista-indices">—</span></p>
+  <p class="indices-linha">Índices da tabela <code>emprestimo</code> agora: <span id="lista-indices">—</span></p>
+
   <div class="comparacao">
-    <div class="cartao" id="plano-sem"><h2>Sem o índice</h2><p class="detalhe">Rode o EXPLAIN sem o índice criado.</p></div>
-    <div class="cartao" id="plano-com"><h2>Com o índice</h2><p class="detalhe">Crie o índice e rode o EXPLAIN de novo.</p></div>
+    <div class="cartao plano-cartao" id="plano-sem"><h2>Sem o índice</h2><p class="detalhe">Rode o EXPLAIN ANALYZE sem o índice criado.</p></div>
+    <div class="cartao plano-cartao" id="plano-com"><h2>Com o índice</h2><p class="detalhe">Crie o índice e rode o EXPLAIN ANALYZE de novo.</p></div>
   </div>
-  <p class="detalhe" id="resultado-historico"></p>
-  <h2>Em volume: muitos leitores</h2>
-  <p class="explica">O EXPLAIN ANALYZE do histórico de muitos leitores diferentes, sem e com o índice (o painel cria e
-    remove o índice sozinho). A soma do tempo de execução mostra quanto trabalho o banco faz em cada caso: é esse
-    trabalho que, sob carga, limita a vazão.</p>
-  <div class="controles">
-    <label>Leitores <select id="vol-idx-n"><option>20</option><option selected>50</option><option>100</option></select></label>
-    <button id="btn-vol-idx" class="principal">Comparar sem índice × com índice</button>
-    <span class="aviso" id="prog-idx"></span>
-  </div>
-  <div id="vol-idx"></div>
+  <div id="comparativo-indice"></div>
+  <p class="resultado-linha" id="resultado-historico"></p>
+
+  <section class="bloco" aria-labelledby="t-custo">
+    <h2 id="t-custo">O custo de manter o índice</h2>
+    <div class="custo">
+      <p>Espaço e escrita (seção 5.4). Todo <code>INSERT</code> em <code>emprestimo</code> atualiza cada índice da tabela.
+        Medido com 20.000 empréstimos inseridos numa transação desfeita no fim (README, seção 4.5):</p>
+      <div class="rolagem">
+        <table>
+          <thead><tr><th>Índices extras em <code>emprestimo</code></th><th class="n">Tamanho dos índices</th><th class="n">Inserir 20.000</th><th class="n">Por linha</th></tr></thead>
+          <tbody>
+            <tr><td>nenhum (só a chave primária e <code>livro_id</code>)</td><td class="n">8,9 MB</td><td class="n">655 ms</td><td class="n">32,8 µs</td></tr>
+            <tr><td><code>(leitor_id, data_emprestimo DESC)</code></td><td class="n">17,9 MB</td><td class="n">749 ms</td><td class="n">37,5 µs <span class="delta perda">+14%</span></td></tr>
+            <tr><td>os três índices do experimento</td><td class="n">20,1 MB</td><td class="n">837 ms</td><td class="n">41,9 µs <span class="delta perda">+28%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="nota">Por isso indexar todas as colunas consultadas não compensa: cada índice só ajuda as consultas que
+        filtram ou ordenam pelas colunas dele, e todos encarecem as escritas.</p>
+    </div>
+  </section>
+
+  <section class="bloco volume" aria-labelledby="t-vol-idx">
+    <h2 id="t-vol-idx">Em volume: muitos leitores</h2>
+    <p class="nota">O EXPLAIN ANALYZE do histórico de muitos leitores diferentes, sem e com o índice (o painel cria e remove
+      o índice sozinho). A soma do tempo de execução mostra quanto trabalho o banco faz em cada caso: é esse trabalho que,
+      sob carga, limita a vazão.</p>
+    <div class="controles">
+      <label class="campo">Leitores <select id="vol-idx-n"><option>20</option><option selected>50</option><option>100</option></select></label>
+      <button id="btn-vol-idx" class="botao principal">Comparar sem índice × com índice</button>
+      <span class="progresso" id="prog-idx" aria-live="polite"></span>
+    </div>
+    <div id="vol-idx"></div>
+  </section>
 </section>
 
 <!-- ============================================================ CARGA -->
-<section id="carga" class="painel">
-  <p class="explica">Os testes de carga usam o <strong>Grafana k6</strong>, que roda num contêiner e não pela página.
-    Abra um terminal na pasta do projeto, rode o comando abaixo e, enquanto o teste roda (cerca de 1 minuto), abra o
-    painel do k6.</p>
-  <div class="cartao">
-    <h2>1. Rodar o teste (cache quente, 50 usuários virtuais)</h2>
-    <pre id="comando-k6">docker compose run --rm --service-ports -e K6_WEB_DASHBOARD=true k6 run k6/cache.js -e VERSAO=com-cache-quente -e CARGAS=50</pre>
-    <button id="btn-copiar">Copiar comando</button> <span id="copiado" class="aviso"></span>
-    <h2>2. Abrir o painel do k6 enquanto o teste roda</h2>
-    <p><a class="botao principal" href="http://localhost:5665" target="_blank">Abrir o painel do k6 (localhost:5665)</a>
-      <span class="aviso">Só abre durante o teste. Se recusar, use 127.0.0.1:5665.</span></p>
-    <p class="detalhe">Depois desse teste o cache fica cheio: para repetir a demonstração do cache, use “Esvaziar cache” na aba 1.</p>
-  </div>
-  <h2>Resultados da matriz completa, com 50 usuários virtuais (README, seção 5.3)</h2>
-  <table>
-    <thead><tr><th>Cenário</th><th>Versão</th><th class="n">Latência média</th><th class="n">p95</th><th class="n">p99</th><th class="n">Vazão</th><th class="n">Erros</th><th class="n">SQL por req.</th></tr></thead>
-    <tbody>
-      <tr><td>1. Cache</td><td>sem cache</td><td class="n">2.009 ms</td><td class="n">2.888 ms</td><td class="n">5.433 ms</td><td class="n">25,4 req/s</td><td class="n">0%</td><td class="n">3</td></tr>
-      <tr><td>1. Cache</td><td>cache frio</td><td class="n">1.662 ms</td><td class="n">3.611 ms</td><td class="n">3.638 ms</td><td class="n">30,6 req/s</td><td class="n">0%</td><td class="n">2,6</td></tr>
-      <tr class="destaque"><td>1. Cache</td><td>cache quente</td><td class="n">8,6 ms</td><td class="n">18,5 ms</td><td class="n">28,9 ms</td><td class="n">5.713 req/s</td><td class="n">0%</td><td class="n">0</td></tr>
-      <tr><td>2. Persistência</td><td>LAZY</td><td class="n">22.453 ms</td><td class="n">29.729 ms</td><td class="n">30.050 ms</td><td class="n">0,8 req/s</td><td class="n">0%</td><td class="n">41</td></tr>
-      <tr><td>2. Persistência</td><td>EAGER</td><td class="n">674 ms</td><td class="n">808 ms</td><td class="n">1.217 ms</td><td class="n">75,0 req/s</td><td class="n">0%</td><td class="n">1</td></tr>
-      <tr class="destaque"><td>2. Persistência</td><td>otimizada</td><td class="n">659 ms</td><td class="n">922 ms</td><td class="n">1.140 ms</td><td class="n">76,8 req/s</td><td class="n">0%</td><td class="n">1</td></tr>
-      <tr><td>2. Persistência</td><td>SQL nativo</td><td class="n">725 ms</td><td class="n">1.115 ms</td><td class="n">1.309 ms</td><td class="n">71,1 req/s</td><td class="n">0%</td><td class="n">1</td></tr>
-      <tr><td>3. Índices</td><td>sem índice</td><td class="n">1.059 ms</td><td class="n">2.220 ms</td><td class="n">2.479 ms</td><td class="n">48,5 req/s</td><td class="n">0%</td><td class="n">1</td></tr>
-      <tr class="destaque"><td>3. Índices</td><td>com índice</td><td class="n">659 ms</td><td class="n">765 ms</td><td class="n">1.118 ms</td><td class="n">76,7 req/s</td><td class="n">0%</td><td class="n">1</td></tr>
-    </tbody>
-  </table>
-  <p class="detalhe">Média de 3 repetições. Tabelas por nível de carga e gráficos no README do repositório, seção 5.3.</p>
+<section id="carga" class="secao" aria-labelledby="t-carga" hidden>
+  <header class="cabeca">
+    <p class="sobrancelha">Item 3 · seção 6 do enunciado</p>
+    <h1 id="t-carga">Testes de carga com o Grafana k6</h1>
+  </header>
+  <dl class="metodo">
+    <div class="problema"><dt>Problema</dt><dd>Uma requisição por vez não mostra o gargalo: ele aparece com muitos usuários ao mesmo tempo.</dd></div>
+    <div class="alternativa"><dt>Alternativa</dt><dd>O k6 simula 10, 50, 100 e 200 usuários virtuais (VUs), com a mesma carga para cada versão.</dd></div>
+    <div class="evidencia"><dt>Evidência</dt><dd>Latência média, p95 e p99, vazão (req/s) e taxa de erros, as métricas da seção 6.4.</dd></div>
+  </dl>
+
+  <ol class="etapas">
+    <li>
+      <h2>Escolha o cenário</h2>
+      <div class="segmentos" role="radiogroup" aria-label="Cenário do teste" id="cenario-k6">
+        <button role="radio" aria-checked="true" data-cenario="cache">Cache quente</button>
+        <button role="radio" aria-checked="false" data-cenario="persistencia">Consulta otimizada</button>
+        <button role="radio" aria-checked="false" data-cenario="indice">Com o índice</button>
+      </div>
+      <p class="nota" id="cenario-nota"></p>
+    </li>
+    <li>
+      <h2>Rode o teste no terminal, na pasta do projeto</h2>
+      <pre class="terminal" id="comando-k6"></pre>
+      <p class="linha-acao"><button id="btn-copiar" class="botao">Copiar o comando</button> <span id="copiado" class="progresso" aria-live="polite"></span></p>
+      <p class="nota">50 usuários virtuais: 10 s de aquecimento e 30 s de medição, cerca de 1 minuto no total.</p>
+    </li>
+    <li>
+      <h2>Abra o painel do k6 enquanto o teste roda</h2>
+      <p class="linha-acao"><a class="botao principal" href="http://localhost:5665" target="_blank" rel="noopener">Abrir o painel do k6 (localhost:5665)</a></p>
+      <p class="nota">Ele só existe durante o teste. Se o navegador recusar, use 127.0.0.1:5665.</p>
+    </li>
+    <li>
+      <h2>Depois do teste</h2>
+      <p class="nota" id="cenario-depois"></p>
+    </li>
+  </ol>
+  <p class="nota">Os resultados da matriz completa (3 cenários, 9 versões, 4 níveis de carga, 3 repetições) estão em
+    <a href="#resultados">Resultados e conclusões</a>.</p>
 </section>
+
+<!-- ============================================================ RESULTADOS -->
+<section id="resultados" class="secao" aria-labelledby="t-resultados" hidden>
+  <header class="cabeca">
+    <p class="sobrancelha">Seções 6.6, 6.7 e 7 · matriz completa do k6</p>
+    <h1 id="t-resultados">O que os testes de carga mostraram</h1>
+    <p class="lide">39 execuções do k6 em 20 e 21/11/2026, com o banco no Supabase. Cada número é a média de três
+      repetições, com 10 s de aquecimento e 30 s de medição por nível. Nenhuma requisição falhou: 0% de erros em todos os
+      níveis.</p>
+  </header>
+
+  <div class="destaques">
+    <div class="destaque">
+      <span class="rotulo">Cache quente, 50 VUs</span>
+      <span class="valor">5.713 req/s</span>
+      <span class="delta ganho">225× a vazão sem cache (25,4 req/s)</span>
+      <span class="sub">latência média de 8,6 ms contra 2.009 ms</span>
+    </div>
+    <div class="destaque">
+      <span class="rotulo">Consulta otimizada, 50 VUs</span>
+      <span class="valor">76,8 req/s</span>
+      <span class="delta ganho">96× a vazão do LAZY (0,8 req/s)</span>
+      <span class="sub">1 consulta por página no lugar de 41</span>
+    </div>
+    <div class="destaque">
+      <span class="rotulo">Com o índice, 50 VUs</span>
+      <span class="valor">76,7 req/s</span>
+      <span class="delta ganho">+58% de vazão (48,5 req/s sem ele)</span>
+      <span class="sub">p95 de 765 ms contra 2.220 ms</span>
+    </div>
+  </div>
+
+  <section class="bloco" aria-labelledby="t-grafico">
+    <h2 id="t-grafico">Por nível de carga</h2>
+    <div class="filtros">
+      <div class="segmentos" role="radiogroup" aria-label="Cenário" id="filtro-cenario">
+        <button role="radio" aria-checked="true" data-valor="cache">Cenário 1 · cache</button>
+        <button role="radio" aria-checked="false" data-valor="persistencia">Cenário 2 · persistência</button>
+        <button role="radio" aria-checked="false" data-valor="indice">Cenário 3 · índices</button>
+      </div>
+      <div class="segmentos" role="radiogroup" aria-label="Métrica" id="filtro-metrica">
+        <button role="radio" aria-checked="true" data-valor="vazao">Vazão</button>
+        <button role="radio" aria-checked="false" data-valor="media">Latência média</button>
+        <button role="radio" aria-checked="false" data-valor="p95">p95</button>
+        <button role="radio" aria-checked="false" data-valor="p99">p99</button>
+      </div>
+    </div>
+    <div class="cartao grafico-cartao">
+      <p class="grafico-titulo" id="grafico-titulo"></p>
+      <ul class="legenda" id="grafico-legenda"></ul>
+      <div class="grafico" id="grafico"></div>
+      <p class="nota" id="grafico-nota"></p>
+    </div>
+    <div class="rolagem">
+      <table class="tabela-resultados">
+        <thead><tr><th class="n">VUs</th><th>Versão</th><th class="n">Vazão</th><th class="n">Latência média</th><th class="n">p95</th><th class="n">p99</th><th class="n">Erros</th><th class="n">SQL por req.</th></tr></thead>
+        <tbody id="tabela-resultados"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="bloco" aria-labelledby="t-teto">
+    <h2 id="t-teto">O gargalo: conexões × viagens até o banco</h2>
+    <div class="teto">
+      <p class="formula">vazão máxima ≈ <span>12 conexões</span> ÷ (<span>consultas por requisição</span> × <span>0,155 s</span>)</p>
+      <ul class="teto-linhas">
+        <li><strong>1 consulta</strong> (EAGER, otimizada, SQL nativo, histórico com índice): cerca de 77 req/s; essas
+          versões pararam entre 71 e 77 req/s com 50 VUs</li>
+        <li><strong>3 consultas</strong> (ficha sem cache): cerca de 26 req/s</li>
+        <li><strong>41 consultas</strong> (LAZY): menos de 2 req/s</li>
+        <li><strong>0 consultas</strong> (cache quente): o limite passa a ser a CPU da API, perto de 5.700 req/s</li>
+      </ul>
+      <p class="nota">Acima do teto, mais usuários só aumentam a fila: a vazão para de subir e a latência cresce com a
+        carga. Por isso os ganhos se mantiveram e em geral cresceram com a carga, já que as versões sem otimização saturam
+        primeiro (seção 6.7). A exceção é o cache frio, cujo ganho depende da taxa de acerto, não da carga.</p>
+    </div>
+  </section>
+
+  <section class="bloco" aria-labelledby="t-conclusoes">
+    <h2 id="t-conclusoes">Conclusões</h2>
+    <ul class="conclusoes">
+      <li><strong>Cache:</strong> o maior ganho, porque elimina as viagens ao banco, mas só no acerto. Com o cache frio o
+        ganho foi pequeno, e o preço é aceitar dados desatualizados por até um TTL. A ficha vai para o cache; a
+        disponibilidade, não.</li>
+      <li><strong>LAZY × EAGER:</strong> o N+1 transformou uma página de 20 empréstimos em 41 consultas. Declarar EAGER
+        não diz quantas consultas serão feitas: <code>joined</code> fez 1, <code>selectinload</code> 3 e
+        <code>immediateload</code> 41.</li>
+      <li><strong>Projeção:</strong> 89 colunas para usar 8. A otimizada leu quase 13 vezes menos dados e gastou menos CPU,
+        mas sob carga empatou com o EAGER, porque o gargalo era a viagem. O SQL nativo não trouxe ganho sobre ela e custa
+        manutenção e portabilidade.</li>
+      <li><strong>Índice:</strong> quase não muda uma consulta isolada, mas tirou o banco da saturação: 58% mais vazão com
+        50 VUs. Cada índice extra encarece as escritas.</li>
+    </ul>
+    <blockquote class="pergunta">
+      <p><strong>Como demonstrar, por meio de evidências, que uma mudança realmente melhorou o desempenho?</strong>
+        Medindo as versões no mesmo ambiente, com as mesmas cargas, aquecimento e repetições; olhando os percentis, porque a
+        média esconde a cauda; acompanhando consultas, CPU e banco, e não só o tempo; e explicando o mecanismo por trás de
+        cada número.</p>
+    </blockquote>
+    <p class="nota">Tabelas completas, CPU, memória, banco e o efeito do TTL: README do repositório, seções 5.3, 6 e 7.</p>
+  </section>
+</section>
+
 </main>
+</div>
+
+<footer class="http" id="http" aria-label="Requisições HTTP">
+  <div class="http-barra">
+    <button class="http-alternar" id="http-alternar" aria-expanded="false" aria-controls="http-lista">
+      <span class="http-titulo">HTTP</span><span class="http-contagem" id="http-contagem">0</span>
+    </button>
+    <div class="http-ultima" id="http-ultima">Nenhuma requisição ainda. A última chamada à API aparece aqui, com os cabeçalhos de medição.</div>
+  </div>
+  <ol class="http-lista" id="http-lista" hidden></ol>
+</footer>
+
+<div class="avisos" id="avisos"></div>
+<div class="dica" id="dica" role="tooltip" hidden></div>
+
 <script src="painel.js"></script>
 </body>
 </html>

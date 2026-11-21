@@ -4,6 +4,7 @@
     GET    /api/laboratorio/cache                        estatísticas do Redis
     DELETE /api/laboratorio/cache                        esvazia o cache
     GET    /api/laboratorio/cache/livros/{id}            a ficha está no cache? quanto falta do TTL?
+    PUT    /api/laboratorio/cache/livros/{id}/ttl        encurta o TTL de uma ficha (demonstração da expiração)
     POST   /api/laboratorio/cache/encher                 guarda as fichas de todos os livros (cache quente)
     GET    /api/laboratorio/indices                      índices da tabela emprestimo
     PUT    /api/laboratorio/indices/{nome}               cria um índice do experimento
@@ -17,6 +18,7 @@
     GET    /api/laboratorio/banco/ida-e-volta            tempo de uma ida e volta ao banco (SELECT 1)
     POST   /api/laboratorio/banco/aquecer                carrega as tabelas na memória (pg_prewarm)
     POST   /api/laboratorio/banco/manutencao             VACUUM e REINDEX depois dos testes de escrita
+    PUT    /api/laboratorio/banco/livros/{id}/titulo     altera o título direto no banco, sem avisar o cache
 
 Os testes de carga do k6 usam estas rotas para deixar o cache e os índices no estado certo antes
 de cada medição. Num sistema em produção, elas ficariam desligadas ou protegidas.
@@ -32,6 +34,7 @@ from time import perf_counter
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Path, Query
+from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 
@@ -155,6 +158,25 @@ def ficha_no_cache(livro_id: Annotated[int, Path(gt=0)]):
         "chave": chave,
         "no_cache": ttl != -2,
         "ttl_restante_segundos": ttl if ttl >= 0 else None,
+        "ttl_configurado_segundos": config.CACHE_TTL_SEGUNDOS,
+    })
+
+
+@rotas.put("/cache/livros/{livro_id}/ttl", summary="Encurta o tempo de vida de uma ficha no cache")
+def encurtar_ttl(
+    livro_id: Annotated[int, Path(gt=0)],
+    segundos: Annotated[int, Query(ge=1, le=config.CACHE_TTL_SEGUNDOS)] = 15,
+):
+    """Para a expiração caber numa demonstração: troca o TTL só desta ficha (EXPIRE no Redis),
+    sem recriar a API com outro CACHE_TTL_SEGUNDOS. Quando o tempo acaba, o Redis apaga a ficha e
+    a próxima leitura com cache é uma falha (MISS), que busca a versão atual no banco."""
+    chave = cache.chave_do_livro(livro_id)
+    if not cache.cliente.expire(chave, segundos):
+        raise HTTPException(404, "A ficha deste livro não está no cache: leia com cache antes.")
+    return RespostaJSON({
+        "chave": chave,
+        "no_cache": True,
+        "ttl_restante_segundos": cache.cliente.ttl(chave),
         "ttl_configurado_segundos": config.CACHE_TTL_SEGUNDOS,
     })
 
@@ -499,3 +521,30 @@ def aquecer_banco():
         """)).scalar()
         conn.commit()
     return RespostaJSON({"blocos_carregados": blocos, "megabytes": round(blocos * 8 / 1024, 1)})
+
+
+class TituloNoBanco(BaseModel):
+    titulo: str = Field(min_length=1, max_length=200)
+
+
+@rotas.put("/banco/livros/{livro_id}/titulo", summary="Altera o título direto no banco, sem avisar o cache")
+def alterar_titulo_por_fora_da_api(livro_id: Annotated[int, Path(gt=0)], dados: TituloNoBanco):
+    """Simula uma alteração feita por fora da API (um comando SQL direto no banco, uma importação):
+    o UPDATE não passa pela rota PUT /api/livros/{id}, que apaga a ficha do cache. Se a ficha
+    estiver no cache, ela continua sendo servida, desatualizada, até o TTL acabar. É o passo 5 do
+    experimento da seção 3.4, que experimentos/cache.py faz com o psql."""
+    with engine.begin() as conn:
+        alteradas = conn.execute(
+            text("UPDATE livro SET titulo = :titulo WHERE id = :id"),
+            {"titulo": dados.titulo, "id": livro_id},
+        ).rowcount
+    if not alteradas:
+        raise HTTPException(404, "Livro não encontrado.")
+    ttl = cache.cliente.ttl(cache.chave_do_livro(livro_id))  # -2: a chave não existe
+    return RespostaJSON({
+        "livro_id": livro_id,
+        "titulo_no_banco": dados.titulo,
+        "cache_avisado": False,
+        "ficha_no_cache": ttl != -2,
+        "ttl_restante_segundos": ttl if ttl >= 0 else None,
+    })

@@ -150,8 +150,8 @@ As cinco tabelas, com os índices, ocupam 74 MB e cabem inteiras na memória do 
 | `GET /api/emprestimos/atrasados` | empréstimos atrasados, dos mais antigos aos mais recentes (busca por intervalo) |
 | `POST /api/emprestimos` e `POST /api/emprestimos/{id}/devolucao` | registram empréstimo e devolução, com bloqueio da linha do livro |
 | `GET /api/leitores/{id}/emprestimos` | histórico de empréstimos do leitor (consulta do experimento de índices) |
-| `/api/laboratorio/...` | preparam e observam os experimentos: esvaziar ou encher o cache, criar e remover índices, `EXPLAIN ANALYZE`, SQL executado por uma operação, estatísticas dos comandos no banco, ida e volta até o banco |
-| `/painel/` | painel de demonstração: uma página (HTML, CSS e JavaScript, sem dependências) com os experimentos de cache, LAZY × EAGER e índices e os resultados dos testes de carga |
+| `/api/laboratorio/...` | preparam e observam os experimentos: esvaziar ou encher o cache, encurtar o TTL de uma ficha, alterar um título direto no banco sem avisar o cache, criar e remover índices, `EXPLAIN ANALYZE`, SQL executado por uma operação, estatísticas dos comandos no banco, ida e volta até o banco |
+| `/painel/` | painel de demonstração: uma página (HTML, CSS e JavaScript, sem dependências) com a arquitetura e o volume de dados, o experimento obrigatório da 3.4 passo a passo, LAZY × EAGER, índices, comparações em volume com as métricas da 6.4 e os resultados dos testes de carga por nível; um rodapé mostra cada chamada HTTP com os cabeçalhos de medição |
 
 **Instrumentação.** Um ouvinte de eventos do SQLAlchemy (`before_cursor_execute` e
 `after_cursor_execute`) conta cada comando SQL e o tempo dele, e um middleware escreve em toda
@@ -258,6 +258,13 @@ empréstimo), o erro seria grave. Por isso a disponibilidade ficou fora do cache
 empréstimo confere o estoque no banco, com a linha do livro bloqueada (`SELECT ... FOR UPDATE`).
 Resta ainda uma janela rara de corrida: uma leitura que buscou a versão antiga antes do *commit*
 pode gravá-la no cache logo depois da invalidação; o TTL também limita esse caso.
+
+O painel (`/painel/`, seção Cache) repete os cinco passos com a API no ar e o TTL padrão, marcando
+cada um quando a resposta mostra o comportamento esperado. Para o passo 5, duas rotas de
+laboratório substituem o `psql` e a recriação da API: `PUT /api/laboratorio/banco/livros/{id}/titulo`
+faz o `UPDATE` por fora da API, sem avisar o cache, e
+`PUT /api/laboratorio/cache/livros/{id}/ttl?segundos=15` encurta o tempo de vida só daquela ficha
+(`EXPIRE` no Redis), para a expiração caber na demonstração.
 
 ### 3.5 Análise de desempenho do cache
 
@@ -1214,8 +1221,10 @@ Uma sequência de uns 7 minutos que cobre o que a 7.3 do enunciado pede, com a A
 7. **Teste de desempenho**: um cenário com o painel do k6 ao vivo em <http://localhost:5665>.
 8. **Resultados**: as tabelas e os gráficos da seção 5.3 e a discussão.
 
-Os passos 2 a 6 também podem ser feitos pelo painel (<http://localhost:8000/painel/>), uma aba por
-item, com os números de cada resposta em destaque.
+O painel (<http://localhost:8000/painel/>) acompanha o roteiro inteiro, uma seção por passo: Visão
+geral (1), Cache (3, com o experimento da 3.4 completo), LAZY × EAGER (4 e 5), Índices (6), Testes
+de carga (7, com o comando para copiar e o link do painel do k6) e Resultados e conclusões (8). O
+rodapé mostra cada chamada HTTP com os cabeçalhos de medição (2).
 
 ```bash
 curl -s -D - -o /dev/null http://localhost:8000/api/livros/42/com-cache | grep -i -E "^(x-cache|server-timing)"
