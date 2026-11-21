@@ -14,7 +14,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Path, Query
 from sqlalchemy import select
 
-from ..banco import Sessao
+from ..banco import SessaoLeitura
 from ..esquemas import HistoricoDoLeitor
 from ..modelos import Emprestimo, Leitor, Livro
 from ..respostas import RespostaJSON
@@ -70,7 +70,7 @@ def historico(
 ):
     """Empréstimos do leitor, do mais recente ao mais antigo, com o título do livro. Sem
     `limite`, devolve todos (é a consulta usada no experimento de índices)."""
-    with Sessao() as sessao:
+    with SessaoLeitura() as sessao:
         resultado = montar_historico(sessao, leitor_id, limite)
     if resultado is None:
         raise HTTPException(404, "Leitor não encontrado.")

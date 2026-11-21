@@ -1,16 +1,32 @@
-# Biblioteca: banco PostgreSQL, cache Redis e a API em Python (FastAPI).
+# Biblioteca: API em Python (FastAPI), cache Redis e o banco PostgreSQL no Supabase.
 #
-#   docker compose up -d --build     sobe tudo (na primeira vez o banco gera os dados: ~1 minuto)
-#   docker compose down -v           apaga tudo, inclusive os dados, para recomeçar do zero
+#   docker compose up -d --build     sobe o cache e a API, que usa o banco indicado no .env
+#   docker compose down              para tudo (os dados ficam no Supabase)
 #
-# Variáveis opcionais (no ambiente ou num arquivo .env): CACHE_TTL_SEGUNDOS, WORKERS,
+# O banco: as variáveis PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE e PGSSLMODE do .env (modelo
+# em .env.exemplo) apontam para o projeto no Supabase. Sem o .env, a API usa o PostgreSQL local do
+# perfil "banco-local":
+#   docker compose --profile banco-local up -d --build
+#
+# Outras variáveis opcionais (no ambiente ou no .env): CACHE_TTL_SEGUNDOS, WORKERS,
 # CONEXOES_POR_WORKER, PORTA_API, PORTA_BANCO e PORTA_CACHE.
 name: biblioteca
 
+x-banco: &banco
+  PGHOST: ${PGHOST:-banco}
+  PGPORT: ${PGPORT:-5432}
+  PGUSER: ${PGUSER:-biblioteca}
+  PGPASSWORD: ${PGPASSWORD:-biblioteca}
+  PGDATABASE: ${PGDATABASE:-biblioteca}
+  PGSSLMODE: ${PGSSLMODE:-prefer}
+
 services:
+  # PostgreSQL local, opcional: alternativa ao Supabase para reproduzir os experimentos sem rede.
+  # Na primeira subida ele roda banco/01-esquema.sql, 02-dados.sql e 03-indices.sql sozinho.
   banco:
     image: postgres:17
     container_name: biblioteca-banco
+    profiles: ["banco-local"]
     environment:
       POSTGRES_DB: biblioteca
       POSTGRES_USER: biblioteca
@@ -56,20 +72,34 @@ services:
     build: ./api
     container_name: biblioteca-api
     environment:
-      URL_BANCO: postgresql+psycopg://biblioteca:biblioteca@banco:5432/biblioteca
+      <<: *banco
       URL_CACHE: redis://cache:6379/0
       # tempo de vida das fichas de livro no cache (seção 3.4 do enunciado)
       CACHE_TTL_SEGUNDOS: ${CACHE_TTL_SEGUNDOS:-600}
-      # processos da API e conexões com o banco em cada um
+      # processos da API e conexões com o banco em cada um. O pooler do Supabase aceita 15
+      # conexões simultâneas por usuário: 4 x 3 = 12 deixa folga para o psql dos experimentos.
       WORKERS: ${WORKERS:-4}
-      CONEXOES_POR_WORKER: ${CONEXOES_POR_WORKER:-20}
+      CONEXOES_POR_WORKER: ${CONEXOES_POR_WORKER:-3}
     ports:
       - "${PORTA_API:-8000}:8000"
     depends_on:
       banco:
         condition: service_healthy
+        required: false
       cache:
         condition: service_healthy
+
+  # Cliente psql, para criar e popular o banco e para os experimentos. Não sobe com "up":
+  #   docker compose run --rm psql -f /banco/01-esquema.sql -f /banco/02-dados.sql -f /banco/03-indices.sql
+  #   docker compose run --rm psql -c "SELECT count(*) FROM emprestimo"
+  psql:
+    image: postgres:17
+    profiles: ["ferramentas"]
+    environment:
+      <<: *banco
+    volumes:
+      - ./banco:/banco:ro
+    entrypoint: ["psql", "-v", "ON_ERROR_STOP=1"]
 
   # Gerador de carga (Grafana k6), na mesma rede da API. Não sobe com "docker compose up":
   #   docker compose run --rm k6 run k6/cache.js -e VERSAO=com-cache-quente

@@ -4,13 +4,13 @@
     "parametros": {
       "leitor_id_1": 150
     },
-    "random_page_cost": "padrão (4)",
+    "random_page_cost": "1.1 (padrão do banco)",
     "indices_existentes": [
       "emprestimo_pkey",
       "idx_emprestimo_livro"
     ],
-    "tempo_de_execucao_ms": 9.747,
-    "tempo_de_planejamento_ms": 0.108,
+    "tempo_de_execucao_ms": 21.893,
+    "tempo_de_planejamento_ms": 0.25,
     "indices_usados": [
       "livro_pkey"
     ],
@@ -28,7 +28,7 @@
         "lacos": 1,
         "linhas_descartadas_pelo_filtro": 0,
         "ordenacao": null,
-        "blocos_em_memoria": 2680,
+        "blocos_em_memoria": 4447,
         "blocos_do_disco": 0
       },
       {
@@ -42,7 +42,7 @@
         "ordenacao": [
           "emprestimo.data_emprestimo DESC"
         ],
-        "blocos_em_memoria": 2680,
+        "blocos_em_memoria": 4447,
         "blocos_do_disco": 0
       },
       {
@@ -54,7 +54,7 @@
         "lacos": 2,
         "linhas_descartadas_pelo_filtro": 0,
         "ordenacao": null,
-        "blocos_em_memoria": 2673,
+        "blocos_em_memoria": 4440,
         "blocos_do_disco": 0
       },
       {
@@ -66,7 +66,7 @@
         "lacos": 2,
         "linhas_descartadas_pelo_filtro": 299942,
         "ordenacao": null,
-        "blocos_em_memoria": 2498,
+        "blocos_em_memoria": 4265,
         "blocos_do_disco": 0
       },
       {
@@ -83,43 +83,43 @@
       }
     ],
     "plano": [
-      "Gather Merge  (cost=5846.56..5848.63 rows=18 width=60) (actual time=7.191..9.106 rows=58 loops=1)",
+      "Gather Merge  (cost=7514.38..7516.45 rows=18 width=60) (actual time=17.366..21.683 rows=58 loops=1)",
       "  Workers Planned: 1",
       "  Workers Launched: 1",
-      "  Buffers: shared hit=2680",
-      "  ->  Sort  (cost=4846.55..4846.59 rows=18 width=60) (actual time=5.396..5.398 rows=29 loops=2)",
+      "  Buffers: shared hit=4447",
+      "  ->  Sort  (cost=6514.37..6514.41 rows=18 width=60) (actual time=14.197..14.203 rows=29 loops=2)",
       "        Sort Key: emprestimo.data_emprestimo DESC",
-      "        Sort Method: quicksort  Memory: 28kB",
-      "        Buffers: shared hit=2680",
+      "        Sort Method: quicksort  Memory: 27kB",
+      "        Buffers: shared hit=4447",
       "        Worker 0:  Sort Method: quicksort  Memory: 26kB",
-      "        ->  Nested Loop  (cost=0.29..4846.17 rows=18 width=60) (actual time=0.309..5.371 rows=29 loops=2)",
-      "              Buffers: shared hit=2673",
-      "              ->  Parallel Seq Scan on emprestimo  (cost=0.00..4703.88 rows=18 width=32) (actual time=0.294..5.268 rows=29 loops=2)",
+      "        ->  Nested Loop  (cost=0.29..6513.99 rows=18 width=60) (actual time=0.175..14.158 rows=29 loops=2)",
+      "              Buffers: shared hit=4440",
+      "              ->  Parallel Seq Scan on emprestimo  (cost=0.00..6470.88 rows=18 width=32) (actual time=0.134..13.894 rows=29 loops=2)",
       "                    Filter: (leitor_id = 150)",
       "                    Rows Removed by Filter: 149971",
-      "                    Buffers: shared hit=2498",
-      "              ->  Index Scan using livro_pkey on livro  (cost=0.29..7.90 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=58)",
+      "                    Buffers: shared hit=4265",
+      "              ->  Index Scan using livro_pkey on livro  (cost=0.29..2.40 rows=1 width=32) (actual time=0.008..0.008 rows=1 loops=58)",
       "                    Index Cond: (id = emprestimo.livro_id)",
       "                    Buffers: shared hit=175",
       "Planning:",
       "  Buffers: shared hit=14",
-      "Planning Time: 0.101 ms",
-      "Execution Time: 9.120 ms"
+      "Planning Time: 0.281 ms",
+      "Execution Time: 21.734 ms"
     ],
-    "tempo_de_execucao_mediano_ms": 8.779
+    "tempo_de_execucao_mediano_ms": 21.93
   },
   "1_4322": {
     "sql": "SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo \nFROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id \nWHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC",
     "parametros": {
       "leitor_id_1": 4322
     },
-    "random_page_cost": "padrão (4)",
+    "random_page_cost": "1.1 (padrão do banco)",
     "indices_existentes": [
       "emprestimo_pkey",
       "idx_emprestimo_livro"
     ],
-    "tempo_de_execucao_ms": 10.225,
-    "tempo_de_planejamento_ms": 0.137,
+    "tempo_de_execucao_ms": 22.507,
+    "tempo_de_planejamento_ms": 0.25,
     "indices_usados": [
       "livro_pkey"
     ],
@@ -137,7 +137,7 @@
         "lacos": 1,
         "linhas_descartadas_pelo_filtro": 0,
         "ordenacao": null,
-        "blocos_em_memoria": 3235,
+        "blocos_em_memoria": 5002,
         "blocos_do_disco": 0
       },
       {
@@ -151,7 +151,7 @@
         "ordenacao": [
           "emprestimo.data_emprestimo DESC"
         ],
-        "blocos_em_memoria": 3235,
+        "blocos_em_memoria": 5002,
         "blocos_do_disco": 0
       },
       {
@@ -163,7 +163,7 @@
         "lacos": 2,
         "linhas_descartadas_pelo_filtro": 0,
         "ordenacao": null,
-        "blocos_em_memoria": 3228,
+        "blocos_em_memoria": 4995,
         "blocos_do_disco": 0
       },
       {
@@ -175,7 +175,7 @@
         "lacos": 2,
         "linhas_descartadas_pelo_filtro": 299756,
         "ordenacao": null,
-        "blocos_em_memoria": 2498,
+        "blocos_em_memoria": 4265,
         "blocos_do_disco": 0
       },
       {
@@ -192,44 +192,44 @@
       }
     ],
     "plano": [
-      "Gather Merge  (cost=6503.50..6519.02 rows=135 width=60) (actual time=8.495..10.894 rows=243 loops=1)",
+      "Gather Merge  (cost=7674.24..7685.74 rows=100 width=60) (actual time=17.975..22.369 rows=243 loops=1)",
       "  Workers Planned: 1",
       "  Workers Launched: 1",
-      "  Buffers: shared hit=3235",
-      "  ->  Sort  (cost=5503.49..5503.82 rows=135 width=60) (actual time=6.305..6.310 rows=122 loops=2)",
+      "  Buffers: shared hit=5002",
+      "  ->  Sort  (cost=6674.23..6674.48 rows=100 width=60) (actual time=14.780..14.792 rows=122 loops=2)",
       "        Sort Key: emprestimo.data_emprestimo DESC",
-      "        Sort Method: quicksort  Memory: 39kB",
-      "        Buffers: shared hit=3235",
-      "        Worker 0:  Sort Method: quicksort  Memory: 30kB",
-      "        ->  Nested Loop  (cost=0.29..5498.71 rows=135 width=60) (actual time=0.067..6.251 rows=122 loops=2)",
-      "              Buffers: shared hit=3228",
-      "              ->  Parallel Seq Scan on emprestimo  (cost=0.00..4703.88 rows=135 width=32) (actual time=0.052..5.823 rows=122 loops=2)",
+      "        Sort Method: quicksort  Memory: 37kB",
+      "        Buffers: shared hit=5002",
+      "        Worker 0:  Sort Method: quicksort  Memory: 32kB",
+      "        ->  Nested Loop  (cost=0.29..6670.91 rows=100 width=60) (actual time=0.123..14.705 rows=122 loops=2)",
+      "              Buffers: shared hit=4995",
+      "              ->  Parallel Seq Scan on emprestimo  (cost=0.00..6470.88 rows=100 width=32) (actual time=0.101..14.007 rows=122 loops=2)",
       "                    Filter: (leitor_id = 4322)",
       "                    Rows Removed by Filter: 149878",
-      "                    Buffers: shared hit=2498",
-      "              ->  Index Scan using livro_pkey on livro  (cost=0.29..5.89 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=243)",
+      "                    Buffers: shared hit=4265",
+      "              ->  Index Scan using livro_pkey on livro  (cost=0.29..2.00 rows=1 width=32) (actual time=0.005..0.005 rows=1 loops=243)",
       "                    Index Cond: (id = emprestimo.livro_id)",
       "                    Buffers: shared hit=730",
       "Planning:",
       "  Buffers: shared hit=14",
-      "Planning Time: 0.189 ms",
-      "Execution Time: 10.920 ms"
+      "Planning Time: 0.274 ms",
+      "Execution Time: 22.430 ms"
     ],
-    "tempo_de_execucao_mediano_ms": 9.706
+    "tempo_de_execucao_mediano_ms": 22.764
   },
   "2_150": {
     "sql": "SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo \nFROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id \nWHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC",
     "parametros": {
       "leitor_id_1": 150
     },
-    "random_page_cost": "padrão (4)",
+    "random_page_cost": "1.1 (padrão do banco)",
     "indices_existentes": [
       "emprestimo_pkey",
       "idx_emprestimo_leitor",
       "idx_emprestimo_livro"
     ],
-    "tempo_de_execucao_ms": 0.1,
-    "tempo_de_planejamento_ms": 0.081,
+    "tempo_de_execucao_ms": 0.387,
+    "tempo_de_planejamento_ms": 0.278,
     "indices_usados": [
       "idx_emprestimo_leitor",
       "livro_pkey"
@@ -301,42 +301,42 @@
       }
     ],
     "plano": [
-      "Sort  (cost=352.93..353.00 rows=30 width=60) (actual time=0.091..0.093 rows=58 loops=1)",
+      "Sort  (cost=329.44..329.69 rows=100 width=60) (actual time=0.336..0.340 rows=58 loops=1)",
       "  Sort Key: emprestimo.data_emprestimo DESC",
       "  Sort Method: quicksort  Memory: 29kB",
       "  Buffers: shared hit=234",
-      "  ->  Nested Loop  (cost=4.82..352.19 rows=30 width=60) (actual time=0.010..0.082 rows=58 loops=1)",
+      "  ->  Nested Loop  (cost=2.46..326.11 rows=100 width=60) (actual time=0.033..0.312 rows=58 loops=1)",
       "        Buffers: shared hit=234",
-      "        ->  Bitmap Heap Scan on emprestimo  (cost=4.53..115.04 rows=30 width=32) (actual time=0.008..0.026 rows=58 loops=1)",
+      "        ->  Bitmap Heap Scan on emprestimo  (cost=2.17..110.81 rows=100 width=32) (actual time=0.023..0.100 rows=58 loops=1)",
       "              Recheck Cond: (leitor_id = 150)",
       "              Heap Blocks: exact=58",
       "              Buffers: shared hit=60",
-      "              ->  Bitmap Index Scan on idx_emprestimo_leitor  (cost=0.00..4.52 rows=30 width=0) (actual time=0.003..0.003 rows=58 loops=1)",
+      "              ->  Bitmap Index Scan on idx_emprestimo_leitor  (cost=0.00..2.15 rows=100 width=0) (actual time=0.010..0.010 rows=58 loops=1)",
       "                    Index Cond: (leitor_id = 150)",
       "                    Buffers: shared hit=2",
-      "        ->  Index Scan using livro_pkey on livro  (cost=0.29..7.90 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=58)",
+      "        ->  Index Scan using livro_pkey on livro  (cost=0.29..2.15 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=58)",
       "              Index Cond: (id = emprestimo.livro_id)",
       "              Buffers: shared hit=174",
       "Planning:",
       "  Buffers: shared hit=14",
-      "Planning Time: 0.091 ms",
-      "Execution Time: 0.103 ms"
+      "Planning Time: 0.253 ms",
+      "Execution Time: 0.376 ms"
     ],
-    "tempo_de_execucao_mediano_ms": 0.102
+    "tempo_de_execucao_mediano_ms": 0.387
   },
   "2_4322": {
     "sql": "SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo \nFROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id \nWHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC",
     "parametros": {
       "leitor_id_1": 4322
     },
-    "random_page_cost": "padrão (4)",
+    "random_page_cost": "1.1 (padrão do banco)",
     "indices_existentes": [
       "emprestimo_pkey",
       "idx_emprestimo_leitor",
       "idx_emprestimo_livro"
     ],
-    "tempo_de_execucao_ms": 0.435,
-    "tempo_de_planejamento_ms": 0.083,
+    "tempo_de_execucao_ms": 1.314,
+    "tempo_de_planejamento_ms": 0.255,
     "indices_usados": [
       "idx_emprestimo_leitor",
       "livro_pkey"
@@ -355,7 +355,7 @@
         "ordenacao": [
           "emprestimo.data_emprestimo DESC"
         ],
-        "blocos_em_memoria": 957,
+        "blocos_em_memoria": 970,
         "blocos_do_disco": 0
       },
       {
@@ -367,7 +367,7 @@
         "lacos": 1,
         "linhas_descartadas_pelo_filtro": 0,
         "ordenacao": null,
-        "blocos_em_memoria": 957,
+        "blocos_em_memoria": 970,
         "blocos_do_disco": 0
       },
       {
@@ -379,7 +379,7 @@
         "lacos": 1,
         "linhas_descartadas_pelo_filtro": 0,
         "ordenacao": null,
-        "blocos_em_memoria": 237,
+        "blocos_em_memoria": 241,
         "blocos_do_disco": 0
       },
       {
@@ -396,71 +396,200 @@
       },
       {
         "nivel": 2,
-        "operacao": "Memoize",
-        "tabela": null,
-        "indice": null,
+        "operacao": "Index Scan",
+        "tabela": "livro",
+        "indice": "livro_pkey",
         "linhas": 243,
         "lacos": 243,
         "linhas_descartadas_pelo_filtro": 0,
         "ordenacao": null,
-        "blocos_em_memoria": 720,
-        "blocos_do_disco": 0
-      },
-      {
-        "nivel": 3,
-        "operacao": "Index Scan",
-        "tabela": "livro",
-        "indice": "livro_pkey",
-        "linhas": 240,
-        "lacos": 240,
-        "linhas_descartadas_pelo_filtro": 0,
-        "ordenacao": null,
-        "blocos_em_memoria": 720,
+        "blocos_em_memoria": 729,
         "blocos_do_disco": 0
       }
     ],
     "plano": [
-      "Sort  (cost=2471.78..2472.53 rows=300 width=60) (actual time=0.412..0.420 rows=243 loops=1)",
+      "Sort  (cost=614.39..614.89 rows=200 width=60) (actual time=1.233..1.249 rows=243 loops=1)",
       "  Sort Key: emprestimo.data_emprestimo DESC",
       "  Sort Method: quicksort  Memory: 44kB",
-      "  Buffers: shared hit=957",
-      "  ->  Nested Loop  (cost=6.92..2459.44 rows=300 width=60) (actual time=0.030..0.383 rows=243 loops=1)",
-      "        Buffers: shared hit=957",
-      "        ->  Bitmap Heap Scan on emprestimo  (cost=6.62..859.09 rows=300 width=32) (actual time=0.026..0.102 rows=243 loops=1)",
+      "  Buffers: shared hit=970",
+      "  ->  Nested Loop  (cost=3.23..606.75 rows=200 width=60) (actual time=0.064..1.135 rows=243 loops=1)",
+      "        Buffers: shared hit=970",
+      "        ->  Bitmap Heap Scan on emprestimo  (cost=2.95..216.85 rows=200 width=32) (actual time=0.055..0.368 rows=243 loops=1)",
       "              Recheck Cond: (leitor_id = 4322)",
-      "              Heap Blocks: exact=235",
-      "              Buffers: shared hit=237",
-      "              ->  Bitmap Index Scan on idx_emprestimo_leitor  (cost=0.00..6.55 rows=300 width=0) (actual time=0.010..0.011 rows=243 loops=1)",
+      "              Heap Blocks: exact=239",
+      "              Buffers: shared hit=241",
+      "              ->  Bitmap Index Scan on idx_emprestimo_leitor  (cost=0.00..2.90 rows=200 width=0) (actual time=0.024..0.024 rows=243 loops=1)",
       "                    Index Cond: (leitor_id = 4322)",
       "                    Buffers: shared hit=2",
-      "        ->  Memoize  (cost=0.30..5.35 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=243)",
-      "              Cache Key: emprestimo.livro_id",
-      "              Cache Mode: logical",
-      "              Hits: 3  Misses: 240  Evictions: 0  Overflows: 0  Memory Usage: 31kB",
-      "              Buffers: shared hit=720",
-      "              ->  Index Scan using livro_pkey on livro  (cost=0.29..5.34 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=240)",
-      "                    Index Cond: (id = emprestimo.livro_id)",
-      "                    Buffers: shared hit=720",
+      "        ->  Index Scan using livro_pkey on livro  (cost=0.29..1.95 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=243)",
+      "              Index Cond: (id = emprestimo.livro_id)",
+      "              Buffers: shared hit=729",
       "Planning:",
       "  Buffers: shared hit=14",
-      "Planning Time: 0.084 ms",
-      "Execution Time: 0.436 ms"
+      "Planning Time: 0.259 ms",
+      "Execution Time: 1.300 ms"
     ],
-    "tempo_de_execucao_mediano_ms": 0.441
+    "tempo_de_execucao_mediano_ms": 1.308
   },
   "3_150": {
     "sql": "SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo \nFROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id \nWHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC",
     "parametros": {
       "leitor_id_1": 150
     },
-    "random_page_cost": "padrão (4)",
+    "random_page_cost": "1.1 (padrão do banco)",
     "indices_existentes": [
       "emprestimo_pkey",
       "idx_emprestimo_leitor_data",
       "idx_emprestimo_livro"
     ],
-    "tempo_de_execucao_ms": 0.101,
-    "tempo_de_planejamento_ms": 0.081,
+    "tempo_de_execucao_ms": 0.338,
+    "tempo_de_planejamento_ms": 0.286,
+    "indices_usados": [
+      "idx_emprestimo_leitor_data",
+      "livro_pkey"
+    ],
+    "tabelas_lidas_por_inteiro": [],
+    "tem_ordenacao": false,
+    "operacoes": [
+      {
+        "nivel": 0,
+        "operacao": "Nested Loop",
+        "tabela": null,
+        "indice": null,
+        "linhas": 58,
+        "lacos": 1,
+        "linhas_descartadas_pelo_filtro": 0,
+        "ordenacao": null,
+        "blocos_em_memoria": 235,
+        "blocos_do_disco": 0
+      },
+      {
+        "nivel": 1,
+        "operacao": "Index Scan",
+        "tabela": "emprestimo",
+        "indice": "idx_emprestimo_leitor_data",
+        "linhas": 58,
+        "lacos": 1,
+        "linhas_descartadas_pelo_filtro": 0,
+        "ordenacao": null,
+        "blocos_em_memoria": 61,
+        "blocos_do_disco": 0
+      },
+      {
+        "nivel": 1,
+        "operacao": "Index Scan",
+        "tabela": "livro",
+        "indice": "livro_pkey",
+        "linhas": 58,
+        "lacos": 58,
+        "linhas_descartadas_pelo_filtro": 0,
+        "ordenacao": null,
+        "blocos_em_memoria": 174,
+        "blocos_do_disco": 0
+      }
+    ],
+    "plano": [
+      "Nested Loop  (cost=0.71..386.72 rows=120 width=60) (actual time=0.029..0.324 rows=58 loops=1)",
+      "  Buffers: shared hit=235",
+      "  ->  Index Scan using idx_emprestimo_leitor_data on emprestimo  (cost=0.42..134.52 rows=120 width=32) (actual time=0.013..0.090 rows=58 loops=1)",
+      "        Index Cond: (leitor_id = 150)",
+      "        Buffers: shared hit=61",
+      "  ->  Index Scan using livro_pkey on livro  (cost=0.29..2.10 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=58)",
+      "        Index Cond: (id = emprestimo.livro_id)",
+      "        Buffers: shared hit=174",
+      "Planning:",
+      "  Buffers: shared hit=14",
+      "Planning Time: 0.286 ms",
+      "Execution Time: 0.359 ms"
+    ],
+    "tempo_de_execucao_mediano_ms": 0.332
+  },
+  "3_4322": {
+    "sql": "SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo \nFROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id \nWHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC",
+    "parametros": {
+      "leitor_id_1": 4322
+    },
+    "random_page_cost": "1.1 (padrão do banco)",
+    "indices_existentes": [
+      "emprestimo_pkey",
+      "idx_emprestimo_leitor_data",
+      "idx_emprestimo_livro"
+    ],
+    "tempo_de_execucao_ms": 1.105,
+    "tempo_de_planejamento_ms": 0.251,
+    "indices_usados": [
+      "idx_emprestimo_leitor_data",
+      "livro_pkey"
+    ],
+    "tabelas_lidas_por_inteiro": [],
+    "tem_ordenacao": false,
+    "operacoes": [
+      {
+        "nivel": 0,
+        "operacao": "Nested Loop",
+        "tabela": null,
+        "indice": null,
+        "linhas": 243,
+        "lacos": 1,
+        "linhas_descartadas_pelo_filtro": 0,
+        "ordenacao": null,
+        "blocos_em_memoria": 972,
+        "blocos_do_disco": 0
+      },
+      {
+        "nivel": 1,
+        "operacao": "Index Scan",
+        "tabela": "emprestimo",
+        "indice": "idx_emprestimo_leitor_data",
+        "linhas": 243,
+        "lacos": 1,
+        "linhas_descartadas_pelo_filtro": 0,
+        "ordenacao": null,
+        "blocos_em_memoria": 243,
+        "blocos_do_disco": 0
+      },
+      {
+        "nivel": 1,
+        "operacao": "Index Scan",
+        "tabela": "livro",
+        "indice": "livro_pkey",
+        "linhas": 243,
+        "lacos": 243,
+        "linhas_descartadas_pelo_filtro": 0,
+        "ordenacao": null,
+        "blocos_em_memoria": 729,
+        "blocos_do_disco": 0
+      }
+    ],
+    "plano": [
+      "Nested Loop  (cost=0.71..636.84 rows=210 width=60) (actual time=0.032..1.126 rows=243 loops=1)",
+      "  Buffers: shared hit=972",
+      "  ->  Index Scan using idx_emprestimo_leitor_data on emprestimo  (cost=0.42..230.69 rows=210 width=32) (actual time=0.023..0.305 rows=243 loops=1)",
+      "        Index Cond: (leitor_id = 4322)",
+      "        Buffers: shared hit=243",
+      "  ->  Index Scan using livro_pkey on livro  (cost=0.29..1.93 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=243)",
+      "        Index Cond: (id = emprestimo.livro_id)",
+      "        Buffers: shared hit=729",
+      "Planning:",
+      "  Buffers: shared hit=14",
+      "Planning Time: 0.279 ms",
+      "Execution Time: 1.173 ms"
+    ],
+    "tempo_de_execucao_mediano_ms": 1.103
+  },
+  "4_150": {
+    "sql": "SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo \nFROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id \nWHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC",
+    "parametros": {
+      "leitor_id_1": 150
+    },
+    "random_page_cost": "4",
+    "indices_existentes": [
+      "emprestimo_pkey",
+      "idx_emprestimo_leitor_data",
+      "idx_emprestimo_livro"
+    ],
+    "tempo_de_execucao_ms": 0.411,
+    "tempo_de_planejamento_ms": 0.271,
     "indices_usados": [
       "idx_emprestimo_leitor_data",
       "livro_pkey"
@@ -532,42 +661,42 @@
       }
     ],
     "plano": [
-      "Sort  (cost=353.05..353.13 rows=30 width=60) (actual time=0.100..0.102 rows=58 loops=1)",
+      "Sort  (cost=355.37..355.44 rows=30 width=60) (actual time=0.381..0.385 rows=58 loops=1)",
       "  Sort Key: emprestimo.data_emprestimo DESC",
       "  Sort Method: quicksort  Memory: 29kB",
       "  Buffers: shared hit=235",
-      "  ->  Nested Loop  (cost=4.94..352.32 rows=30 width=60) (actual time=0.011..0.089 rows=58 loops=1)",
+      "  ->  Nested Loop  (cost=4.94..354.63 rows=30 width=60) (actual time=0.036..0.333 rows=58 loops=1)",
       "        Buffers: shared hit=235",
-      "        ->  Bitmap Heap Scan on emprestimo  (cost=4.66..115.17 rows=30 width=32) (actual time=0.008..0.029 rows=58 loops=1)",
+      "        ->  Bitmap Heap Scan on emprestimo  (cost=4.66..117.48 rows=30 width=32) (actual time=0.026..0.105 rows=58 loops=1)",
       "              Recheck Cond: (leitor_id = 150)",
       "              Heap Blocks: exact=58",
       "              Buffers: shared hit=61",
-      "              ->  Bitmap Index Scan on idx_emprestimo_leitor_data  (cost=0.00..4.65 rows=30 width=0) (actual time=0.004..0.004 rows=58 loops=1)",
+      "              ->  Bitmap Index Scan on idx_emprestimo_leitor_data  (cost=0.00..4.65 rows=30 width=0) (actual time=0.013..0.013 rows=58 loops=1)",
       "                    Index Cond: (leitor_id = 150)",
       "                    Buffers: shared hit=3",
-      "        ->  Index Scan using livro_pkey on livro  (cost=0.29..7.90 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=58)",
+      "        ->  Index Scan using livro_pkey on livro  (cost=0.29..7.90 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=58)",
       "              Index Cond: (id = emprestimo.livro_id)",
       "              Buffers: shared hit=174",
       "Planning:",
       "  Buffers: shared hit=14",
-      "Planning Time: 0.084 ms",
-      "Execution Time: 0.111 ms"
+      "Planning Time: 0.256 ms",
+      "Execution Time: 0.423 ms"
     ],
-    "tempo_de_execucao_mediano_ms": 0.103
+    "tempo_de_execucao_mediano_ms": 0.407
   },
-  "3_4322": {
+  "4_4322": {
     "sql": "SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo \nFROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id \nWHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC",
     "parametros": {
       "leitor_id_1": 4322
     },
-    "random_page_cost": "padrão (4)",
+    "random_page_cost": "4",
     "indices_existentes": [
       "emprestimo_pkey",
       "idx_emprestimo_leitor_data",
       "idx_emprestimo_livro"
     ],
-    "tempo_de_execucao_ms": 0.452,
-    "tempo_de_planejamento_ms": 0.083,
+    "tempo_de_execucao_ms": 1.455,
+    "tempo_de_planejamento_ms": 0.283,
     "indices_usados": [
       "idx_emprestimo_leitor_data",
       "livro_pkey"
@@ -586,7 +715,7 @@
         "ordenacao": [
           "emprestimo.data_emprestimo DESC"
         ],
-        "blocos_em_memoria": 959,
+        "blocos_em_memoria": 963,
         "blocos_do_disco": 0
       },
       {
@@ -598,7 +727,7 @@
         "lacos": 1,
         "linhas_descartadas_pelo_filtro": 0,
         "ordenacao": null,
-        "blocos_em_memoria": 959,
+        "blocos_em_memoria": 963,
         "blocos_do_disco": 0
       },
       {
@@ -610,7 +739,7 @@
         "lacos": 1,
         "linhas_descartadas_pelo_filtro": 0,
         "ordenacao": null,
-        "blocos_em_memoria": 239,
+        "blocos_em_memoria": 243,
         "blocos_do_disco": 0
       },
       {
@@ -651,179 +780,33 @@
       }
     ],
     "plano": [
-      "Sort  (cost=2172.81..2173.43 rows=250 width=60) (actual time=0.433..0.441 rows=243 loops=1)",
+      "Sort  (cost=2627.87..2628.62 rows=300 width=60) (actual time=1.423..1.438 rows=243 loops=1)",
       "  Sort Key: emprestimo.data_emprestimo DESC",
       "  Sort Method: quicksort  Memory: 44kB",
-      "  Buffers: shared hit=959",
-      "  ->  Nested Loop  (cost=6.66..2162.85 rows=250 width=60) (actual time=0.033..0.401 rows=243 loops=1)",
-      "        Buffers: shared hit=959",
-      "        ->  Bitmap Heap Scan on emprestimo  (cost=6.36..743.71 rows=250 width=32) (actual time=0.029..0.110 rows=243 loops=1)",
+      "  Buffers: shared hit=963",
+      "  ->  Nested Loop  (cost=11.04..2615.53 rows=300 width=60) (actual time=0.076..1.349 rows=243 loops=1)",
+      "        Buffers: shared hit=963",
+      "        ->  Bitmap Heap Scan on emprestimo  (cost=10.75..947.64 rows=300 width=32) (actual time=0.063..0.408 rows=243 loops=1)",
       "              Recheck Cond: (leitor_id = 4322)",
-      "              Heap Blocks: exact=235",
-      "              Buffers: shared hit=239",
-      "              ->  Bitmap Index Scan on idx_emprestimo_leitor_data  (cost=0.00..6.30 rows=250 width=0) (actual time=0.014..0.014 rows=243 loops=1)",
+      "              Heap Blocks: exact=239",
+      "              Buffers: shared hit=243",
+      "              ->  Bitmap Index Scan on idx_emprestimo_leitor_data  (cost=0.00..10.67 rows=300 width=0) (actual time=0.033..0.033 rows=243 loops=1)",
       "                    Index Cond: (leitor_id = 4322)",
       "                    Buffers: shared hit=4",
-      "        ->  Memoize  (cost=0.30..5.71 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=243)",
+      "        ->  Memoize  (cost=0.30..5.58 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=243)",
       "              Cache Key: emprestimo.livro_id",
       "              Cache Mode: logical",
       "              Hits: 3  Misses: 240  Evictions: 0  Overflows: 0  Memory Usage: 31kB",
       "              Buffers: shared hit=720",
-      "              ->  Index Scan using livro_pkey on livro  (cost=0.29..5.70 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=240)",
+      "              ->  Index Scan using livro_pkey on livro  (cost=0.29..5.57 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=240)",
       "                    Index Cond: (id = emprestimo.livro_id)",
       "                    Buffers: shared hit=720",
       "Planning:",
       "  Buffers: shared hit=14",
-      "Planning Time: 0.086 ms",
-      "Execution Time: 0.457 ms"
+      "Planning Time: 0.247 ms",
+      "Execution Time: 1.487 ms"
     ],
-    "tempo_de_execucao_mediano_ms": 0.462
-  },
-  "4_150": {
-    "sql": "SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo \nFROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id \nWHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC",
-    "parametros": {
-      "leitor_id_1": 150
-    },
-    "random_page_cost": 1.1,
-    "indices_existentes": [
-      "emprestimo_pkey",
-      "idx_emprestimo_leitor_data",
-      "idx_emprestimo_livro"
-    ],
-    "tempo_de_execucao_ms": 0.075,
-    "tempo_de_planejamento_ms": 0.078,
-    "indices_usados": [
-      "idx_emprestimo_leitor_data",
-      "livro_pkey"
-    ],
-    "tabelas_lidas_por_inteiro": [],
-    "tem_ordenacao": false,
-    "operacoes": [
-      {
-        "nivel": 0,
-        "operacao": "Nested Loop",
-        "tabela": null,
-        "indice": null,
-        "linhas": 58,
-        "lacos": 1,
-        "linhas_descartadas_pelo_filtro": 0,
-        "ordenacao": null,
-        "blocos_em_memoria": 235,
-        "blocos_do_disco": 0
-      },
-      {
-        "nivel": 1,
-        "operacao": "Index Scan",
-        "tabela": "emprestimo",
-        "indice": "idx_emprestimo_leitor_data",
-        "linhas": 58,
-        "lacos": 1,
-        "linhas_descartadas_pelo_filtro": 0,
-        "ordenacao": null,
-        "blocos_em_memoria": 61,
-        "blocos_do_disco": 0
-      },
-      {
-        "nivel": 1,
-        "operacao": "Index Scan",
-        "tabela": "livro",
-        "indice": "livro_pkey",
-        "linhas": 58,
-        "lacos": 58,
-        "linhas_descartadas_pelo_filtro": 0,
-        "ordenacao": null,
-        "blocos_em_memoria": 174,
-        "blocos_do_disco": 0
-      }
-    ],
-    "plano": [
-      "Nested Loop  (cost=0.71..106.90 rows=30 width=60) (actual time=0.005..0.067 rows=58 loops=1)",
-      "  Buffers: shared hit=235",
-      "  ->  Index Scan using idx_emprestimo_leitor_data on emprestimo  (cost=0.42..35.05 rows=30 width=32) (actual time=0.003..0.015 rows=58 loops=1)",
-      "        Index Cond: (leitor_id = 150)",
-      "        Buffers: shared hit=61",
-      "  ->  Index Scan using livro_pkey on livro  (cost=0.29..2.40 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=58)",
-      "        Index Cond: (id = emprestimo.livro_id)",
-      "        Buffers: shared hit=174",
-      "Planning:",
-      "  Buffers: shared hit=14",
-      "Planning Time: 0.079 ms",
-      "Execution Time: 0.075 ms"
-    ],
-    "tempo_de_execucao_mediano_ms": 0.075
-  },
-  "4_4322": {
-    "sql": "SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo \nFROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id \nWHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC",
-    "parametros": {
-      "leitor_id_1": 4322
-    },
-    "random_page_cost": 1.1,
-    "indices_existentes": [
-      "emprestimo_pkey",
-      "idx_emprestimo_leitor_data",
-      "idx_emprestimo_livro"
-    ],
-    "tempo_de_execucao_ms": 0.308,
-    "tempo_de_planejamento_ms": 0.087,
-    "indices_usados": [
-      "idx_emprestimo_leitor_data",
-      "livro_pkey"
-    ],
-    "tabelas_lidas_por_inteiro": [],
-    "tem_ordenacao": false,
-    "operacoes": [
-      {
-        "nivel": 0,
-        "operacao": "Nested Loop",
-        "tabela": null,
-        "indice": null,
-        "linhas": 243,
-        "lacos": 1,
-        "linhas_descartadas_pelo_filtro": 0,
-        "ordenacao": null,
-        "blocos_em_memoria": 968,
-        "blocos_do_disco": 0
-      },
-      {
-        "nivel": 1,
-        "operacao": "Index Scan",
-        "tabela": "emprestimo",
-        "indice": "idx_emprestimo_leitor_data",
-        "linhas": 243,
-        "lacos": 1,
-        "linhas_descartadas_pelo_filtro": 0,
-        "ordenacao": null,
-        "blocos_em_memoria": 239,
-        "blocos_do_disco": 0
-      },
-      {
-        "nivel": 1,
-        "operacao": "Index Scan",
-        "tabela": "livro",
-        "indice": "livro_pkey",
-        "linhas": 243,
-        "lacos": 243,
-        "linhas_descartadas_pelo_filtro": 0,
-        "ordenacao": null,
-        "blocos_em_memoria": 729,
-        "blocos_do_disco": 0
-      }
-    ],
-    "plano": [
-      "Nested Loop  (cost=0.71..692.72 rows=240 width=60) (actual time=0.009..0.299 rows=243 loops=1)",
-      "  Buffers: shared hit=968",
-      "  ->  Index Scan using idx_emprestimo_leitor_data on emprestimo  (cost=0.42..257.62 rows=240 width=32) (actual time=0.006..0.070 rows=243 loops=1)",
-      "        Index Cond: (leitor_id = 4322)",
-      "        Buffers: shared hit=239",
-      "  ->  Index Scan using livro_pkey on livro  (cost=0.29..1.81 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=243)",
-      "        Index Cond: (id = emprestimo.livro_id)",
-      "        Buffers: shared hit=729",
-      "Planning:",
-      "  Buffers: shared hit=14",
-      "Planning Time: 0.090 ms",
-      "Execution Time: 0.313 ms"
-    ],
-    "tempo_de_execucao_mediano_ms": 0.279
+    "tempo_de_execucao_mediano_ms": 1.495
   },
   "5_150": {
     "sql": "SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo \nFROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id \nWHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC \n LIMIT %(param_1)s::INTEGER",
@@ -831,14 +814,14 @@
       "leitor_id_1": 150,
       "param_1": 10
     },
-    "random_page_cost": "padrão (4)",
+    "random_page_cost": "1.1 (padrão do banco)",
     "indices_existentes": [
       "emprestimo_pkey",
       "idx_emprestimo_leitor_data",
       "idx_emprestimo_livro"
     ],
-    "tempo_de_execucao_ms": 0.026,
-    "tempo_de_planejamento_ms": 0.09,
+    "tempo_de_execucao_ms": 0.107,
+    "tempo_de_planejamento_ms": 0.258,
     "indices_usados": [
       "idx_emprestimo_leitor_data",
       "livro_pkey"
@@ -896,22 +879,22 @@
       }
     ],
     "plano": [
-      "Limit  (cost=0.71..121.17 rows=10 width=60) (actual time=0.005..0.017 rows=10 loops=1)",
+      "Limit  (cost=0.71..36.11 rows=10 width=60) (actual time=0.036..0.087 rows=10 loops=1)",
       "  Buffers: shared hit=43",
-      "  ->  Nested Loop  (cost=0.71..362.10 rows=30 width=60) (actual time=0.005..0.016 rows=10 loops=1)",
+      "  ->  Nested Loop  (cost=0.71..106.90 rows=30 width=60) (actual time=0.035..0.085 rows=10 loops=1)",
       "        Buffers: shared hit=43",
-      "        ->  Index Scan using idx_emprestimo_leitor_data on emprestimo  (cost=0.42..124.95 rows=30 width=32) (actual time=0.003..0.005 rows=10 loops=1)",
+      "        ->  Index Scan using idx_emprestimo_leitor_data on emprestimo  (cost=0.42..35.05 rows=30 width=32) (actual time=0.026..0.038 rows=10 loops=1)",
       "              Index Cond: (leitor_id = 150)",
       "              Buffers: shared hit=13",
-      "        ->  Index Scan using livro_pkey on livro  (cost=0.29..7.90 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=10)",
+      "        ->  Index Scan using livro_pkey on livro  (cost=0.29..2.40 rows=1 width=32) (actual time=0.004..0.004 rows=1 loops=10)",
       "              Index Cond: (id = emprestimo.livro_id)",
       "              Buffers: shared hit=30",
       "Planning:",
       "  Buffers: shared hit=14",
-      "Planning Time: 0.083 ms",
-      "Execution Time: 0.024 ms"
+      "Planning Time: 0.296 ms",
+      "Execution Time: 0.120 ms"
     ],
-    "tempo_de_execucao_mediano_ms": 0.025
+    "tempo_de_execucao_mediano_ms": 0.107
   },
   "5_4322": {
     "sql": "SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo \nFROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id \nWHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC \n LIMIT %(param_1)s::INTEGER",
@@ -919,14 +902,14 @@
       "leitor_id_1": 4322,
       "param_1": 10
     },
-    "random_page_cost": "padrão (4)",
+    "random_page_cost": "1.1 (padrão do banco)",
     "indices_existentes": [
       "emprestimo_pkey",
       "idx_emprestimo_leitor_data",
       "idx_emprestimo_livro"
     ],
-    "tempo_de_execucao_ms": 0.027,
-    "tempo_de_planejamento_ms": 0.085,
+    "tempo_de_execucao_ms": 0.11,
+    "tempo_de_planejamento_ms": 0.254,
     "indices_usados": [
       "idx_emprestimo_leitor_data",
       "livro_pkey"
@@ -984,21 +967,21 @@
       }
     ],
     "plano": [
-      "Limit  (cost=0.71..95.62 rows=10 width=60) (actual time=0.008..0.022 rows=10 loops=1)",
+      "Limit  (cost=0.71..31.00 rows=10 width=60) (actual time=0.026..0.076 rows=10 loops=1)",
       "  Buffers: shared hit=43",
-      "  ->  Nested Loop  (cost=0.71..2468.25 rows=260 width=60) (actual time=0.008..0.021 rows=10 loops=1)",
+      "  ->  Nested Loop  (cost=0.71..636.84 rows=210 width=60) (actual time=0.025..0.074 rows=10 loops=1)",
       "        Buffers: shared hit=43",
-      "        ->  Index Scan using idx_emprestimo_leitor_data on emprestimo  (cost=0.42..1004.95 rows=260 width=32) (actual time=0.005..0.008 rows=10 loops=1)",
+      "        ->  Index Scan using idx_emprestimo_leitor_data on emprestimo  (cost=0.42..230.69 rows=210 width=32) (actual time=0.017..0.030 rows=10 loops=1)",
       "              Index Cond: (leitor_id = 4322)",
       "              Buffers: shared hit=13",
-      "        ->  Index Scan using livro_pkey on livro  (cost=0.29..5.63 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=10)",
+      "        ->  Index Scan using livro_pkey on livro  (cost=0.29..1.93 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=10)",
       "              Index Cond: (id = emprestimo.livro_id)",
       "              Buffers: shared hit=30",
       "Planning:",
       "  Buffers: shared hit=14",
-      "Planning Time: 0.091 ms",
-      "Execution Time: 0.030 ms"
+      "Planning Time: 0.257 ms",
+      "Execution Time: 0.107 ms"
     ],
-    "tempo_de_execucao_mediano_ms": 0.027
+    "tempo_de_execucao_mediano_ms": 0.111
   }
 }

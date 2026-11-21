@@ -13,6 +13,9 @@ testes-carga/resultados/*-rapido/
 Thumbs.db
 desktop.ini
 
+# Credenciais do banco (Supabase): cada um tem o seu .env; o modelo é o .env.exemplo
+.env
+
 # Enunciado, rascunhos e pacotes de entrega ficam fora do repositório
 *.docx
 *.zip

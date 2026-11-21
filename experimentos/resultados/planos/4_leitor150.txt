@@ -1,20 +1,28 @@
--- índice proposto + random_page_cost 1,1; leitor 150 (58 empréstimos)
+-- índice proposto + random_page_cost 4; leitor 150 (58 empréstimos)
 -- índices em emprestimo: emprestimo_pkey, idx_emprestimo_leitor_data, idx_emprestimo_livro
--- random_page_cost: 1.1
+-- random_page_cost: 4
 
 SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo 
 FROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id 
 WHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC
 
-Nested Loop  (cost=0.71..106.90 rows=30 width=60) (actual time=0.005..0.067 rows=58 loops=1)
+Sort  (cost=355.37..355.44 rows=30 width=60) (actual time=0.381..0.385 rows=58 loops=1)
+  Sort Key: emprestimo.data_emprestimo DESC
+  Sort Method: quicksort  Memory: 29kB
   Buffers: shared hit=235
-  ->  Index Scan using idx_emprestimo_leitor_data on emprestimo  (cost=0.42..35.05 rows=30 width=32) (actual time=0.003..0.015 rows=58 loops=1)
-        Index Cond: (leitor_id = 150)
-        Buffers: shared hit=61
-  ->  Index Scan using livro_pkey on livro  (cost=0.29..2.40 rows=1 width=32) (actual time=0.001..0.001 rows=1 loops=58)
-        Index Cond: (id = emprestimo.livro_id)
-        Buffers: shared hit=174
+  ->  Nested Loop  (cost=4.94..354.63 rows=30 width=60) (actual time=0.036..0.333 rows=58 loops=1)
+        Buffers: shared hit=235
+        ->  Bitmap Heap Scan on emprestimo  (cost=4.66..117.48 rows=30 width=32) (actual time=0.026..0.105 rows=58 loops=1)
+              Recheck Cond: (leitor_id = 150)
+              Heap Blocks: exact=58
+              Buffers: shared hit=61
+              ->  Bitmap Index Scan on idx_emprestimo_leitor_data  (cost=0.00..4.65 rows=30 width=0) (actual time=0.013..0.013 rows=58 loops=1)
+                    Index Cond: (leitor_id = 150)
+                    Buffers: shared hit=3
+        ->  Index Scan using livro_pkey on livro  (cost=0.29..7.90 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=58)
+              Index Cond: (id = emprestimo.livro_id)
+              Buffers: shared hit=174
 Planning:
   Buffers: shared hit=14
-Planning Time: 0.079 ms
-Execution Time: 0.075 ms
+Planning Time: 0.256 ms
+Execution Time: 0.423 ms

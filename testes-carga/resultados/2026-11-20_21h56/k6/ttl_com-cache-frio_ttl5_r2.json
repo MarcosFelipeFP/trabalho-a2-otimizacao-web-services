@@ -1,0 +1,108 @@
+{
+  "cenario": "cache",
+  "versao": "com-cache-frio",
+  "base_url": "http://api:8000",
+  "aquecimento_s": 5,
+  "duracao_s": 60,
+  "requisicoes_ao_endpoint": 1780,
+  "preparo": {
+    "cache": {
+      "ttl_configurado_segundos": 5,
+      "acertos": 0,
+      "chaves": 0,
+      "chaves_descartadas_por_falta_de_memoria": 0,
+      "chaves_expiradas_pelo_ttl": 0,
+      "falhas": 0,
+      "memoria_usada": "1.33M",
+      "taxa_de_acerto": null
+    },
+    "enchimento": null,
+    "estado": {
+      "emprestimos_em_aberto": 3722,
+      "indices_de_emprestimo": [
+        {
+          "bytes": 6758400,
+          "definicao": "CREATE UNIQUE INDEX emprestimo_pkey ON public.emprestimo USING btree (id)",
+          "nome": "emprestimo_pkey"
+        },
+        {
+          "bytes": 2547712,
+          "definicao": "CREATE INDEX idx_emprestimo_livro ON public.emprestimo USING btree (livro_id)",
+          "nome": "idx_emprestimo_livro"
+        }
+      ],
+      "tabelas": {
+        "autor": 5000,
+        "categoria": 20,
+        "emprestimo": 300000,
+        "leitor": 10000,
+        "livro": 20000
+      },
+      "tamanho_do_banco": "74 MB",
+      "versoes": {
+        "bibliotecas_python": {
+          "fastapi": "0.163.1",
+          "orjson": "3.13.0",
+          "psycopg": "3.3.9",
+          "redis": "8.1.0",
+          "sqlalchemy": "2.1.8",
+          "uvicorn": "0.54.0"
+        },
+        "postgresql": "17.12",
+        "python": "3.14.10",
+        "redis": "8.10.3"
+      },
+      "banco": {
+        "max_connections": "60",
+        "max_parallel_workers_per_gather": "1",
+        "random_page_cost": "1.1",
+        "servidor": "aws-1-us-east-2.pooler.supabase.com",
+        "shared_buffers": "224MB",
+        "usuario": "postgres",
+        "versao": "17.12",
+        "work_mem": "2184kB"
+      },
+      "configuracao": {
+        "cache_ttl_segundos": 5,
+        "conexoes_por_worker": 3,
+        "threads_por_worker": 40,
+        "workers": 4
+      }
+    },
+    "inicio_dos_cenarios_ms": 1795231310634
+  },
+  "janelas": [
+    {
+      "vus": 50,
+      "inicio_s": 8,
+      "fim_s": 68
+    }
+  ],
+  "niveis": [
+    {
+      "vus": 50,
+      "requisicoes": 1660,
+      "vazao_rps": 27.666666666666668,
+      "latencia_ms": {
+        "media": 1835.9480598162643,
+        "minima": 0.64347,
+        "mediana": 1960.484927,
+        "maxima": 3326.400077,
+        "p90": 2179.9891748,
+        "p95": 2247.1038283499997,
+        "p99": 2314.90165437
+      },
+      "taxa_de_erros": 0,
+      "consultas_sql_por_requisicao": 2.835542168674699,
+      "tempo_no_banco_ms": 443.0131927710846,
+      "tempo_no_servidor_ms": 1835.5600542168672,
+      "taxa_de_acerto_do_cache": 0.054819277108433734,
+      "bytes_recebidos": 2124342,
+      "limites": {
+        "p(95)<1000": false,
+        "p(99)<2000": false,
+        "rate<0.01": true
+      }
+    }
+  ]
+}

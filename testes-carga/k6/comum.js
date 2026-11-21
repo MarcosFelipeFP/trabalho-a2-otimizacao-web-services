@@ -11,7 +11,9 @@
 //   AQUECIMENTO   segundos de aquecimento por nível      padrão 10
 //   DURACAO       segundos de medição por nível          padrão 30
 //   SAIDA         arquivo para gravar o resumo em JSON   opcional
-//   SLO_P95_MS, SLO_P99_MS, SLO_ERROS: limites conferidos pelo k6 (padrão 500 ms, 1000 ms, 1%)
+//   SLO_P95_MS, SLO_P99_MS, SLO_ERROS: limites conferidos pelo k6 (padrão 1000 ms, 2000 ms, 1%).
+//     Com o banco no Supabase, a uns 160 ms de ida e volta, uma ficha montada no banco (3 consultas)
+//     já leva cerca de meio segundo sem carga nenhuma; os limites marcam quando a fila começa.
 import http from 'k6/http';
 import { check } from 'k6';
 import { Rate, Trend } from 'k6/metrics';
@@ -26,10 +28,11 @@ export const DURACAO = Number(__ENV.DURACAO || 30);
 const INTERVALO = 3; // segundos de folga entre um nível e o seguinte
 
 const LIMITES = {
-  p95: Number(__ENV.SLO_P95_MS || 500),
-  p99: Number(__ENV.SLO_P99_MS || 1000),
+  p95: Number(__ENV.SLO_P95_MS || 1000),
+  p99: Number(__ENV.SLO_P99_MS || 2000),
   erros: Number(__ENV.SLO_ERROS || 0.01),
 };
+const TEMPO_LIMITE = __ENV.TEMPO_LIMITE || '60s'; // quanto o k6 espera cada resposta
 
 // Métricas próprias, lidas dos cabeçalhos que a API devolve em toda resposta.
 const consultasSql = new Trend('consultas_sql'); //            X-Consultas-SQL
@@ -101,6 +104,15 @@ export function idAleatorio(maximo) {
   return 1 + Math.floor(Math.random() * maximo);
 }
 
+// Sorteio com popularidade, como num catálogo real: poucos livros concentram a maior parte das
+// consultas. Com expoente 3, 1% dos livros recebe 22% das requisições e 10% recebe 46%. A
+// multiplicação por 7919 (primo, sem divisor comum com 20.000) espalha os populares pelos ids.
+const POPULARIDADE = Number(__ENV.POPULARIDADE || 3);
+export function idPopular(maximo) {
+  const posicao = Math.floor(Math.pow(Math.random(), POPULARIDADE) * maximo);
+  return 1 + ((posicao * 7919) % maximo);
+}
+
 function cabecalho(resposta, nome) {
   const alvo = nome.toLowerCase();
   for (const chave in resposta.headers) {
@@ -111,7 +123,7 @@ function cabecalho(resposta, nome) {
 
 // Requisição ao endpoint testado, com o registro das métricas próprias.
 export function consultar(url, nome) {
-  const resposta = http.get(url, { tags: { name: nome, tipo: 'cenario' } });
+  const resposta = http.get(url, { tags: { name: nome, tipo: 'cenario' }, timeout: TEMPO_LIMITE });
   check(resposta, { 'status 200': (r) => r.status === 200 });
 
   const sql = cabecalho(resposta, 'X-Consultas-SQL');
@@ -131,6 +143,7 @@ export function laboratorio(metodo, caminho) {
   const resposta = http.request(metodo, `${BASE_URL}${caminho}`, null, {
     tags: { name: `laboratorio ${caminho}`, tipo: 'laboratorio' },
     responseType: 'text',
+    timeout: '300s',
   });
   if (resposta.status >= 300) {
     throw new Error(`${metodo} ${caminho} respondeu ${resposta.status}: ${resposta.body}`);
@@ -138,11 +151,11 @@ export function laboratorio(metodo, caminho) {
   return resposta.json();
 }
 
-// Fim comum do setup(): registra o estado do banco (volume de dados, índices, configuração) e
-// zera os contadores do PostgreSQL, para medir só o que a carga provocar daqui em diante.
+// Fim comum do setup(): registra o estado do banco (volume de dados, índices, configuração). Os
+// contadores do banco não são zerados aqui: o roteiro executar.py mede pela diferença entre a
+// leitura antes e a leitura depois do teste, o que não depende de permissão para zerá-los.
 export function concluirPreparo(extra = {}) {
   const estado = laboratorio('GET', '/api/laboratorio/estado');
-  laboratorio('DELETE', '/api/laboratorio/banco/estatisticas');
   return { ...extra, estado, inicio_dos_cenarios_ms: Date.now() };
 }
 

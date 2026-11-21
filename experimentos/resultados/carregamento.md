@@ -1,26 +1,26 @@
 ### Consultas SQL por requisição, conforme a quantidade de empréstimos da página
 
-| estratégia | 10 | 50 | 100 | 500 | 1.000 |
+| estratégia | 10 | 50 | 100 | 200 | 500 |
 |---|---:|---:|---:|---:|---:|
-| LAZY (lazy="select") | 21 | 101 | 200 | 983 | 1.922 |
+| LAZY (lazy="select") | 21 | 101 | 200 | 398 | 983 |
 | EAGER (lazy="joined") | 1 | 1 | 1 | 1 | 1 |
-| EAGER com SELECT ... IN | 3 | 3 | 3 | 3 | 5 |
-| EAGER imediato, um SELECT por objeto | 21 | 101 | 200 | 983 | 1.922 |
+| EAGER com SELECT ... IN | 3 | 3 | 3 | 3 | 3 |
+| EAGER imediato, um SELECT por objeto | 21 | 101 | 200 | 398 | 983 |
 | JOIN FETCH (joinedload) | 1 | 1 | 1 | 1 | 1 |
 | otimizada (projeção com JOIN) | 1 | 1 | 1 | 1 | 1 |
 | SQL nativo | 1 | 1 | 1 | 1 | 1 |
 
 ### Tempo no servidor (ms, mediana), conforme a quantidade de empréstimos da página
 
-| estratégia | 10 | 50 | 100 | 500 | 1.000 |
+| estratégia | 10 | 50 | 100 | 200 | 500 |
 |---|---:|---:|---:|---:|---:|
-| LAZY (lazy="select") | 9,4 | 36,7 | 72,2 | 350,3 | 674,6 |
-| EAGER (lazy="joined") | 1,5 | 2,3 | 3,3 | 11,9 | 24,6 |
-| EAGER com SELECT ... IN | 2,5 | 3,7 | 5,9 | 19,5 | 37,7 |
-| EAGER imediato, um SELECT por objeto | 9,5 | 38,5 | 74,1 | 356,9 | 711,9 |
-| JOIN FETCH (joinedload) | 1,5 | 2,3 | 3,3 | 12,6 | 23,5 |
-| otimizada (projeção com JOIN) | 1,4 | 1,6 | 1,9 | 5,0 | 8,6 |
-| SQL nativo | 1,1 | 1,4 | 1,7 | 4,1 | 8,3 |
+| LAZY (lazy="select") | 3.385,6 | 16.078,1 | 31.874,2 | 63.484,4 | 157.635,5 |
+| EAGER (lazy="joined") | 162,1 | 167,7 | 172,3 | 190,1 | 205,7 |
+| EAGER com SELECT ... IN | 484,8 | 487,1 | 501,4 | 518,0 | 550,2 |
+| EAGER imediato, um SELECT por objeto | 3.350,2 | 16.066,2 | 31.860,0 | 63.252,3 | 157.603,9 |
+| JOIN FETCH (joinedload) | 165,8 | 167,4 | 177,6 | 189,6 | 212,5 |
+| otimizada (projeção com JOIN) | 160,7 | 161,4 | 163,3 | 164,2 | 166,9 |
+| SQL nativo | 160,1 | 161,5 | 163,2 | 164,0 | 167,6 |
 
 ### Detalhe por quantidade
 
@@ -28,67 +28,67 @@
 
 | estratégia | consultas SQL | linhas lidas do banco | KB lidos do banco | KB da resposta | tempo no banco (ms) | tempo no servidor (ms) |
 |---|---:|---:|---:|---:|---:|---:|
-| LAZY (lazy="select") | 21 | 30 | 5,2 | 2,3 | 4,41 | 9,40 |
-| EAGER (lazy="joined") | 1 | 10 | 5,2 | 2,3 | 0,58 | 1,50 |
-| EAGER com SELECT ... IN | 3 | 30 | 5,2 | 2,3 | 0,79 | 2,50 |
-| EAGER imediato, um SELECT por objeto | 21 | 30 | 5,2 | 2,3 | 4,33 | 9,49 |
-| JOIN FETCH (joinedload) | 1 | 10 | 5,2 | 2,3 | 0,57 | 1,54 |
-| otimizada (projeção com JOIN) | 1 | 10 | 1,1 | 2,3 | 0,53 | 1,38 |
-| SQL nativo | 1 | 10 | 1,1 | 2,3 | 0,52 | 1,13 |
+| LAZY (lazy="select") | 21 | 30 | 13,5 | 2,3 | 3.373,58 | 3.385,64 |
+| EAGER (lazy="joined") | 1 | 10 | 13,5 | 2,3 | 160,66 | 162,14 |
+| EAGER com SELECT ... IN | 3 | 30 | 13,5 | 2,3 | 480,87 | 484,83 |
+| EAGER imediato, um SELECT por objeto | 21 | 30 | 13,5 | 2,3 | 3.337,28 | 3.350,22 |
+| JOIN FETCH (joinedload) | 1 | 10 | 13,5 | 2,3 | 163,23 | 165,83 |
+| otimizada (projeção com JOIN) | 1 | 10 | 1,1 | 2,3 | 159,14 | 160,65 |
+| SQL nativo | 1 | 10 | 1,1 | 2,3 | 159,23 | 160,14 |
 
 #### 50 empréstimos por página
 
 | estratégia | consultas SQL | linhas lidas do banco | KB lidos do banco | KB da resposta | tempo no banco (ms) | tempo no servidor (ms) |
 |---|---:|---:|---:|---:|---:|---:|
-| LAZY (lazy="select") | 101 | 150 | 26,3 | 11,4 | 16,72 | 36,73 |
-| EAGER (lazy="joined") | 1 | 50 | 26,3 | 11,4 | 0,83 | 2,27 |
-| EAGER com SELECT ... IN | 3 | 150 | 26,3 | 11,4 | 1,17 | 3,70 |
-| EAGER imediato, um SELECT por objeto | 101 | 150 | 26,3 | 11,4 | 16,58 | 38,45 |
-| JOIN FETCH (joinedload) | 1 | 50 | 26,3 | 11,4 | 0,78 | 2,26 |
-| otimizada (projeção com JOIN) | 1 | 50 | 5,4 | 11,4 | 0,67 | 1,65 |
-| SQL nativo | 1 | 50 | 5,4 | 11,4 | 0,65 | 1,39 |
+| LAZY (lazy="select") | 101 | 150 | 68,8 | 11,4 | 16.021,74 | 16.078,14 |
+| EAGER (lazy="joined") | 1 | 50 | 68,8 | 11,4 | 164,84 | 167,72 |
+| EAGER com SELECT ... IN | 3 | 150 | 68,8 | 11,4 | 481,84 | 487,06 |
+| EAGER imediato, um SELECT por objeto | 101 | 150 | 68,8 | 11,4 | 16.008,95 | 16.066,17 |
+| JOIN FETCH (joinedload) | 1 | 50 | 68,8 | 11,4 | 164,76 | 167,42 |
+| otimizada (projeção com JOIN) | 1 | 50 | 5,4 | 11,4 | 159,88 | 161,42 |
+| SQL nativo | 1 | 50 | 5,4 | 11,4 | 160,44 | 161,52 |
 
 #### 100 empréstimos por página
 
 | estratégia | consultas SQL | linhas lidas do banco | KB lidos do banco | KB da resposta | tempo no banco (ms) | tempo no servidor (ms) |
 |---|---:|---:|---:|---:|---:|---:|
-| LAZY (lazy="select") | 200 | 299 | 52,1 | 22,8 | 32,48 | 72,21 |
-| EAGER (lazy="joined") | 1 | 100 | 52,5 | 22,8 | 1,09 | 3,31 |
-| EAGER com SELECT ... IN | 3 | 299 | 52,1 | 22,8 | 2,00 | 5,86 |
-| EAGER imediato, um SELECT por objeto | 200 | 299 | 52,1 | 22,8 | 31,59 | 74,07 |
-| JOIN FETCH (joinedload) | 1 | 100 | 52,5 | 22,8 | 1,08 | 3,33 |
-| otimizada (projeção com JOIN) | 1 | 100 | 10,8 | 22,8 | 0,83 | 1,89 |
-| SQL nativo | 1 | 100 | 10,8 | 22,8 | 0,83 | 1,74 |
+| LAZY (lazy="select") | 200 | 299 | 136,6 | 22,8 | 31.766,34 | 31.874,22 |
+| EAGER (lazy="joined") | 1 | 100 | 137,5 | 22,8 | 167,59 | 172,29 |
+| EAGER com SELECT ... IN | 3 | 299 | 136,6 | 22,8 | 493,62 | 501,38 |
+| EAGER imediato, um SELECT por objeto | 200 | 299 | 136,6 | 22,8 | 31.746,45 | 31.859,95 |
+| JOIN FETCH (joinedload) | 1 | 100 | 137,5 | 22,8 | 173,36 | 177,62 |
+| otimizada (projeção com JOIN) | 1 | 100 | 10,8 | 22,8 | 161,77 | 163,34 |
+| SQL nativo | 1 | 100 | 10,8 | 22,8 | 161,93 | 163,22 |
+
+#### 200 empréstimos por página
+
+| estratégia | consultas SQL | linhas lidas do banco | KB lidos do banco | KB da resposta | tempo no banco (ms) | tempo no servidor (ms) |
+|---|---:|---:|---:|---:|---:|---:|
+| LAZY (lazy="select") | 398 | 597 | 272,2 | 45,6 | 63.267,59 | 63.484,45 |
+| EAGER (lazy="joined") | 1 | 200 | 273,8 | 45,6 | 183,58 | 190,14 |
+| EAGER com SELECT ... IN | 3 | 597 | 272,2 | 45,6 | 506,92 | 518,00 |
+| EAGER imediato, um SELECT por objeto | 398 | 597 | 272,2 | 45,6 | 63.030,08 | 63.252,29 |
+| JOIN FETCH (joinedload) | 1 | 200 | 273,8 | 45,6 | 182,93 | 189,55 |
+| otimizada (projeção com JOIN) | 1 | 200 | 21,6 | 45,6 | 162,40 | 164,20 |
+| SQL nativo | 1 | 200 | 21,6 | 45,6 | 162,62 | 164,00 |
 
 #### 500 empréstimos por página
 
 | estratégia | consultas SQL | linhas lidas do banco | KB lidos do banco | KB da resposta | tempo no banco (ms) | tempo no servidor (ms) |
 |---|---:|---:|---:|---:|---:|---:|
-| LAZY (lazy="select") | 983 | 1.482 | 259,3 | 114,2 | 153,79 | 350,34 |
-| EAGER (lazy="joined") | 1 | 500 | 262,8 | 114,2 | 4,46 | 11,93 |
-| EAGER com SELECT ... IN | 3 | 1.482 | 259,3 | 114,2 | 6,55 | 19,51 |
-| EAGER imediato, um SELECT por objeto | 983 | 1.482 | 259,3 | 114,2 | 150,90 | 356,95 |
-| JOIN FETCH (joinedload) | 1 | 500 | 262,8 | 114,2 | 4,46 | 12,61 |
-| otimizada (projeção com JOIN) | 1 | 500 | 54,1 | 114,2 | 2,54 | 4,95 |
-| SQL nativo | 1 | 500 | 54,1 | 114,2 | 2,08 | 4,07 |
-
-#### 1.000 empréstimos por página
-
-| estratégia | consultas SQL | linhas lidas do banco | KB lidos do banco | KB da resposta | tempo no banco (ms) | tempo no servidor (ms) |
-|---|---:|---:|---:|---:|---:|---:|
-| LAZY (lazy="select") | 1.922 | 2.921 | 512,4 | 228,3 | 295,79 | 674,57 |
-| EAGER (lazy="joined") | 1 | 1.000 | 526,0 | 228,3 | 8,24 | 24,59 |
-| EAGER com SELECT ... IN | 5 | 2.921 | 512,4 | 228,3 | 12,64 | 37,67 |
-| EAGER imediato, um SELECT por objeto | 1.922 | 2.921 | 512,4 | 228,3 | 297,01 | 711,85 |
-| JOIN FETCH (joinedload) | 1 | 1.000 | 526,0 | 228,3 | 7,78 | 23,48 |
-| otimizada (projeção com JOIN) | 1 | 1.000 | 108,1 | 228,3 | 4,77 | 8,57 |
-| SQL nativo | 1 | 1.000 | 108,1 | 228,3 | 4,55 | 8,27 |
+| LAZY (lazy="select") | 983 | 1.482 | 674,9 | 114,2 | 157.095,24 | 157.635,45 |
+| EAGER (lazy="joined") | 1 | 500 | 685,1 | 114,2 | 189,13 | 205,74 |
+| EAGER com SELECT ... IN | 3 | 1.482 | 674,9 | 114,2 | 527,69 | 550,23 |
+| EAGER imediato, um SELECT por objeto | 983 | 1.482 | 674,9 | 114,2 | 156.999,58 | 157.603,92 |
+| JOIN FETCH (joinedload) | 1 | 500 | 685,1 | 114,2 | 188,90 | 212,46 |
+| otimizada (projeção com JOIN) | 1 | 500 | 54,1 | 114,2 | 164,04 | 166,88 |
+| SQL nativo | 1 | 500 | 54,1 | 114,2 | 165,24 | 167,60 |
 
 ### Resposta que não usa livro nem leitor (versões "resumo")
 
 | empréstimos | mapeamento | consultas SQL | KB lidos do banco | KB da resposta | tempo no banco (ms) | tempo no servidor (ms) |
 |---:|---|---:|---:|---:|---:|---:|
-| 20 | LAZY | 1 | 1,2 | 3,0 | 0,32 | 1,14 |
-| 20 | EAGER | 1 | 10,5 | 3,0 | 0,66 | 1,72 |
-| 1.000 | LAZY | 1 | 60,9 | 151,7 | 0,90 | 5,90 |
-| 1.000 | EAGER | 1 | 526,0 | 151,7 | 7,94 | 22,22 |
+| 20 | LAZY | 1 | 2,0 | 3,0 | 158,98 | 160,67 |
+| 20 | EAGER | 1 | 27,1 | 3,0 | 162,43 | 164,44 |
+| 500 | LAZY | 1 | 51,7 | 75,8 | 164,49 | 169,20 |
+| 500 | EAGER | 1 | 685,1 | 75,8 | 187,33 | 205,98 |

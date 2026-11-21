@@ -127,11 +127,13 @@ def recriar_api(cliente, ttl):
 
 
 def sql_no_banco(comando):
-    """Executa SQL direto no PostgreSQL, por fora da API (psql dentro do contêiner do banco)."""
+    """Executa SQL direto no banco, por fora da API: psql num contêiner (serviço psql do Docker
+    Compose), com a mesma conexão da API (variáveis PG* do .env)."""
     resultado = subprocess.run(
-        ['docker', 'exec', '-i', 'biblioteca-banco', 'psql', '-U', 'biblioteca', '-d', 'biblioteca',
-         '-v', 'ON_ERROR_STOP=1', '-At'],
-        input=comando, capture_output=True, text=True, encoding='utf-8', check=True)
+        ['docker', 'compose', 'run', '--rm', '-T', 'psql', '-At'],
+        input=comando, capture_output=True, text=True, encoding='utf-8', cwd=RAIZ)
+    if resultado.returncode != 0:
+        raise RuntimeError(f'psql falhou: {resultado.stderr.strip()[-500:]}')
     return resultado.stdout.strip()
 
 

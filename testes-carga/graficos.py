@@ -79,27 +79,58 @@ def _largura_texto(texto, tamanho):
     return len(texto) * tamanho * 0.58
 
 
-def _painel(x0, y0, largura, altura, titulo, unidade, rotulos_x, titulo_x, series, valores):
+def _rotulo_log(valor):
+    """Rótulo de uma potência de 10 no eixo logarítmico: 0,1, 1, 10, 100, 1 mil, 10 mil..."""
+    if valor >= 1000:
+        return f'{br(valor / 1000)} mil'
+    if valor >= 1:
+        return br(valor)
+    return br(valor, max(1, -math.floor(math.log10(valor))))
+
+
+def _painel(x0, y0, largura, altura, titulo, unidade, rotulos_x, titulo_x, series, valores, log=False):
+    """Um painel de linhas. Com log=True, o eixo y é logarítmico (uma marca por potência de 10),
+    para versões cujos valores diferem em ordens de grandeza; zeros ficam fora do desenho."""
     partes = [f'<text class="t1" x="{x0}" y="{y0 + 14}" font-size="13" font-weight="600">{escape(titulo)}</text>']
     esquerda, direita = x0 + 56, x0 + largura - 92
     topo, base = y0 + 32, y0 + altura - 40
 
+    if log:  # log(0) não existe: um nível sem nenhuma resposta não entra no gráfico (a tabela o mostra)
+        valores = {serie: [v if v is not None and v > 0 else None for v in valores[serie]] for serie in series}
     todos = [v for serie in series for v in valores[serie] if v is not None]
-    passo = _passo(max(todos) if todos else 1)
-    teto = passo * max(1, math.ceil((max(todos) if todos else 1) / passo))
-    compacto = teto >= 10000
 
-    def y(valor):
-        return base - (valor / teto) * (base - topo)
+    if log:
+        expoente_min = math.floor(math.log10(min(todos))) if todos else 0
+        expoente_max = math.ceil(math.log10(max(todos))) if todos else 1
+        expoente_max = max(expoente_max, expoente_min + 1)
 
-    marca = 0.0
-    while marca <= teto + passo / 1000:
-        yy = y(marca)
-        classe = 'eixo' if marca == 0 else 'grade'
-        partes.append(f'<line class="{classe}" x1="{esquerda}" y1="{yy:.1f}" x2="{direita}" y2="{yy:.1f}"/>')
-        partes.append(f'<text class="t3 num" x="{esquerda - 8}" y="{yy + 4:.1f}" font-size="11" '
-                      f'text-anchor="end">{escape(_rotulo(marca, passo, compacto))}</text>')
-        marca += passo
+        def y(valor):
+            fracao = (math.log10(valor) - expoente_min) / (expoente_max - expoente_min)
+            return base - fracao * (base - topo)
+
+        for expoente in range(expoente_min, expoente_max + 1):
+            marca = 10.0 ** expoente
+            yy = y(marca)
+            classe = 'eixo' if expoente == expoente_min else 'grade'
+            partes.append(f'<line class="{classe}" x1="{esquerda}" y1="{yy:.1f}" x2="{direita}" y2="{yy:.1f}"/>')
+            partes.append(f'<text class="t3 num" x="{esquerda - 8}" y="{yy + 4:.1f}" font-size="11" '
+                          f'text-anchor="end">{escape(_rotulo_log(marca))}</text>')
+    else:
+        passo = _passo(max(todos) if todos else 1)
+        teto = passo * max(1, math.ceil((max(todos) if todos else 1) / passo))
+        compacto = teto >= 10000
+
+        def y(valor):
+            return base - (valor / teto) * (base - topo)
+
+        marca = 0.0
+        while marca <= teto + passo / 1000:
+            yy = y(marca)
+            classe = 'eixo' if marca == 0 else 'grade'
+            partes.append(f'<line class="{classe}" x1="{esquerda}" y1="{yy:.1f}" x2="{direita}" y2="{yy:.1f}"/>')
+            partes.append(f'<text class="t3 num" x="{esquerda - 8}" y="{yy + 4:.1f}" font-size="11" '
+                          f'text-anchor="end">{escape(_rotulo(marca, passo, compacto))}</text>')
+            marca += passo
 
     n = len(rotulos_x)
     interno = 14
@@ -166,7 +197,8 @@ def figura(arquivo, titulo, subtitulo, rotulos_x, titulo_x, series, paineis):
     """Desenha um painel por métrica e grava o SVG.
 
     series: nomes das versões, na ordem das cores.
-    paineis: lista de dicionários {"titulo", "unidade", "valores": {serie: [valor por rótulo de x]}}.
+    paineis: lista de dicionários {"titulo", "unidade", "valores": {serie: [valor por rótulo de x]}}
+             e, opcionalmente, "log": True para o eixo y logarítmico.
     """
     if len(series) > len(CORES):
         raise ValueError(f'no máximo {len(CORES)} séries por figura')
@@ -201,6 +233,6 @@ def figura(arquivo, titulo, subtitulo, rotulos_x, titulo_x, series, paineis):
         x0 = MARGEM + coluna * (largura_painel + VAO)
         y0 = topo_paineis + linha * (ALTURA_PAINEL + VAO)
         partes.append(_painel(x0, y0, largura_painel, ALTURA_PAINEL, painel['titulo'], painel['unidade'],
-                              rotulos_x, titulo_x, series, painel['valores']))
+                              rotulos_x, titulo_x, series, painel['valores'], painel.get('log', False)))
     partes.append('</svg>')
     Path(arquivo).write_text('\n'.join(partes) + '\n', encoding='utf-8')

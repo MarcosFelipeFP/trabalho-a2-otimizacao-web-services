@@ -1,0 +1,108 @@
+{
+  "cenario": "cache",
+  "versao": "com-cache-frio",
+  "base_url": "http://api:8000",
+  "aquecimento_s": 5,
+  "duracao_s": 60,
+  "requisicoes_ao_endpoint": 1825,
+  "preparo": {
+    "inicio_dos_cenarios_ms": 1795230765649,
+    "cache": {
+      "memoria_usada": "1.33M",
+      "taxa_de_acerto": null,
+      "ttl_configurado_segundos": 5,
+      "acertos": 0,
+      "chaves": 0,
+      "chaves_descartadas_por_falta_de_memoria": 0,
+      "chaves_expiradas_pelo_ttl": 0,
+      "falhas": 0
+    },
+    "enchimento": null,
+    "estado": {
+      "banco": {
+        "usuario": "postgres",
+        "versao": "17.12",
+        "work_mem": "2184kB",
+        "max_connections": "60",
+        "max_parallel_workers_per_gather": "1",
+        "random_page_cost": "1.1",
+        "servidor": "aws-1-us-east-2.pooler.supabase.com",
+        "shared_buffers": "224MB"
+      },
+      "configuracao": {
+        "cache_ttl_segundos": 5,
+        "conexoes_por_worker": 3,
+        "threads_por_worker": 40,
+        "workers": 4
+      },
+      "emprestimos_em_aberto": 3722,
+      "indices_de_emprestimo": [
+        {
+          "bytes": 6758400,
+          "definicao": "CREATE UNIQUE INDEX emprestimo_pkey ON public.emprestimo USING btree (id)",
+          "nome": "emprestimo_pkey"
+        },
+        {
+          "bytes": 2547712,
+          "definicao": "CREATE INDEX idx_emprestimo_livro ON public.emprestimo USING btree (livro_id)",
+          "nome": "idx_emprestimo_livro"
+        }
+      ],
+      "tabelas": {
+        "livro": 20000,
+        "autor": 5000,
+        "categoria": 20,
+        "emprestimo": 300000,
+        "leitor": 10000
+      },
+      "tamanho_do_banco": "74 MB",
+      "versoes": {
+        "bibliotecas_python": {
+          "sqlalchemy": "2.1.8",
+          "uvicorn": "0.54.0",
+          "fastapi": "0.163.1",
+          "orjson": "3.13.0",
+          "psycopg": "3.3.9",
+          "redis": "8.1.0"
+        },
+        "postgresql": "17.12",
+        "python": "3.14.10",
+        "redis": "8.10.3"
+      }
+    }
+  },
+  "janelas": [
+    {
+      "vus": 50,
+      "inicio_s": 8,
+      "fim_s": 68
+    }
+  ],
+  "niveis": [
+    {
+      "vus": 50,
+      "requisicoes": 1698,
+      "vazao_rps": 28.3,
+      "latencia_ms": {
+        "media": 1793.8906341171944,
+        "minima": 0.582662,
+        "mediana": 1904.6950204999998,
+        "maxima": 2471.320336,
+        "p90": 2233.5489177,
+        "p95": 2251.92094145,
+        "p99": 2321.33041604
+      },
+      "taxa_de_erros": 0,
+      "consultas_sql_por_requisicao": 2.8392226148409896,
+      "tempo_no_banco_ms": 433.94902826855235,
+      "tempo_no_servidor_ms": 1793.5975618374525,
+      "taxa_de_acerto_do_cache": 0.0535924617196702,
+      "bytes_recebidos": 2161584,
+      "limites": {
+        "p(95)<1000": false,
+        "p(99)<2000": false,
+        "rate<0.01": true
+      }
+    }
+  ]
+}

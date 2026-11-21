@@ -7,10 +7,12 @@ Situações comparadas, para um leitor típico (150) e para o leitor com mais em
   1. sem índice em emprestimo(leitor_id): o estado inicial do banco;
   2. índice só em leitor_id;
   3. índice (leitor_id, data_emprestimo DESC), o proposto;
-  4. o índice proposto, com random_page_cost = 1,1 (custo para dados em memória ou SSD);
+  4. o índice proposto, com random_page_cost = 4, o padrão do PostgreSQL (o Supabase usa 1,1,
+     o valor indicado para SSD, e é com ele que as situações 1, 2, 3 e 5 rodam);
   5. o índice proposto, pedindo só os 10 mais recentes (LIMIT 10).
 Para cada uma: o plano de execução (EXPLAIN ANALYZE, gravado em resultados/planos/), o tempo de
-execução no banco (mediana de 15 EXPLAIN ANALYZE) e o tempo da requisição na API (mediana de 30).
+execução no banco (mediana de 15 EXPLAIN ANALYZE, medido pelo próprio banco, sem a rede) e o tempo
+da requisição na API (mediana de 30, que inclui a ida e volta até o banco).
 
 Depois: a busca por intervalo (empréstimos atrasados) sem e com índice parcial, o tamanho de cada
 índice e, por último, o custo de escrita (inserir 20.000 empréstimos, desfeito com ROLLBACK) com 0,
@@ -72,7 +74,7 @@ def main():
         ('sem índice', [], ''),
         ('índice só em leitor_id', ['leitor'], ''),
         ('índice (leitor_id, data_emprestimo DESC)', ['leitor-data'], ''),
-        ('índice proposto + random_page_cost 1,1', ['leitor-data'], '&random_page_cost=1.1'),
+        ('índice proposto + random_page_cost 4', ['leitor-data'], '&random_page_cost=4'),
         ('índice proposto + LIMIT 10', ['leitor-data'], '&limite=10'),
     ]
     linhas, detalhes = [], {}

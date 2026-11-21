@@ -1,6 +1,6 @@
 """Item 2 (seções 4.1 a 4.4): LAZY, EAGER e as versões otimizadas, com quantidades diferentes.
 
-Para cada estratégia e cada quantidade de empréstimos por página (10, 50, 100, 500 e 1.000):
+Para cada estratégia e cada quantidade de empréstimos por página (10, 50, 100, 200 e 500):
   - comandos SQL executados, linhas e bytes devolvidos pelo banco e tamanho da resposta, pela
     rota de laboratório que registra cada comando;
   - tempo no servidor e tempo no banco (cabeçalho Server-Timing), mediana de várias requisições,
@@ -23,16 +23,23 @@ DESCRICOES = {
     'otimizada': 'otimizada (projeção com JOIN)',
     'nativa': 'SQL nativo',
 }
-QUANTIDADES = [10, 50, 100, 500, 1000]
+QUANTIDADES = [10, 50, 100, 200, 500]
 DESDE = 150_000  # primeira página medida: empréstimos 150.000 em diante
+LENTAS = {'lazy', 'eager-immediate'}  # uma consulta por livro e por leitor (N+1)
 
 
-def repeticoes(quantidade):
-    return 21 if quantidade <= 100 else 9 if quantidade <= 500 else 5
+def repeticoes(quantidade, estrategia):
+    """Com o banco a uns 160 ms de ida e volta, uma página de 500 empréstimos no LAZY faz quase
+    mil consultas e leva mais de dois minutos. As estratégias com N+1 repetem menos: o tempo delas
+    é a soma de centenas de idas e voltas e varia pouco de uma requisição para outra."""
+    if estrategia in LENTAS:
+        return 3 if quantidade <= 10 else 2 if quantidade <= 50 else 1
+    return 15
 
 
-def medir(cliente, caminho, vezes):
-    cliente.get(caminho)  # aquecimento
+def medir(cliente, caminho, vezes, aquecer=True):
+    if aquecer:
+        cliente.get(caminho)
     respostas = [cliente.get(caminho) for _ in range(vezes)]
     assert all(r.status == 200 for r in respostas), caminho
     return {
@@ -78,7 +85,7 @@ def main():
         print(f'{quantidade} empréstimos por página:')
         for estrategia in ESTRATEGIAS:
             caminho = f'/api/emprestimos/{estrategia}?desde_id={DESDE}&quantidade={quantidade}'
-            tempos = medir(cliente, caminho, repeticoes(quantidade))
+            tempos = medir(cliente, caminho, repeticoes(quantidade, estrategia), aquecer=estrategia not in LENTAS)
             dados = volume(cliente, f'/api/laboratorio/sql/emprestimos/{estrategia}?desde_id={DESDE}&quantidade={quantidade}')
             # todas as estratégias precisam devolver exatamente o mesmo JSON
             referencia.setdefault(quantidade, tempos['corpo'])
@@ -90,10 +97,10 @@ def main():
                   f'banco {tempos["banco_ms"]:8.2f} ms')
 
     resumos = {}
-    for quantidade in (20, 1000):
+    for quantidade in (20, 500):
         for estrategia in ('lazy', 'eager'):
             caminho = f'/api/emprestimos/{estrategia}/resumo?desde_id={DESDE}&quantidade={quantidade}'
-            tempos = medir(cliente, caminho, repeticoes(quantidade))
+            tempos = medir(cliente, caminho, repeticoes(quantidade, 'resumo'))
             dados = volume(cliente, f'/api/laboratorio/sql/emprestimos/{estrategia}/resumo?desde_id={DESDE}&quantidade={quantidade}')
             resumos[(quantidade, estrategia)] = {**dados, **{k: v for k, v in tempos.items() if k != 'corpo'}}
     gravar_sql(cliente)

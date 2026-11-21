@@ -8,6 +8,7 @@ A disponibilidade (exemplares disponíveis) muda a cada empréstimo e um valor v
 leitor, então fica numa rota à parte e é sempre lida do banco.
 """
 
+from collections import defaultdict
 from datetime import datetime
 from typing import Annotated
 
@@ -16,7 +17,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
 from .. import cache
-from ..banco import Sessao
+from ..banco import Sessao, SessaoLeitura
 from ..esquemas import AtualizacaoDoLivro, Disponibilidade, FichaDoLivro
 from ..modelos import Emprestimo, Livro
 from ..respostas import RespostaJSON, para_json
@@ -26,31 +27,7 @@ rotas = APIRouter(prefix="/api/livros", tags=["Livros (item 1: cache)"])
 IdDoLivro = Annotated[int, Path(gt=0, description="Id do livro (de 1 a 20.000 nos dados gerados).")]
 
 
-def montar_ficha(sessao, livro_id: int) -> dict | None:
-    """Monta a ficha a partir do banco, com três consultas."""
-    # 1. o livro com o autor e a categoria, numa consulta com JOIN
-    livro = sessao.scalars(
-        select(Livro)
-        .options(joinedload(Livro.autor), joinedload(Livro.categoria))
-        .where(Livro.id == livro_id)
-    ).one_or_none()
-    if livro is None:
-        return None
-
-    # 2. quantas vezes o livro já foi emprestado e quando foi a última vez
-    total_emprestimos, ultimo_emprestimo = sessao.execute(
-        select(func.count(), func.max(Emprestimo.data_emprestimo))
-        .where(Emprestimo.livro_id == livro_id)
-    ).one()
-
-    # 3. até cinco outros livros do mesmo autor, dos mais recentes aos mais antigos
-    outros = sessao.execute(
-        select(Livro.id, Livro.titulo, Livro.ano_publicacao)
-        .where(Livro.autor_id == livro.autor_id, Livro.id != livro_id)
-        .order_by(Livro.ano_publicacao.desc(), Livro.id)
-        .limit(5)
-    ).all()
-
+def _compor_ficha(livro, total_emprestimos, ultimo_emprestimo, outros) -> dict:
     return {
         "id": livro.id,
         "titulo": livro.titulo,
@@ -78,8 +55,65 @@ def montar_ficha(sessao, livro_id: int) -> dict | None:
     }
 
 
+def montar_ficha(sessao, livro_id: int) -> dict | None:
+    """Monta a ficha a partir do banco, com três consultas."""
+    # 1. o livro com o autor e a categoria, numa consulta com JOIN
+    livro = sessao.scalars(
+        select(Livro)
+        .options(joinedload(Livro.autor), joinedload(Livro.categoria))
+        .where(Livro.id == livro_id)
+    ).one_or_none()
+    if livro is None:
+        return None
+
+    # 2. quantas vezes o livro já foi emprestado e quando foi a última vez
+    total_emprestimos, ultimo_emprestimo = sessao.execute(
+        select(func.count(), func.max(Emprestimo.data_emprestimo))
+        .where(Emprestimo.livro_id == livro_id)
+    ).one()
+
+    # 3. até cinco outros livros do mesmo autor, dos mais recentes aos mais antigos
+    outros = sessao.execute(
+        select(Livro.id, Livro.titulo, Livro.ano_publicacao)
+        .where(Livro.autor_id == livro.autor_id, Livro.id != livro_id)
+        .order_by(Livro.ano_publicacao.desc(), Livro.id)
+        .limit(5)
+    ).all()
+
+    return _compor_ficha(livro, total_emprestimos, ultimo_emprestimo, outros)
+
+
+def montar_fichas(sessao) -> list[dict]:
+    """As fichas de todos os livros de uma vez, com duas consultas no total. Serve para encher o
+    cache antes dos testes de carga (rota de laboratório): ficha por ficha, o conteúdo é o mesmo
+    de montar_ficha, que faria 60.000 consultas para os 20.000 livros."""
+    livros = sessao.scalars(
+        select(Livro).options(joinedload(Livro.autor), joinedload(Livro.categoria)).order_by(Livro.id)
+    ).all()
+    circulacao = {
+        livro_id: (total, ultimo)
+        for livro_id, total, ultimo in sessao.execute(
+            select(Emprestimo.livro_id, func.count(), func.max(Emprestimo.data_emprestimo))
+            .group_by(Emprestimo.livro_id)
+        )
+    }
+    # outros livros do autor na mesma ordem da consulta 3 de montar_ficha
+    por_autor = defaultdict(list)
+    for livro in livros:
+        por_autor[livro.autor_id].append(livro)
+    for obras in por_autor.values():
+        obras.sort(key=lambda obra: (-obra.ano_publicacao, obra.id))
+
+    fichas = []
+    for livro in livros:
+        outros = [obra for obra in por_autor[livro.autor_id] if obra.id != livro.id][:5]
+        total, ultimo = circulacao.get(livro.id, (0, None))
+        fichas.append(_compor_ficha(livro, total, ultimo, outros))
+    return fichas
+
+
 def _ficha_do_banco(livro_id: int) -> dict:
-    with Sessao() as sessao:
+    with SessaoLeitura() as sessao:
         ficha = montar_ficha(sessao, livro_id)
     if ficha is None:
         raise HTTPException(404, "Livro não encontrado.")
@@ -144,7 +178,7 @@ def atualizar_livro(livro_id: IdDoLivro, dados: AtualizacaoDoLivro):
 )
 def disponibilidade(livro_id: IdDoLivro):
     """Dado volátil, alterado a cada empréstimo e devolução: não passa pelo cache."""
-    with Sessao() as sessao:
+    with SessaoLeitura() as sessao:
         linha = sessao.execute(
             select(Livro.total_exemplares, Livro.exemplares_disponiveis).where(Livro.id == livro_id)
         ).one_or_none()

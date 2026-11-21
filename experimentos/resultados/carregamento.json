@@ -2,47 +2,47 @@
   "10_lazy": {
     "consultas": 21,
     "linhas_lidas": 30,
-    "bytes_lidos": 5344,
+    "bytes_lidos": 13847,
     "bytes_da_resposta": 2317,
     "consultas_sql": 21,
-    "servidor_ms": 9.4,
-    "banco_ms": 4.41
+    "servidor_ms": 3385.64,
+    "banco_ms": 3373.58
   },
   "10_eager": {
     "consultas": 1,
     "linhas_lidas": 10,
-    "bytes_lidos": 5344,
+    "bytes_lidos": 13847,
     "bytes_da_resposta": 2317,
     "consultas_sql": 1,
-    "servidor_ms": 1.5,
-    "banco_ms": 0.58
+    "servidor_ms": 162.14,
+    "banco_ms": 160.66
   },
   "10_eager-selectin": {
     "consultas": 3,
     "linhas_lidas": 30,
-    "bytes_lidos": 5344,
+    "bytes_lidos": 13847,
     "bytes_da_resposta": 2317,
     "consultas_sql": 3,
-    "servidor_ms": 2.5,
-    "banco_ms": 0.79
+    "servidor_ms": 484.83,
+    "banco_ms": 480.87
   },
   "10_eager-immediate": {
     "consultas": 21,
     "linhas_lidas": 30,
-    "bytes_lidos": 5344,
+    "bytes_lidos": 13847,
     "bytes_da_resposta": 2317,
     "consultas_sql": 21,
-    "servidor_ms": 9.49,
-    "banco_ms": 4.33
+    "servidor_ms": 3350.22,
+    "banco_ms": 3337.28
   },
   "10_join-fetch": {
     "consultas": 1,
     "linhas_lidas": 10,
-    "bytes_lidos": 5344,
+    "bytes_lidos": 13847,
     "bytes_da_resposta": 2317,
     "consultas_sql": 1,
-    "servidor_ms": 1.54,
-    "banco_ms": 0.57
+    "servidor_ms": 165.83,
+    "banco_ms": 163.23
   },
   "10_otimizada": {
     "consultas": 1,
@@ -50,8 +50,8 @@
     "bytes_lidos": 1086,
     "bytes_da_resposta": 2317,
     "consultas_sql": 1,
-    "servidor_ms": 1.38,
-    "banco_ms": 0.53
+    "servidor_ms": 160.65,
+    "banco_ms": 159.14
   },
   "10_nativa": {
     "consultas": 1,
@@ -59,53 +59,53 @@
     "bytes_lidos": 1086,
     "bytes_da_resposta": 2317,
     "consultas_sql": 1,
-    "servidor_ms": 1.13,
-    "banco_ms": 0.52
+    "servidor_ms": 160.14,
+    "banco_ms": 159.23
   },
   "50_lazy": {
     "consultas": 101,
     "linhas_lidas": 150,
-    "bytes_lidos": 26897,
+    "bytes_lidos": 70475,
     "bytes_da_resposta": 11696,
     "consultas_sql": 101,
-    "servidor_ms": 36.73,
-    "banco_ms": 16.72
+    "servidor_ms": 16078.135,
+    "banco_ms": 16021.74
   },
   "50_eager": {
     "consultas": 1,
     "linhas_lidas": 50,
-    "bytes_lidos": 26897,
+    "bytes_lidos": 70475,
     "bytes_da_resposta": 11696,
     "consultas_sql": 1,
-    "servidor_ms": 2.27,
-    "banco_ms": 0.83
+    "servidor_ms": 167.72,
+    "banco_ms": 164.84
   },
   "50_eager-selectin": {
     "consultas": 3,
     "linhas_lidas": 150,
-    "bytes_lidos": 26897,
+    "bytes_lidos": 70475,
     "bytes_da_resposta": 11696,
     "consultas_sql": 3,
-    "servidor_ms": 3.7,
-    "banco_ms": 1.17
+    "servidor_ms": 487.06,
+    "banco_ms": 481.84
   },
   "50_eager-immediate": {
     "consultas": 101,
     "linhas_lidas": 150,
-    "bytes_lidos": 26897,
+    "bytes_lidos": 70475,
     "bytes_da_resposta": 11696,
     "consultas_sql": 101,
-    "servidor_ms": 38.45,
-    "banco_ms": 16.58
+    "servidor_ms": 16066.165,
+    "banco_ms": 16008.955
   },
   "50_join-fetch": {
     "consultas": 1,
     "linhas_lidas": 50,
-    "bytes_lidos": 26897,
+    "bytes_lidos": 70475,
     "bytes_da_resposta": 11696,
     "consultas_sql": 1,
-    "servidor_ms": 2.26,
-    "banco_ms": 0.78
+    "servidor_ms": 167.42,
+    "banco_ms": 164.76
   },
   "50_otimizada": {
     "consultas": 1,
@@ -113,8 +113,8 @@
     "bytes_lidos": 5545,
     "bytes_da_resposta": 11696,
     "consultas_sql": 1,
-    "servidor_ms": 1.65,
-    "banco_ms": 0.67
+    "servidor_ms": 161.42,
+    "banco_ms": 159.88
   },
   "50_nativa": {
     "consultas": 1,
@@ -122,53 +122,53 @@
     "bytes_lidos": 5545,
     "bytes_da_resposta": 11696,
     "consultas_sql": 1,
-    "servidor_ms": 1.39,
-    "banco_ms": 0.65
+    "servidor_ms": 161.52,
+    "banco_ms": 160.44
   },
   "100_lazy": {
     "consultas": 200,
     "linhas_lidas": 299,
-    "bytes_lidos": 53366,
+    "bytes_lidos": 139875,
     "bytes_da_resposta": 23375,
     "consultas_sql": 200,
-    "servidor_ms": 72.21,
-    "banco_ms": 32.48
+    "servidor_ms": 31874.22,
+    "banco_ms": 31766.34
   },
   "100_eager": {
     "consultas": 1,
     "linhas_lidas": 100,
-    "bytes_lidos": 53772,
+    "bytes_lidos": 140798,
     "bytes_da_resposta": 23375,
     "consultas_sql": 1,
-    "servidor_ms": 3.31,
-    "banco_ms": 1.09
+    "servidor_ms": 172.29,
+    "banco_ms": 167.59
   },
   "100_eager-selectin": {
     "consultas": 3,
     "linhas_lidas": 299,
-    "bytes_lidos": 53366,
+    "bytes_lidos": 139875,
     "bytes_da_resposta": 23375,
     "consultas_sql": 3,
-    "servidor_ms": 5.86,
-    "banco_ms": 2.0
+    "servidor_ms": 501.38,
+    "banco_ms": 493.62
   },
   "100_eager-immediate": {
     "consultas": 200,
     "linhas_lidas": 299,
-    "bytes_lidos": 53366,
+    "bytes_lidos": 139875,
     "bytes_da_resposta": 23375,
     "consultas_sql": 200,
-    "servidor_ms": 74.07,
-    "banco_ms": 31.59
+    "servidor_ms": 31859.95,
+    "banco_ms": 31746.45
   },
   "100_join-fetch": {
     "consultas": 1,
     "linhas_lidas": 100,
-    "bytes_lidos": 53772,
+    "bytes_lidos": 140798,
     "bytes_da_resposta": 23375,
     "consultas_sql": 1,
-    "servidor_ms": 3.33,
-    "banco_ms": 1.08
+    "servidor_ms": 177.62,
+    "banco_ms": 173.36
   },
   "100_otimizada": {
     "consultas": 1,
@@ -176,8 +176,8 @@
     "bytes_lidos": 11074,
     "bytes_da_resposta": 23375,
     "consultas_sql": 1,
-    "servidor_ms": 1.89,
-    "banco_ms": 0.83
+    "servidor_ms": 163.34,
+    "banco_ms": 161.77
   },
   "100_nativa": {
     "consultas": 1,
@@ -185,53 +185,116 @@
     "bytes_lidos": 11074,
     "bytes_da_resposta": 23375,
     "consultas_sql": 1,
-    "servidor_ms": 1.74,
-    "banco_ms": 0.83
+    "servidor_ms": 163.22,
+    "banco_ms": 161.93
+  },
+  "200_lazy": {
+    "consultas": 398,
+    "linhas_lidas": 597,
+    "bytes_lidos": 278784,
+    "bytes_da_resposta": 46694,
+    "consultas_sql": 398,
+    "servidor_ms": 63484.45,
+    "banco_ms": 63267.59
+  },
+  "200_eager": {
+    "consultas": 1,
+    "linhas_lidas": 200,
+    "bytes_lidos": 280380,
+    "bytes_da_resposta": 46694,
+    "consultas_sql": 1,
+    "servidor_ms": 190.14,
+    "banco_ms": 183.58
+  },
+  "200_eager-selectin": {
+    "consultas": 3,
+    "linhas_lidas": 597,
+    "bytes_lidos": 278784,
+    "bytes_da_resposta": 46694,
+    "consultas_sql": 3,
+    "servidor_ms": 518.0,
+    "banco_ms": 506.92
+  },
+  "200_eager-immediate": {
+    "consultas": 398,
+    "linhas_lidas": 597,
+    "bytes_lidos": 278784,
+    "bytes_da_resposta": 46694,
+    "consultas_sql": 398,
+    "servidor_ms": 63252.29,
+    "banco_ms": 63030.08
+  },
+  "200_join-fetch": {
+    "consultas": 1,
+    "linhas_lidas": 200,
+    "bytes_lidos": 280380,
+    "bytes_da_resposta": 46694,
+    "consultas_sql": 1,
+    "servidor_ms": 189.55,
+    "banco_ms": 182.93
+  },
+  "200_otimizada": {
+    "consultas": 1,
+    "linhas_lidas": 200,
+    "bytes_lidos": 22093,
+    "bytes_da_resposta": 46694,
+    "consultas_sql": 1,
+    "servidor_ms": 164.2,
+    "banco_ms": 162.4
+  },
+  "200_nativa": {
+    "consultas": 1,
+    "linhas_lidas": 200,
+    "bytes_lidos": 22093,
+    "bytes_da_resposta": 46694,
+    "consultas_sql": 1,
+    "servidor_ms": 164.0,
+    "banco_ms": 162.62
   },
   "500_lazy": {
     "consultas": 983,
     "linhas_lidas": 1482,
-    "bytes_lidos": 265475,
+    "bytes_lidos": 691078,
     "bytes_da_resposta": 116893,
     "consultas_sql": 983,
-    "servidor_ms": 350.34,
-    "banco_ms": 153.79
+    "servidor_ms": 157635.45,
+    "banco_ms": 157095.24
   },
   "500_eager": {
     "consultas": 1,
     "linhas_lidas": 500,
-    "bytes_lidos": 269082,
+    "bytes_lidos": 701514,
     "bytes_da_resposta": 116893,
     "consultas_sql": 1,
-    "servidor_ms": 11.93,
-    "banco_ms": 4.46
+    "servidor_ms": 205.74,
+    "banco_ms": 189.13
   },
   "500_eager-selectin": {
     "consultas": 3,
     "linhas_lidas": 1482,
-    "bytes_lidos": 265475,
+    "bytes_lidos": 691078,
     "bytes_da_resposta": 116893,
     "consultas_sql": 3,
-    "servidor_ms": 19.51,
-    "banco_ms": 6.55
+    "servidor_ms": 550.23,
+    "banco_ms": 527.69
   },
   "500_eager-immediate": {
     "consultas": 983,
     "linhas_lidas": 1482,
-    "bytes_lidos": 265475,
+    "bytes_lidos": 691078,
     "bytes_da_resposta": 116893,
     "consultas_sql": 983,
-    "servidor_ms": 356.95,
-    "banco_ms": 150.9
+    "servidor_ms": 157603.92,
+    "banco_ms": 156999.58
   },
   "500_join-fetch": {
     "consultas": 1,
     "linhas_lidas": 500,
-    "bytes_lidos": 269082,
+    "bytes_lidos": 701514,
     "bytes_da_resposta": 116893,
     "consultas_sql": 1,
-    "servidor_ms": 12.61,
-    "banco_ms": 4.46
+    "servidor_ms": 212.46,
+    "banco_ms": 188.9
   },
   "500_otimizada": {
     "consultas": 1,
@@ -239,8 +302,8 @@
     "bytes_lidos": 55392,
     "bytes_da_resposta": 116893,
     "consultas_sql": 1,
-    "servidor_ms": 4.95,
-    "banco_ms": 2.54
+    "servidor_ms": 166.88,
+    "banco_ms": 164.04
   },
   "500_nativa": {
     "consultas": 1,
@@ -248,70 +311,7 @@
     "bytes_lidos": 55392,
     "bytes_da_resposta": 116893,
     "consultas_sql": 1,
-    "servidor_ms": 4.07,
-    "banco_ms": 2.08
-  },
-  "1000_lazy": {
-    "consultas": 1922,
-    "linhas_lidas": 2921,
-    "bytes_lidos": 524741,
-    "bytes_da_resposta": 233739,
-    "consultas_sql": 1922,
-    "servidor_ms": 674.57,
-    "banco_ms": 295.79
-  },
-  "1000_eager": {
-    "consultas": 1,
-    "linhas_lidas": 1000,
-    "bytes_lidos": 538583,
-    "bytes_da_resposta": 233739,
-    "consultas_sql": 1,
-    "servidor_ms": 24.59,
-    "banco_ms": 8.24
-  },
-  "1000_eager-selectin": {
-    "consultas": 5,
-    "linhas_lidas": 2921,
-    "bytes_lidos": 524741,
-    "bytes_da_resposta": 233739,
-    "consultas_sql": 5,
-    "servidor_ms": 37.67,
-    "banco_ms": 12.64
-  },
-  "1000_eager-immediate": {
-    "consultas": 1922,
-    "linhas_lidas": 2921,
-    "bytes_lidos": 524741,
-    "bytes_da_resposta": 233739,
-    "consultas_sql": 1922,
-    "servidor_ms": 711.85,
-    "banco_ms": 297.01
-  },
-  "1000_join-fetch": {
-    "consultas": 1,
-    "linhas_lidas": 1000,
-    "bytes_lidos": 538583,
-    "bytes_da_resposta": 233739,
-    "consultas_sql": 1,
-    "servidor_ms": 23.48,
-    "banco_ms": 7.78
-  },
-  "1000_otimizada": {
-    "consultas": 1,
-    "linhas_lidas": 1000,
-    "bytes_lidos": 110738,
-    "bytes_da_resposta": 233739,
-    "consultas_sql": 1,
-    "servidor_ms": 8.57,
-    "banco_ms": 4.77
-  },
-  "1000_nativa": {
-    "consultas": 1,
-    "linhas_lidas": 1000,
-    "bytes_lidos": 110738,
-    "bytes_da_resposta": 233739,
-    "consultas_sql": 1,
-    "servidor_ms": 8.27,
-    "banco_ms": 4.55
+    "servidor_ms": 167.6,
+    "banco_ms": 165.24
   }
 }

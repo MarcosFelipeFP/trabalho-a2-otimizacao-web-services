@@ -21,7 +21,7 @@ from fastapi import APIRouter, HTTPException, Path, Query
 from sqlalchemy import select, text
 from sqlalchemy.orm import immediateload, joinedload, selectinload
 
-from ..banco import Sessao
+from ..banco import Sessao, SessaoLeitura
 from ..esquemas import (
     EmprestimoAtrasado,
     EmprestimoDetalhado,
@@ -181,7 +181,7 @@ ESTRATEGIAS_RESUMO = {"lazy": resumir_lazy, "eager": resumir_eager}
 
 
 def _listar(funcao, desde_id, quantidade):
-    with Sessao() as sessao:
+    with SessaoLeitura() as sessao:
         return RespostaJSON(funcao(sessao, desde_id, quantidade))
 
 
@@ -276,7 +276,7 @@ def atrasados(
 ):
     """Empréstimos em aberto com o prazo de devolução vencido, dos mais atrasados aos menos."""
     referencia = data or date.today()
-    with Sessao() as sessao:
+    with SessaoLeitura() as sessao:
         linhas = sessao.execute(consulta_atrasados(referencia, limite)).all()
     return RespostaJSON([
         {

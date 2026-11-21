@@ -11,5 +11,6 @@ CREATE INDEX idx_emprestimo_livro ON emprestimo (livro_id);
 -- em banco/experimentos/indices.sql e também podem ser criados pela rota
 -- PUT /api/laboratorio/indices/{nome}.
 
--- Estatísticas do otimizador e mapa de visibilidade atualizados antes do primeiro uso.
-VACUUM ANALYZE;
+-- Estatísticas do otimizador e mapa de visibilidade atualizados antes do primeiro uso. Só as
+-- tabelas da biblioteca: no Supabase o banco também guarda as tabelas internas do projeto.
+VACUUM ANALYZE categoria, autor, livro, leitor, emprestimo;

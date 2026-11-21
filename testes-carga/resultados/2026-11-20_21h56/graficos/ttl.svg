@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="374" viewBox="0 0 960 374" role="img" aria-labelledby="titulo descricao">
+<title id="titulo">Taxa de acerto do cache ao longo do tempo, por TTL</title>
+<desc id="descricao">Cache esvaziado no instante 0; média das repetições, em janelas de 5 s. Séries: TTL 5 s, TTL 30 s, TTL 120 s, TTL 600 s. Eixo x: segundos desde o esvaziamento (5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60).</desc>
+<style>
+svg { --fundo: #fcfcfb; --tinta1: #0b0b0b; --tinta2: #52514e; --tinta3: #898781;
+      --grade: #e1e0d9; --eixo: #c3c2b7; --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+@media (prefers-color-scheme: dark) {
+  svg { --fundo: #1a1a19; --tinta1: #f0efec; --tinta2: #c3c2b7; --tinta3: #898781;
+        --grade: #2c2c2a; --eixo: #383835; --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; }
+}
+.fundo { fill: var(--fundo); }
+.grade { stroke: var(--grade); stroke-width: 1; }
+.eixo { stroke: var(--eixo); stroke-width: 1; }
+.t1 { fill: var(--tinta1); }
+.t2 { fill: var(--tinta2); }
+.t3 { fill: var(--tinta3); }
+.num { font-variant-numeric: tabular-nums; }
+.linha { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.ponto { stroke: var(--fundo); stroke-width: 2; }
+.c1 .linha { stroke: var(--s1); } .c1 .ponto { fill: var(--s1); }
+.c2 .linha { stroke: var(--s2); } .c2 .ponto { fill: var(--s2); }
+.c3 .linha { stroke: var(--s3); } .c3 .ponto { fill: var(--s3); }
+.c4 .linha { stroke: var(--s4); } .c4 .ponto { fill: var(--s4); }
+</style>
+<rect class="fundo" width="960" height="374" rx="8"/>
+<text class="t1" x="24" y="40" font-size="17" font-weight="600">Taxa de acerto do cache ao longo do tempo, por TTL</text>
+<text class="t2" x="24" y="62" font-size="12">Cache esvaziado no instante 0; média das repetições, em janelas de 5 s</text>
+<g class="c1"><line class="linha" x1="24" y1="84" x2="42" y2="84"/><circle class="ponto" cx="33" cy="84" r="4"/></g>
+<text class="t2" x="48" y="88" font-size="12">TTL 5 s</text>
+<g class="c2"><line class="linha" x1="118.72" y1="84" x2="136.72" y2="84"/><circle class="ponto" cx="127.72" cy="84" r="4"/></g>
+<text class="t2" x="142.72" y="88" font-size="12">TTL 30 s</text>
+<g class="c3"><line class="linha" x1="220.39999999999998" y1="84" x2="238.39999999999998" y2="84"/><circle class="ponto" cx="229.39999999999998" cy="84" r="4"/></g>
+<text class="t2" x="244.39999999999998" y="88" font-size="12">TTL 120 s</text>
+<g class="c4"><line class="linha" x1="329.03999999999996" y1="84" x2="347.03999999999996" y2="84"/><circle class="ponto" cx="338.03999999999996" cy="84" r="4"/></g>
+<text class="t2" x="353.03999999999996" y="88" font-size="12">TTL 600 s</text>
+<text class="t1" x="24.0" y="114" font-size="13" font-weight="600">Acertos no cache</text>
+<line class="eixo" x1="80.0" y1="310.0" x2="844.0" y2="310.0"/>
+<text class="t3 num" x="72.0" y="314.0" font-size="11" text-anchor="end">0</text>
+<line class="grade" x1="80.0" y1="250.7" x2="844.0" y2="250.7"/>
+<text class="t3 num" x="72.0" y="254.7" font-size="11" text-anchor="end">10</text>
+<line class="grade" x1="80.0" y1="191.3" x2="844.0" y2="191.3"/>
+<text class="t3 num" x="72.0" y="195.3" font-size="11" text-anchor="end">20</text>
+<line class="grade" x1="80.0" y1="132.0" x2="844.0" y2="132.0"/>
+<text class="t3 num" x="72.0" y="136.0" font-size="11" text-anchor="end">30</text>
+<text class="t3 num" x="94.0" y="327" font-size="11" text-anchor="middle">5</text>
+<text class="t3 num" x="160.9" y="327" font-size="11" text-anchor="middle">10</text>
+<text class="t3 num" x="227.8" y="327" font-size="11" text-anchor="middle">15</text>
+<text class="t3 num" x="294.7" y="327" font-size="11" text-anchor="middle">20</text>
+<text class="t3 num" x="361.6" y="327" font-size="11" text-anchor="middle">25</text>
+<text class="t3 num" x="428.5" y="327" font-size="11" text-anchor="middle">30</text>
+<text class="t3 num" x="495.5" y="327" font-size="11" text-anchor="middle">35</text>
+<text class="t3 num" x="562.4" y="327" font-size="11" text-anchor="middle">40</text>
+<text class="t3 num" x="629.3" y="327" font-size="11" text-anchor="middle">45</text>
+<text class="t3 num" x="696.2" y="327" font-size="11" text-anchor="middle">50</text>
+<text class="t3 num" x="763.1" y="327" font-size="11" text-anchor="middle">55</text>
+<text class="t3 num" x="830.0" y="327" font-size="11" text-anchor="middle">60</text>
+<text class="t3" x="462.0" y="343" font-size="11" text-anchor="middle">segundos desde o esvaziamento</text>
+<g class="c1"><path class="linha" d="M 94.0 291.3 L 160.9 264.4 L 227.8 265.7 L 294.7 276.2 L 361.6 263.7 L 428.5 274.3 L 495.5 274.0 L 562.4 264.4 L 629.3 278.6 L 696.2 266.7 L 763.1 285.8 L 830.0 289.0"/></g>
+<g class="c2"><path class="linha" d="M 94.0 294.1 L 160.9 255.9 L 227.8 237.6 L 294.7 230.3 L 361.6 223.1 L 428.5 206.2 L 495.5 224.2 L 562.4 213.0 L 629.3 222.2 L 696.2 212.6 L 763.1 207.3 L 830.0 198.5"/></g>
+<g class="c3"><path class="linha" d="M 94.0 288.5 L 160.9 255.3 L 227.8 227.3 L 294.7 229.3 L 361.6 218.6 L 428.5 194.9 L 495.5 191.6 L 562.4 178.0 L 629.3 171.2 L 696.2 148.5 L 763.1 150.4 L 830.0 132.8"/></g>
+<g class="c4"><path class="linha" d="M 94.0 287.4 L 160.9 254.9 L 227.8 235.6 L 294.7 236.3 L 361.6 196.7 L 428.5 200.0 L 495.5 194.3 L 562.4 167.3 L 629.3 175.7 L 696.2 170.6 L 763.1 160.5 L 830.0 164.7"/></g>
+<g class="c1"><circle class="ponto" cx="94.0" cy="291.3" r="4"><title>TTL 5 s · 5 segundos · 3,2 %</title></circle><circle class="ponto" cx="160.9" cy="264.4" r="4"><title>TTL 5 s · 10 segundos · 7,7 %</title></circle><circle class="ponto" cx="227.8" cy="265.7" r="4"><title>TTL 5 s · 15 segundos · 7,5 %</title></circle><circle class="ponto" cx="294.7" cy="276.2" r="4"><title>TTL 5 s · 20 segundos · 5,7 %</title></circle><circle class="ponto" cx="361.6" cy="263.7" r="4"><title>TTL 5 s · 25 segundos · 7,8 %</title></circle><circle class="ponto" cx="428.5" cy="274.3" r="4"><title>TTL 5 s · 30 segundos · 6,0 %</title></circle><circle class="ponto" cx="495.5" cy="274.0" r="4"><title>TTL 5 s · 35 segundos · 6,1 %</title></circle><circle class="ponto" cx="562.4" cy="264.4" r="4"><title>TTL 5 s · 40 segundos · 7,7 %</title></circle><circle class="ponto" cx="629.3" cy="278.6" r="4"><title>TTL 5 s · 45 segundos · 5,3 %</title></circle><circle class="ponto" cx="696.2" cy="266.7" r="4"><title>TTL 5 s · 50 segundos · 7,3 %</title></circle><circle class="ponto" cx="763.1" cy="285.8" r="4"><title>TTL 5 s · 55 segundos · 4,1 %</title></circle><circle class="ponto" cx="830.0" cy="289.0" r="4"><title>TTL 5 s · 60 segundos · 3,5 %</title></circle></g>
+<g class="c2"><circle class="ponto" cx="94.0" cy="294.1" r="4"><title>TTL 30 s · 5 segundos · 2,7 %</title></circle><circle class="ponto" cx="160.9" cy="255.9" r="4"><title>TTL 30 s · 10 segundos · 9,1 %</title></circle><circle class="ponto" cx="227.8" cy="237.6" r="4"><title>TTL 30 s · 15 segundos · 12,2 %</title></circle><circle class="ponto" cx="294.7" cy="230.3" r="4"><title>TTL 30 s · 20 segundos · 13,4 %</title></circle><circle class="ponto" cx="361.6" cy="223.1" r="4"><title>TTL 30 s · 25 segundos · 14,7 %</title></circle><circle class="ponto" cx="428.5" cy="206.2" r="4"><title>TTL 30 s · 30 segundos · 17,5 %</title></circle><circle class="ponto" cx="495.5" cy="224.2" r="4"><title>TTL 30 s · 35 segundos · 14,5 %</title></circle><circle class="ponto" cx="562.4" cy="213.0" r="4"><title>TTL 30 s · 40 segundos · 16,3 %</title></circle><circle class="ponto" cx="629.3" cy="222.2" r="4"><title>TTL 30 s · 45 segundos · 14,8 %</title></circle><circle class="ponto" cx="696.2" cy="212.6" r="4"><title>TTL 30 s · 50 segundos · 16,4 %</title></circle><circle class="ponto" cx="763.1" cy="207.3" r="4"><title>TTL 30 s · 55 segundos · 17,3 %</title></circle><circle class="ponto" cx="830.0" cy="198.5" r="4"><title>TTL 30 s · 60 segundos · 18,8 %</title></circle></g>
+<g class="c3"><circle class="ponto" cx="94.0" cy="288.5" r="4"><title>TTL 120 s · 5 segundos · 3,6 %</title></circle><circle class="ponto" cx="160.9" cy="255.3" r="4"><title>TTL 120 s · 10 segundos · 9,2 %</title></circle><circle class="ponto" cx="227.8" cy="227.3" r="4"><title>TTL 120 s · 15 segundos · 13,9 %</title></circle><circle class="ponto" cx="294.7" cy="229.3" r="4"><title>TTL 120 s · 20 segundos · 13,6 %</title></circle><circle class="ponto" cx="361.6" cy="218.6" r="4"><title>TTL 120 s · 25 segundos · 15,4 %</title></circle><circle class="ponto" cx="428.5" cy="194.9" r="4"><title>TTL 120 s · 30 segundos · 19,4 %</title></circle><circle class="ponto" cx="495.5" cy="191.6" r="4"><title>TTL 120 s · 35 segundos · 20,0 %</title></circle><circle class="ponto" cx="562.4" cy="178.0" r="4"><title>TTL 120 s · 40 segundos · 22,3 %</title></circle><circle class="ponto" cx="629.3" cy="171.2" r="4"><title>TTL 120 s · 45 segundos · 23,4 %</title></circle><circle class="ponto" cx="696.2" cy="148.5" r="4"><title>TTL 120 s · 50 segundos · 27,2 %</title></circle><circle class="ponto" cx="763.1" cy="150.4" r="4"><title>TTL 120 s · 55 segundos · 26,9 %</title></circle><circle class="ponto" cx="830.0" cy="132.8" r="4"><title>TTL 120 s · 60 segundos · 29,9 %</title></circle></g>
+<g class="c4"><circle class="ponto" cx="94.0" cy="287.4" r="4"><title>TTL 600 s · 5 segundos · 3,8 %</title></circle><circle class="ponto" cx="160.9" cy="254.9" r="4"><title>TTL 600 s · 10 segundos · 9,3 %</title></circle><circle class="ponto" cx="227.8" cy="235.6" r="4"><title>TTL 600 s · 15 segundos · 12,5 %</title></circle><circle class="ponto" cx="294.7" cy="236.3" r="4"><title>TTL 600 s · 20 segundos · 12,4 %</title></circle><circle class="ponto" cx="361.6" cy="196.7" r="4"><title>TTL 600 s · 25 segundos · 19,1 %</title></circle><circle class="ponto" cx="428.5" cy="200.0" r="4"><title>TTL 600 s · 30 segundos · 18,5 %</title></circle><circle class="ponto" cx="495.5" cy="194.3" r="4"><title>TTL 600 s · 35 segundos · 19,5 %</title></circle><circle class="ponto" cx="562.4" cy="167.3" r="4"><title>TTL 600 s · 40 segundos · 24,0 %</title></circle><circle class="ponto" cx="629.3" cy="175.7" r="4"><title>TTL 600 s · 45 segundos · 22,6 %</title></circle><circle class="ponto" cx="696.2" cy="170.6" r="4"><title>TTL 600 s · 50 segundos · 23,5 %</title></circle><circle class="ponto" cx="763.1" cy="160.5" r="4"><title>TTL 600 s · 55 segundos · 25,2 %</title></circle><circle class="ponto" cx="830.0" cy="164.7" r="4"><title>TTL 600 s · 60 segundos · 24,5 %</title></circle></g>
+<text class="t2" x="840.0" y="136.8" font-size="11">TTL 120 s</text>
+<text class="t2" x="840.0" y="168.7" font-size="11">TTL 600 s</text>
+<text class="t2" x="840.0" y="202.5" font-size="11">TTL 30 s</text>
+<text class="t2" x="840.0" y="293.0" font-size="11">TTL 5 s</text>
+</svg>

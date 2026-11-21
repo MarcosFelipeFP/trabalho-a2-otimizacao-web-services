@@ -1,0 +1,422 @@
+{
+  "data": "2026-11-20T21:56:17",
+  "parametros": {
+    "api": "http://localhost:8000",
+    "cenarios": "cache,persistencia,indice,ttl",
+    "cargas": "10,50,100,200",
+    "repeticoes": 3,
+    "aquecimento": 10,
+    "duracao": 30,
+    "ttls": "5,30,120,600",
+    "carga_ttl": 50,
+    "duracao_ttl": 60,
+    "descanso": 5,
+    "k6": "docker",
+    "html": true,
+    "rapido": false,
+    "minutos": 8.0,
+    "continuar": null
+  },
+  "maquina": {
+    "sistema": "Windows-11-10.0.26200-SP0",
+    "processador": "AMD Ryzen 5 5600X 6-Core Processor",
+    "nucleos_logicos": 12,
+    "memoria_gb": 15.9
+  },
+  "docker": "29.7.2 | VM com 6 CPUs e 6214623232 bytes de memória",
+  "k6": [
+    "k6 v2.3.0 (commit/e088784614, go1.27.1, linux/amd64)"
+  ],
+  "python_do_roteiro": "3.14.6",
+  "conteineres_em_execucao": [
+    "biblioteca-api (biblioteca-api)",
+    "biblioteca-cache (redis:8.10-alpine)",
+    "petmotion-pc-worker-1 (petmotion:local)",
+    "petmotion-pc-api-1 (petmotion:local)"
+  ],
+  "api": {
+    "tabelas": {
+      "categoria": 20,
+      "autor": 5000,
+      "livro": 20000,
+      "leitor": 10000,
+      "emprestimo": 300000
+    },
+    "emprestimos_em_aberto": 3722,
+    "tamanho_do_banco": "74 MB",
+    "indices_de_emprestimo": [
+      {
+        "nome": "emprestimo_pkey",
+        "definicao": "CREATE UNIQUE INDEX emprestimo_pkey ON public.emprestimo USING btree (id)",
+        "bytes": 6758400
+      },
+      {
+        "nome": "idx_emprestimo_livro",
+        "definicao": "CREATE INDEX idx_emprestimo_livro ON public.emprestimo USING btree (livro_id)",
+        "bytes": 2547712
+      }
+    ],
+    "banco": {
+      "servidor": "aws-1-us-east-2.pooler.supabase.com",
+      "versao": "17.12",
+      "max_connections": "60",
+      "shared_buffers": "224MB",
+      "work_mem": "2184kB",
+      "random_page_cost": "1.1",
+      "max_parallel_workers_per_gather": "1",
+      "usuario": "postgres"
+    },
+    "configuracao": {
+      "cache_ttl_segundos": 600,
+      "workers": 4,
+      "conexoes_por_worker": 3,
+      "threads_por_worker": 40
+    },
+    "versoes": {
+      "postgresql": "17.12",
+      "redis": "8.10.3",
+      "python": "3.14.10",
+      "bibliotecas_python": {
+        "fastapi": "0.163.1",
+        "uvicorn": "0.54.0",
+        "sqlalchemy": "2.1.8",
+        "psycopg": "3.3.9",
+        "redis": "8.1.0",
+        "orjson": "3.13.0"
+      }
+    }
+  },
+  "ida_e_volta_ao_banco": {
+    "vezes": 50,
+    "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+    "mediana_ms": 160.13,
+    "minimo_ms": 154.86,
+    "p90_ms": 162.72,
+    "maximo_ms": 319.26
+  },
+  "retomadas": [
+    {
+      "data": "2026-11-20T22:02:55",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 155.46,
+        "minimo_ms": 150.59,
+        "p90_ms": 166.09,
+        "maximo_ms": 312.27
+      }
+    },
+    {
+      "data": "2026-11-20T22:10:57",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 155.06,
+        "minimo_ms": 151.18,
+        "p90_ms": 158.4,
+        "maximo_ms": 342.49
+      }
+    },
+    {
+      "data": "2026-11-20T22:22:32",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 157.44,
+        "minimo_ms": 155.33,
+        "p90_ms": 160.22,
+        "maximo_ms": 323.15
+      }
+    },
+    {
+      "data": "2026-11-20T22:32:36",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 155.12,
+        "minimo_ms": 152.63,
+        "p90_ms": 156.83,
+        "maximo_ms": 309.2
+      }
+    },
+    {
+      "data": "2026-11-20T22:40:11",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 155.21,
+        "minimo_ms": 150.73,
+        "p90_ms": 158.59,
+        "maximo_ms": 309.8
+      }
+    },
+    {
+      "data": "2026-11-20T22:47:32",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 156.7,
+        "minimo_ms": 154.2,
+        "p90_ms": 161.19,
+        "maximo_ms": 309.44
+      }
+    },
+    {
+      "data": "2026-11-20T22:55:12",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 157.7,
+        "minimo_ms": 154.98,
+        "p90_ms": 160.34,
+        "maximo_ms": 313.68
+      }
+    },
+    {
+      "data": "2026-11-20T23:02:47",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 145.3,
+        "minimo_ms": 142.54,
+        "p90_ms": 152.36,
+        "maximo_ms": 289.36
+      }
+    },
+    {
+      "data": "2026-11-20T23:09:41",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 156.28,
+        "minimo_ms": 154.31,
+        "p90_ms": 176.01,
+        "maximo_ms": 311.78
+      }
+    },
+    {
+      "data": "2026-11-20T23:18:01",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 158.23,
+        "minimo_ms": 156.18,
+        "p90_ms": 166.8,
+        "maximo_ms": 318.54
+      }
+    },
+    {
+      "data": "2026-11-20T23:27:40",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 150.25,
+        "minimo_ms": 148.3,
+        "p90_ms": 154.91,
+        "maximo_ms": 299.09
+      }
+    },
+    {
+      "data": "2026-11-20T23:34:32",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 155.4,
+        "minimo_ms": 153.76,
+        "p90_ms": 157.75,
+        "maximo_ms": 309.61
+      }
+    },
+    {
+      "data": "2026-11-20T23:42:09",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 149.64,
+        "minimo_ms": 147.61,
+        "p90_ms": 155.14,
+        "maximo_ms": 300.29
+      }
+    },
+    {
+      "data": "2026-11-20T23:52:08",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 152.76,
+        "minimo_ms": 150.43,
+        "p90_ms": 156.36,
+        "maximo_ms": 303.16
+      }
+    },
+    {
+      "data": "2026-11-20T23:59:02",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 156.19,
+        "minimo_ms": 155.42,
+        "p90_ms": 160.45,
+        "maximo_ms": 311.22
+      }
+    },
+    {
+      "data": "2026-11-21T00:09:02",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 150.14,
+        "minimo_ms": 145.94,
+        "p90_ms": 151.94,
+        "maximo_ms": 300.03
+      }
+    },
+    {
+      "data": "2026-11-21T00:18:00",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 157.01,
+        "minimo_ms": 155.07,
+        "p90_ms": 166.17,
+        "maximo_ms": 310.88
+      }
+    },
+    {
+      "data": "2026-11-21T00:25:03",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 157.9,
+        "minimo_ms": 156.09,
+        "p90_ms": 161.65,
+        "maximo_ms": 316.06
+      }
+    },
+    {
+      "data": "2026-11-21T00:38:34",
+      "conteineres_em_execucao": [
+        "biblioteca-api (biblioteca-api)",
+        "biblioteca-cache (redis:8.10-alpine)",
+        "petmotion-pc-worker-1 (petmotion:local)",
+        "petmotion-pc-api-1 (petmotion:local)"
+      ],
+      "ida_e_volta_ao_banco": {
+        "vezes": 20,
+        "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+        "mediana_ms": 146.31,
+        "minimo_ms": 144.96,
+        "p90_ms": 148.23,
+        "maximo_ms": 292.27
+      }
+    }
+  ]
+}

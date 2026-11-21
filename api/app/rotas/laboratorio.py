@@ -4,6 +4,7 @@
     GET    /api/laboratorio/cache                        estatísticas do Redis
     DELETE /api/laboratorio/cache                        esvazia o cache
     GET    /api/laboratorio/cache/livros/{id}            a ficha está no cache? quanto falta do TTL?
+    POST   /api/laboratorio/cache/encher                 guarda as fichas de todos os livros (cache quente)
     GET    /api/laboratorio/indices                      índices da tabela emprestimo
     PUT    /api/laboratorio/indices/{nome}               cria um índice do experimento
     DELETE /api/laboratorio/indices/{nome}               remove um índice do experimento
@@ -11,8 +12,9 @@
     GET    /api/laboratorio/explain/historico            EXPLAIN ANALYZE do histórico do leitor
     GET    /api/laboratorio/explain/atrasados            EXPLAIN ANALYZE dos empréstimos atrasados
     GET    /api/laboratorio/sql/...                      comandos SQL que uma operação executa
-    GET    /api/laboratorio/banco/estatisticas           contadores do PostgreSQL
-    DELETE /api/laboratorio/banco/estatisticas           zera os contadores
+    GET    /api/laboratorio/banco/estatisticas           comandos da API no banco (pg_stat_statements)
+    DELETE /api/laboratorio/banco/estatisticas           zera esses contadores, se o banco permitir
+    GET    /api/laboratorio/banco/ida-e-volta            tempo de uma ida e volta ao banco (SELECT 1)
     POST   /api/laboratorio/banco/aquecer                carrega as tabelas na memória (pg_prewarm)
     POST   /api/laboratorio/banco/manutencao             VACUUM e REINDEX depois dos testes de escrita
 
@@ -21,6 +23,7 @@ de cada medição. Num sistema em produção, elas ficariam desligadas ou proteg
 """
 
 import platform
+import statistics
 from dataclasses import asdict
 from datetime import date
 from enum import Enum
@@ -30,14 +33,15 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Path, Query
 from sqlalchemy import text
+from sqlalchemy.exc import DBAPIError
 
 from .. import cache, config
-from ..banco import Sessao, engine
+from ..banco import SessaoLeitura, engine
 from ..medicao import Medicao, medicao_atual
 from ..respostas import RespostaJSON, para_json
 from .emprestimos import ESTRATEGIAS, ESTRATEGIAS_RESUMO, consulta_atrasados
 from .leitores import consulta_historico, montar_historico
-from .livros import montar_ficha
+from .livros import montar_ficha, montar_fichas
 
 rotas = APIRouter(prefix="/api/laboratorio", tags=["Laboratório (preparo e observação dos experimentos)"])
 
@@ -54,23 +58,37 @@ def estado():
         em_aberto = conn.execute(
             text("SELECT count(*) FROM emprestimo WHERE data_devolucao IS NULL")
         ).scalar()
-        tamanho = conn.execute(
-            text("SELECT pg_size_pretty(pg_database_size(current_database()))")
-        ).scalar()
-        versao_banco = conn.execute(text("SHOW server_version")).scalar()
+        # Só as tabelas da biblioteca: no Supabase o banco também guarda as tabelas do projeto.
+        tamanho = conn.execute(text("""
+            SELECT pg_size_pretty(sum(pg_total_relation_size(c.oid)))
+            FROM pg_class c
+            WHERE c.relname IN ('categoria', 'autor', 'livro', 'leitor', 'emprestimo')
+              AND c.relnamespace = 'public'::regnamespace
+        """)).scalar()
+        servidor = conn.execute(text("""
+            SELECT current_setting('server_version') AS versao,
+                   current_setting('max_connections') AS max_connections,
+                   current_setting('shared_buffers') AS shared_buffers,
+                   current_setting('work_mem') AS work_mem,
+                   current_setting('random_page_cost') AS random_page_cost,
+                   current_setting('max_parallel_workers_per_gather') AS max_parallel_workers_per_gather,
+                   current_user AS usuario
+        """)).one()
         indices = _indices_de_emprestimo(conn)
     return RespostaJSON({
         "tabelas": tabelas,
         "emprestimos_em_aberto": em_aberto,
         "tamanho_do_banco": tamanho,
         "indices_de_emprestimo": indices,
+        "banco": {"servidor": config.SERVIDOR_DO_BANCO, **dict(servidor._mapping)},
         "configuracao": {
             "cache_ttl_segundos": config.CACHE_TTL_SEGUNDOS,
             "workers": config.WORKERS,
             "conexoes_por_worker": config.CONEXOES_POR_WORKER,
+            "threads_por_worker": config.THREADS_POR_WORKER,
         },
         "versoes": {
-            "postgresql": versao_banco,
+            "postgresql": servidor.versao,
             "redis": cache.cliente.info("server")["redis_version"],
             "python": platform.python_version(),
             "bibliotecas_python": {
@@ -105,6 +123,28 @@ def esvaziar_cache():
     cache.cliente.flushdb()
     cache.cliente.config_resetstat()
     return RespostaJSON({"chaves_removidas": chaves})
+
+
+@rotas.post("/cache/encher", summary="Guarda no cache as fichas de todos os livros")
+def encher_cache():
+    """Prepara o cenário de cache quente dos testes de carga. Monta as 20.000 fichas com duas
+    consultas (montar_fichas) e as grava no Redis de uma vez, com o TTL configurado. Passar por
+    GET /com-cache livro a livro faria 60.000 consultas; com o banco a 160 ms, uns 15 minutos."""
+    inicio = perf_counter()
+    with SessaoLeitura() as sessao:
+        fichas = montar_fichas(sessao)
+    montadas = perf_counter()
+    tubo = cache.cliente.pipeline(transaction=False)
+    for ficha in fichas:
+        tubo.set(cache.chave_do_livro(ficha["id"]), para_json(ficha), ex=config.CACHE_TTL_SEGUNDOS)
+    tubo.execute()
+    return RespostaJSON({
+        "fichas_guardadas": len(fichas),
+        "chaves_no_cache": cache.cliente.dbsize(),
+        "montagem_ms": round((montadas - inicio) * 1000),
+        "gravacao_no_redis_ms": round((perf_counter() - montadas) * 1000),
+        "ttl_segundos": config.CACHE_TTL_SEGUNDOS,
+    })
 
 
 @rotas.get("/cache/livros/{livro_id}", summary="Situação da ficha de um livro no cache")
@@ -173,22 +213,29 @@ def criar_indice(nome: NomeDoIndice):
 @rotas.post("/indices/custo-de-escrita", summary="Tempo para inserir N empréstimos (desfeito no fim)")
 def custo_de_escrita(linhas: Annotated[int, Query(ge=100, le=200_000)] = 20_000):
     """Insere N empréstimos numa transação, mede o tempo e desfaz tudo (ROLLBACK). Comparado
-    com e sem índices, mostra o custo que cada índice acrescenta às escritas."""
+    com e sem índices, mostra o custo que cada índice acrescenta às escritas.
+
+    O tempo é o de execução no próprio banco (EXPLAIN ANALYZE, que executa o INSERT de verdade,
+    inclusive a conferência das chaves estrangeiras), sem a ida e volta pela rede. TIMING OFF
+    dispensa a cronometragem de cada etapa do plano, que pesaria numa operação com 20.000 linhas."""
     with engine.connect() as conn:
         indices = _indices_de_emprestimo(conn)
         inicio = perf_counter()
-        conn.execute(text("""
+        [plano] = conn.execute(text("""
+            EXPLAIN (ANALYZE, TIMING OFF, FORMAT JSON)
             INSERT INTO emprestimo (livro_id, leitor_id, data_emprestimo, data_prevista)
             SELECT 1 + (g * 7919) % 20000, 1 + (g * 7907) % 10000,
                    localtimestamp - make_interval(mins => g), current_date + 14
             FROM generate_series(1, :linhas) AS g
-        """), {"linhas": linhas})
-        duracao = perf_counter() - inicio
+        """), {"linhas": linhas}).scalar()
+        no_cliente = perf_counter() - inicio
         conn.rollback()
+    execucao_ms = plano["Execution Time"]
     return RespostaJSON({
         "linhas": linhas,
-        "duracao_ms": round(duracao * 1000, 1),
-        "microssegundos_por_linha": round(duracao * 1e6 / linhas, 2),
+        "duracao_ms": round(execucao_ms, 1),
+        "microssegundos_por_linha": round(execucao_ms * 1000 / linhas, 2),
+        "duracao_vista_pela_api_ms": round(no_cliente * 1000, 1),
         "indices": [i["nome"] for i in indices],
         "bytes_dos_indices": sum(i["bytes"] for i in indices),
     })
@@ -216,9 +263,10 @@ def _percorrer(no, nivel=0):
 def _explicar(consulta, random_page_cost: float | None = None) -> dict:
     """Executa a consulta uma vez (para aquecer) e depois com EXPLAIN ANALYZE.
 
-    random_page_cost é o custo que o planejador atribui a ler uma página fora de ordem (padrão
-    4, pensado para disco magnético). Ele pode ser trocado só nesta transação, para mostrar
-    como o plano escolhido depende do modelo de custos."""
+    random_page_cost é o custo que o planejador atribui a ler uma página fora de ordem. O padrão
+    do PostgreSQL é 4, pensado para disco magnético; o Supabase usa 1,1, valor indicado para SSD.
+    Ele pode ser trocado só nesta transação, para mostrar como o plano escolhido depende do
+    modelo de custos."""
     compilada = consulta.compile(dialect=engine.dialect)
     sql, parametros = str(compilada), compilada.params
     with engine.connect() as conn:
@@ -227,6 +275,7 @@ def _explicar(consulta, random_page_cost: float | None = None) -> dict:
                 text("SELECT set_config('random_page_cost', :valor, true)"),
                 {"valor": str(random_page_cost)},
             )
+        custo_em_uso = conn.execute(text("SELECT current_setting('random_page_cost')")).scalar()
         conn.exec_driver_sql(sql, parametros).all()
         texto = [linha for (linha,) in conn.exec_driver_sql("EXPLAIN (ANALYZE, BUFFERS) " + sql, parametros)]
         [plano] = conn.exec_driver_sql("EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) " + sql, parametros).scalar()
@@ -250,7 +299,7 @@ def _explicar(consulta, random_page_cost: float | None = None) -> dict:
     return {
         "sql": sql,
         "parametros": parametros,
-        "random_page_cost": random_page_cost if random_page_cost is not None else "padrão (4)",
+        "random_page_cost": custo_em_uso + (" (padrão do banco)" if random_page_cost is None else ""),
         "indices_existentes": [i["nome"] for i in indices],
         "tempo_de_execucao_ms": plano["Execution Time"],
         "tempo_de_planejamento_ms": plano["Planning Time"],
@@ -263,7 +312,8 @@ def _explicar(consulta, random_page_cost: float | None = None) -> dict:
 
 
 RandomPageCost = Annotated[
-    float | None, Query(gt=0, le=10, description="Só para este EXPLAIN. Padrão do banco: 4.")
+    float | None,
+    Query(gt=0, le=10, description="Só para este EXPLAIN. Padrão do PostgreSQL: 4; do Supabase: 1,1."),
 ]
 
 
@@ -292,7 +342,7 @@ def _capturar(funcao, *argumentos) -> dict:
     medicao = Medicao(comandos=[])
     token = medicao_atual.set(medicao)
     try:
-        with Sessao() as sessao:
+        with SessaoLeitura() as sessao:  # como nas rotas de leitura: sem BEGIN e COMMIT
             resultado = funcao(sessao, *argumentos)
     finally:
         medicao_atual.reset(token)
@@ -340,43 +390,87 @@ def sql_historico(
 
 # Estatísticas do PostgreSQL -------------------------------------------------------------------
 
-@rotas.get("/banco/estatisticas", summary="Contadores do banco e comandos mais custosos")
-def estatisticas_do_banco(limite: Annotated[int, Query(ge=1, le=100)] = 10):
+# Comandos do usuário da API nas tabelas da biblioteca. No Supabase o mesmo banco também recebe as
+# consultas dos serviços do projeto (autenticação, armazenamento, painel), que ficam de fora. O que
+# alguém rodar nessas tabelas pelo painel, que também usa o usuário postgres, entraria na conta: por
+# isso nada é feito no painel durante as medições.
+_DA_BIBLIOTECA = r"""
+    userid = (SELECT oid FROM pg_roles WHERE rolname = current_user)
+    AND dbid = (SELECT oid FROM pg_database WHERE datname = current_database())
+    AND query ~* '^\s*(SELECT|INSERT|UPDATE|DELETE|WITH)\M'
+    AND query ~* '\m(emprestimo|livro|leitor|autor|categoria)\M'
+    AND query !~* 'pg_stat_statements|pg_prewarm|pg_class|pg_index|pg_roles'
+"""
+
+
+@rotas.get("/banco/estatisticas", summary="Comandos da API no banco (pg_stat_statements)")
+def estatisticas_do_banco(limite: Annotated[int, Query(ge=1, le=1000)] = 10):
+    """Contadores acumulados (pg_stat_statements) dos comandos que o usuário da API executou nas
+    tabelas da biblioteca: o total e os `limite` comandos de maior tempo. Para medir um intervalo,
+    leia antes e depois e subtraia; o roteiro dos testes de carga faz assim."""
     with engine.connect() as conn:
-        banco = conn.execute(text("""
-            SELECT xact_commit AS transacoes, blks_hit AS blocos_em_memoria,
-                   blks_read AS blocos_do_disco, tup_returned AS linhas_percorridas,
-                   tup_fetched AS linhas_buscadas, tup_inserted AS linhas_inseridas,
-                   tup_updated AS linhas_alteradas, temp_bytes AS bytes_temporarios
-            FROM pg_stat_database
-            WHERE datname = current_database()
-        """)).one()
-        comandos = conn.execute(text("""
-            SELECT calls AS execucoes, round(total_exec_time::numeric, 3) AS tempo_total_ms,
-                   round(mean_exec_time::numeric, 4) AS tempo_medio_ms, rows AS linhas,
-                   shared_blks_hit AS blocos_em_memoria,
-                   left(regexp_replace(query, '\\s+', ' ', 'g'), 400) AS comando
+        total = conn.execute(text(f"""
+            SELECT coalesce(sum(calls), 0)::bigint AS execucoes,
+                   coalesce(sum(total_exec_time), 0)::float8 AS tempo_total_ms,
+                   coalesce(sum(rows), 0)::bigint AS linhas,
+                   coalesce(sum(shared_blks_hit), 0)::bigint AS blocos_em_memoria,
+                   coalesce(sum(shared_blks_read), 0)::bigint AS blocos_do_disco
             FROM pg_stat_statements
-            WHERE dbid = (SELECT oid FROM pg_database WHERE datname = current_database())
+            WHERE {_DA_BIBLIOTECA}
+        """)).one()
+        comandos = conn.execute(text(rf"""
+            SELECT queryid::text AS id, calls AS execucoes, total_exec_time AS tempo_total_ms,
+                   rows AS linhas, shared_blks_hit AS blocos_em_memoria,
+                   shared_blks_read AS blocos_do_disco,
+                   left(regexp_replace(query, '\s+', ' ', 'g'), 400) AS comando
+            FROM pg_stat_statements
+            WHERE {_DA_BIBLIOTECA}
             ORDER BY total_exec_time DESC
             LIMIT :limite
         """), {"limite": limite}).all()
     return RespostaJSON({
-        "banco": dict(banco._mapping),
-        "comandos": [
-            {**dict(c._mapping), "tempo_total_ms": float(c.tempo_total_ms), "tempo_medio_ms": float(c.tempo_medio_ms)}
-            for c in comandos
-        ],
+        "total": dict(total._mapping),
+        "comandos": [dict(c._mapping) for c in comandos],
     })
 
 
-@rotas.delete("/banco/estatisticas", summary="Zera os contadores do banco")
+@rotas.delete("/banco/estatisticas", summary="Zera as estatísticas dos comandos da API, se permitido")
 def zerar_estatisticas_do_banco():
-    with engine.connect() as conn:
-        conn.execute(text("SELECT pg_stat_reset()"))
-        conn.execute(text("SELECT pg_stat_statements_reset()"))
-        conn.commit()
+    """Zera pg_stat_statements para o usuário da API (no Supabase, o postgres tem essa permissão).
+    Se o banco não permitir, a resposta diz o motivo. As medições não dependem disso: usam a
+    diferença entre duas leituras (GET)."""
+    try:
+        with engine.connect() as conn:
+            conn.execute(text(
+                "SELECT pg_stat_statements_reset((SELECT oid FROM pg_roles WHERE rolname = current_user))"
+            ))
+            conn.commit()
+    except DBAPIError as erro:
+        return RespostaJSON({"zerado": False, "motivo": str(erro.orig).strip()})
     return RespostaJSON({"zerado": True})
+
+
+@rotas.get("/banco/ida-e-volta", summary="Tempo de uma ida e volta ao banco (SELECT 1)")
+def ida_e_volta(vezes: Annotated[int, Query(ge=1, le=200)] = 20):
+    """Executa SELECT 1 várias vezes, na mesma conexão, e mede cada uma: é o custo fixo que toda
+    consulta paga além do trabalho do banco. Com o banco no Supabase, é quase todo rede."""
+    tempos = []
+    with engine.connect() as conn:
+        conn = conn.execution_options(isolation_level="AUTOCOMMIT")
+        conn.exec_driver_sql("SELECT 1").scalar()  # a primeira pode abrir a conexão
+        for _ in range(vezes):
+            inicio = perf_counter()
+            conn.exec_driver_sql("SELECT 1").scalar()
+            tempos.append((perf_counter() - inicio) * 1000)
+    tempos.sort()
+    return RespostaJSON({
+        "vezes": vezes,
+        "servidor_do_banco": config.SERVIDOR_DO_BANCO,
+        "mediana_ms": round(statistics.median(tempos), 2),
+        "minimo_ms": round(tempos[0], 2),
+        "p90_ms": round(tempos[min(len(tempos) - 1, int(len(tempos) * 0.9))], 2),
+        "maximo_ms": round(tempos[-1], 2),
+    })
 
 
 @rotas.post("/banco/manutencao", summary="VACUUM ANALYZE e REINDEX da tabela emprestimo")
@@ -394,13 +488,14 @@ def manutencao():
 
 @rotas.post("/banco/aquecer", summary="Carrega tabelas e índices na memória do banco")
 def aquecer_banco():
-    """pg_prewarm em todas as tabelas e índices: as medições não dependem de quais páginas já
-    tinham sido lidas do disco antes."""
+    """pg_prewarm nas tabelas da biblioteca e nos índices delas (as que pertencem ao usuário da
+    API): as medições não dependem de quais páginas já tinham sido lidas do disco antes."""
     with engine.connect() as conn:
         blocos = conn.execute(text("""
             SELECT coalesce(sum(pg_prewarm(c.oid)), 0)::bigint
             FROM pg_class c
             WHERE c.relnamespace = 'public'::regnamespace AND c.relkind IN ('r', 'i')
+              AND c.relowner = (SELECT oid FROM pg_roles WHERE rolname = current_user)
         """)).scalar()
         conn.commit()
     return RespostaJSON({"blocos_carregados": blocos, "megabytes": round(blocos * 8 / 1024, 1)})

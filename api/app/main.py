@@ -13,9 +13,10 @@ from .rotas import emprestimos, laboratorio, leitores, livros
 
 @asynccontextmanager
 async def ciclo_de_vida(app: FastAPI):
-    # As rotas são síncronas e rodam num conjunto de threads. Limitá-lo ao número de conexões
-    # do pool faz as requisições excedentes esperarem na fila do servidor, e não por conexão.
-    to_thread.current_default_thread_limiter().total_tokens = config.CONEXOES_POR_WORKER
+    # As rotas são síncronas e rodam num conjunto de threads. Há mais threads que conexões com o
+    # banco: as requisições que precisam do banco esperam uma conexão livre dentro da thread, e as
+    # que não precisam (acertos no cache) seguem sem entrar nessa fila.
+    to_thread.current_default_thread_limiter().total_tokens = config.THREADS_POR_WORKER
     yield
     engine.dispose()
 
