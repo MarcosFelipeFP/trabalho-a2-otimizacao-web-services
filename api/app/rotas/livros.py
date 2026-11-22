@@ -130,28 +130,49 @@ def ficha_sem_cache(livro_id: IdDoLivro):
     "/{livro_id}/com-cache",
     response_model=FichaDoLivro,
     summary="Ficha do livro, com cache",
-    responses={200: {"headers": {"X-Cache": {"description": "HIT (veio do cache) ou MISS (veio do banco)"}}}},
+    responses={200: {"headers": {"X-Cache": {
+        "description": "HIT (veio do cache), MISS (veio do banco e foi guardada) ou INDISPONIVEL "
+                       "(o Redis não respondeu: veio do banco, como na versão sem cache)",
+    }}}},
 )
 def ficha_com_cache(livro_id: IdDoLivro):
     """Cenário B: procura a ficha no Redis; se não está lá, monta a partir do banco e guarda
-    com o TTL configurado. O cabeçalho `X-Cache` diz de onde veio a resposta."""
+    com o TTL configurado. O cabeçalho `X-Cache` diz de onde veio a resposta.
+
+    O cache é só um atalho: se o Redis não responder, a ficha vem do banco (`X-Cache:
+    INDISPONIVEL`) em vez de a requisição falhar."""
     chave = cache.chave_do_livro(livro_id)
-    guardada = cache.ler(chave)
+    try:
+        guardada = cache.ler(chave)
+    except cache.CacheIndisponivel:
+        return RespostaJSON(_ficha_do_banco(livro_id), headers={"X-Cache": "INDISPONIVEL"})
     if guardada is not None:
         return RespostaJSON(guardada, headers={"X-Cache": "HIT"})
 
     corpo = para_json(_ficha_do_banco(livro_id))
-    cache.gravar(chave, corpo)
+    try:
+        cache.gravar(chave, corpo)
+    except cache.CacheIndisponivel:
+        return RespostaJSON(corpo, headers={"X-Cache": "INDISPONIVEL"})
     return RespostaJSON(corpo, headers={"X-Cache": "MISS"})
 
 
-@rotas.put("/{livro_id}", response_model=FichaDoLivro, summary="Altera o livro e invalida o cache")
+@rotas.put(
+    "/{livro_id}",
+    response_model=FichaDoLivro,
+    summary="Altera o livro e invalida o cache",
+    responses={200: {"headers": {"X-Cache-Invalidado": {
+        "description": "sim (a ficha estava no cache e foi apagada), nao (não estava) ou pendente "
+                       "(o Redis não respondeu: a ficha será apagada assim que ele voltar)",
+    }}}},
+)
 def atualizar_livro(livro_id: IdDoLivro, dados: AtualizacaoDoLivro):
     """Altera dados de catálogo e, depois do commit, apaga a ficha do cache: a próxima leitura
     com cache já busca a versão nova. Devolve a ficha atualizada, lida do banco.
 
     A remoção acontece só depois do commit; antes dele, uma leitura simultânea poderia
-    guardar de novo no cache o valor antigo."""
+    guardar de novo no cache o valor antigo. Se o Redis não responder, a alteração continua
+    valendo (ela já está no banco) e a remoção fica pendente até ele voltar."""
     campos = dados.model_dump(exclude_unset=True)
     if not campos:
         raise HTTPException(422, "Informe ao menos um campo para alterar.")
@@ -165,10 +186,11 @@ def atualizar_livro(livro_id: IdDoLivro, dados: AtualizacaoDoLivro):
         livro.atualizado_em = datetime.now()
 
     # X-Cache-Invalidado: "sim" se a ficha estava no cache e foi apagada
-    invalidou = cache.invalidar(cache.chave_do_livro(livro_id))
-    return RespostaJSON(
-        _ficha_do_banco(livro_id), headers={"X-Cache-Invalidado": "sim" if invalidou else "nao"}
-    )
+    try:
+        invalidado = "sim" if cache.invalidar(cache.chave_do_livro(livro_id)) else "nao"
+    except cache.CacheIndisponivel:
+        invalidado = "pendente"
+    return RespostaJSON(_ficha_do_banco(livro_id), headers={"X-Cache-Invalidado": invalidado})
 
 
 @rotas.get(

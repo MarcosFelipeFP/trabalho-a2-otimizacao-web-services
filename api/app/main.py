@@ -3,12 +3,13 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import redis
 from anyio import to_thread
-from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import config
+from . import cache, config
 from .banco import engine
 from .medicao import MedirRequisicoes
 from .rotas import emprestimos, laboratorio, leitores, livros
@@ -42,6 +43,22 @@ app.include_router(livros.rotas)
 app.include_router(emprestimos.rotas)
 app.include_router(leitores.rotas)
 app.include_router(laboratorio.rotas)
+
+
+async def cache_fora_do_ar(request: Request, erro: Exception):
+    """As rotas da biblioteca tratam a falha do Redis e buscam os dados no banco. Este tratador
+    cobre as rotas de laboratório, que usam o Redis direto: 503 em vez de um 500 sem explicação."""
+    if isinstance(erro, redis.RedisError):
+        cache.registrar_falha(erro)
+    return JSONResponse(
+        status_code=503,
+        content={"detail": "O cache (Redis) não respondeu. As rotas da biblioteca continuam no ar, "
+                           "com os dados lidos do banco."},
+    )
+
+
+app.add_exception_handler(redis.RedisError, cache_fora_do_ar)
+app.add_exception_handler(cache.CacheIndisponivel, cache_fora_do_ar)
 
 
 @app.get("/api/saude", tags=["Laboratório (preparo e observação dos experimentos)"], summary="A API está no ar?")

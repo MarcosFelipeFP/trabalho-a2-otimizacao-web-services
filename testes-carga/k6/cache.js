@@ -5,6 +5,8 @@
 //                             cada medição: acertos e falhas enquanto o cache se enche
 //   VERSAO=com-cache-quente   GET /api/livros/{id}/com-cache, com as fichas de todos os livros já
 //                             guardadas antes do teste: só acertos
+//   VERSAO=redis-fora         GET /api/livros/{id}/com-cache com o Redis parado (docker compose stop
+//                             cache): a ficha vem do banco, com X-Cache: INDISPONIVEL (README, 3.6)
 //
 // Cada requisição sorteia um livro entre 1 e TOTAL_LIVROS (padrão 20000), com popularidade
 // (idPopular, em comum.js): os livros mais procurados se repetem, como num catálogo real.
@@ -14,7 +16,7 @@ import {
   BASE_URL, concluirPreparo, consultar, idPopular, laboratorio, montarOpcoes, resumir,
 } from './comum.js';
 
-const VERSOES = ['sem-cache', 'com-cache-frio', 'com-cache-quente'];
+const VERSOES = ['sem-cache', 'com-cache-frio', 'com-cache-quente', 'redis-fora'];
 const VERSAO = __ENV.VERSAO || 'com-cache-quente';
 if (!VERSOES.includes(VERSAO)) {
   throw new Error(`VERSAO deve ser uma destas: ${VERSOES.join(', ')}`);
@@ -29,6 +31,10 @@ export const options = montarOpcoes({
 });
 
 export function setup() {
+  if (VERSAO === 'redis-fora') {
+    // com o Redis parado, as rotas de laboratório do cache respondem 503: só registra o estado
+    return concluirPreparo({});
+  }
   laboratorio('DELETE', '/api/laboratorio/cache');
   let enchimento = null;
   if (VERSAO === 'com-cache-quente') {

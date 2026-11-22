@@ -17,20 +17,15 @@ volta ao TTL padrão (600 s). As alterações no livro também são desfeitas no
 
 import random
 import time
-from datetime import datetime
 
 from comum import (
-    Cliente, br, esperar_api, gravar, literal, mediana, percentil, recriar_api, sql_no_banco, tabela,
+    Cliente, br, esperar_api, gravar, hora, literal, mediana, percentil, recriar_api, sql_no_banco,
+    tabela,
 )
 
 LIVRO = 42
 TTL_DA_DEMONSTRACAO = 20
 TTL_PADRAO = 600
-
-
-def hora(texto):
-    """'2026-11-15T22:44:58.669062' -> '22:44:58.669'"""
-    return datetime.fromisoformat(texto).strftime('%H:%M:%S.%f')[:-3]
 
 
 def experimento_passo_a_passo(cliente):

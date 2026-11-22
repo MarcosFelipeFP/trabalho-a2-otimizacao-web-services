@@ -8,8 +8,8 @@
 # perfil "banco-local":
 #   docker compose --profile banco-local up -d --build
 #
-# Outras variáveis opcionais (no ambiente ou no .env): CACHE_TTL_SEGUNDOS, WORKERS,
-# CONEXOES_POR_WORKER, PORTA_API, PORTA_BANCO e PORTA_CACHE.
+# Outras variáveis opcionais (no ambiente ou no .env): CACHE_TTL_SEGUNDOS, CACHE_TEMPO_LIMITE_S,
+# WORKERS, CONEXOES_POR_WORKER, PORTA_API, PORTA_BANCO e PORTA_CACHE.
 name: biblioteca
 
 x-banco: &banco
@@ -76,6 +76,8 @@ services:
       URL_CACHE: redis://cache:6379/0
       # tempo de vida das fichas de livro no cache (seção 3.4 do enunciado)
       CACHE_TTL_SEGUNDOS: ${CACHE_TTL_SEGUNDOS:-600}
+      # quanto esperar o Redis antes de buscar a ficha no banco (seção 3.6 do README)
+      CACHE_TEMPO_LIMITE_S: ${CACHE_TEMPO_LIMITE_S:-0.5}
       # processos da API e conexões com o banco em cada um. O pooler do Supabase aceita 15
       # conexões simultâneas por usuário: 4 x 3 = 12 deixa folga para o psql dos experimentos.
       WORKERS: ${WORKERS:-4}
