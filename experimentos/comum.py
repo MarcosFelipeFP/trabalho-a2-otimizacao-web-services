@@ -8,6 +8,7 @@ import socket
 import statistics
 import subprocess
 import time
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -139,6 +140,11 @@ def sql_no_banco(comando):
 
 def literal(texto):
     return "'" + texto.replace("'", "''") + "'"
+
+
+def hora(texto):
+    """'2026-11-15T22:44:58.669062' -> '22:44:58.669'"""
+    return datetime.fromisoformat(texto).strftime('%H:%M:%S.%f')[:-3]
 
 
 def mediana(valores):

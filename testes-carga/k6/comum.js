@@ -38,7 +38,7 @@ const TEMPO_LIMITE = __ENV.TEMPO_LIMITE || '60s'; // quanto o k6 espera cada res
 const consultasSql = new Trend('consultas_sql'); //            X-Consultas-SQL
 const tempoNoBanco = new Trend('tempo_no_banco', true); //     Server-Timing: banco;dur=
 const tempoNoServidor = new Trend('tempo_no_servidor', true); // Server-Timing: total;dur=
-const acertosDoCache = new Rate('acertos_do_cache'); //        X-Cache: HIT ou MISS
+const acertosDoCache = new Rate('acertos_do_cache'); //        X-Cache: HIT, MISS ou INDISPONIVEL
 
 // Início e fim de cada medição, em segundos contados do início dos cenários (como no k6).
 const janelas = [];

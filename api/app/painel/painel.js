@@ -165,6 +165,7 @@ async function carregarEstado() {
     if (!r.ok) throw new Error();
     const d = r.dados;
     config.ttl = d.configuracao.cache_ttl_segundos;
+    const redis = d.versoes.redis; // null: o Redis não respondeu, e a API segue com o banco
     $('luz').className = 'luz no-ar';
     $('estado-titulo').textContent = 'API no ar';
     $('estado-lista').innerHTML = [
@@ -172,14 +173,15 @@ async function carregarEstado() {
       ['Livros', fmt(d.tabelas.livro)],
       ['Leitores', fmt(d.tabelas.leitor)],
       ['Banco', `PostgreSQL ${d.banco.versao}`],
-      ['Cache', `Redis ${d.versoes.redis}`],
+      ['Cache', redis ? `Redis ${redis}` : 'Redis fora do ar'],
       ['TTL', `${d.configuracao.cache_ttl_segundos} s`],
     ].map(([a, b]) => `<dt>${a}</dt><dd>${esc(b)}</dd>`).join('');
+    if (d.configuracao.cache_tempo_limite_s) $('queda-limite').textContent = `${fmt(d.configuracao.cache_tempo_limite_s, 1)} s`;
     document.querySelectorAll('[data-tabela]').forEach((el) => { el.textContent = fmt(d.tabelas[el.dataset.tabela]); });
     $('resumo-dados').innerHTML = `<span><strong>${esc(d.tamanho_do_banco)}</strong> nas cinco tabelas, com os índices</span>`
       + `<span><strong>${fmt(d.emprestimos_em_aberto)}</strong> empréstimos em aberto</span>`;
     $('arq-processos').textContent = `${d.configuracao.workers} processos × ${d.configuracao.conexoes_por_worker} conexões com o banco`;
-    $('arq-redis').textContent = d.versoes.redis;
+    $('arq-redis').textContent = redis || 'fora do ar';
     $('arq-pg').textContent = d.banco.versao;
     $('arq-ttl').textContent = `fichas dos livros, TTL de ${d.configuracao.cache_ttl_segundos} s`;
   } catch {
@@ -258,10 +260,19 @@ function anotarHistorico(operacao, r, etiqueta, classe) {
 }
 
 // TTL: sincroniza com o Redis depois de cada operação e conta os segundos aqui, sem consultar a API
-const ttl = { ate: 0, base: 600, confirmando: false, expirou: false };
+const ttl = { ate: 0, base: 600, confirmando: false, expirou: false, foraDoAr: false };
+
+function redisForaDoAr() {
+  ttl.ate = 0;
+  ttl.foraDoAr = true;
+  desenharTtl();
+}
 
 async function sincronizarTtl(id) {
-  const { dados } = await chamar('GET', `/api/laboratorio/cache/livros/${id}`, undefined, { registrar: false });
+  const r = await chamar('GET', `/api/laboratorio/cache/livros/${id}`, undefined, { registrar: false });
+  if (!r.ok) { redisForaDoAr(); return; } // 503: o Redis não respondeu
+  ttl.foraDoAr = false;
+  const { dados } = r;
   config.ttl = dados.ttl_configurado_segundos;
   if (dados.no_cache && dados.ttl_restante_segundos !== null) {
     ttl.expirou = false;
@@ -275,6 +286,12 @@ async function sincronizarTtl(id) {
 
 function desenharTtl() {
   const barra = $('ttl-barra');
+  if (ttl.foraDoAr) {
+    $('m-ttl').textContent = 'Redis fora do ar';
+    barra.style.width = '0%';
+    $('ttl-nota').textContent = 'O Redis não está respondendo: as leituras com cache vêm do banco (INDISPONIVEL) até ele voltar.';
+    return;
+  }
   if (!ttl.ate) {
     $('m-ttl').textContent = ttl.expirou ? 'expirou' : 'fora do cache';
     barra.style.width = '0%';
@@ -364,6 +381,66 @@ function avancarExperimento(r, id) {
   }
 }
 
+// E se o Redis cair? (seção 3.6 do README): leitura e alteração com o Redis travado, e a volta dele
+const queda = { livro: null, passos: {}, ruins: new Set(), tituloPendente: null, ate: 0 };
+const DICA_DA_QUEDA = {};
+document.querySelectorAll('#passos-queda li').forEach((li) => { DICA_DA_QUEDA[li.dataset.passo] = li.querySelector('.prova').innerHTML; });
+
+function recomecarQueda(id = null) {
+  queda.livro = id;
+  queda.passos = {};
+  queda.ruins.clear();
+  queda.tituloPendente = null;
+  desenharQueda();
+}
+
+function marcarQueda(chave, html, ruim = false) {
+  if (queda.passos[chave] && !queda.ruins.has(chave)) return;
+  queda.passos[chave] = html;
+  if (ruim) queda.ruins.add(chave); else queda.ruins.delete(chave);
+  desenharQueda();
+}
+
+function desenharQueda() {
+  document.querySelectorAll('#passos-queda li').forEach((li) => {
+    const passo = li.dataset.passo;
+    li.classList.toggle('feito', Boolean(queda.passos[passo]) && !queda.ruins.has(passo));
+    li.classList.toggle('andamento', queda.ruins.has(passo));
+    li.querySelector('.prova').innerHTML = queda.passos[passo] || DICA_DA_QUEDA[passo];
+  });
+}
+
+function avancarQueda(r, id) {
+  if (queda.livro !== id) recomecarQueda(id);
+  const f = r.dados;
+  if (r.cache === 'INDISPONIVEL') {
+    marcarQueda('q1', `<span class="ok">200</span> · <code>X-Cache: INDISPONIVEL</code> · ${plural(r.consultas, 'consulta', 'consultas')} `
+      + `· ${ms(r.total)}: a ficha veio do banco`);
+  } else if (queda.passos.q2 && queda.tituloPendente !== null) {
+    if (f.titulo === queda.tituloPendente) {
+      marcarQueda('q3', `<span class="ok">${esc(r.cache)}</span> com o título novo: a vigia apagou a ficha antiga antes de o cache voltar`);
+    } else if (r.cache === 'HIT') {
+      marcarQueda('q3', '<span class="ruim">HIT com o título antigo</span>: outro processo da API leu o Redis antes de a vigia '
+        + 'apagar a ficha; o atraso é de até 1 s, e o TTL limita o pior caso', true);
+    }
+  }
+}
+
+function desenharRelogioDaQueda() {
+  const el = $('queda-relogio');
+  if (!queda.ate) return;
+  const restante = (queda.ate - Date.now()) / 1000;
+  if (restante > 0) {
+    el.textContent = `Redis travado: faltam ${Math.ceil(restante)} s`;
+  } else if (restante > -30) {
+    el.textContent = 'O Redis voltou: em até 1 s a vigia percebe, faz as invalidações pendentes e devolve o cache. Leia com cache.';
+  } else {
+    queda.ate = 0;
+    el.textContent = '';
+  }
+}
+setInterval(desenharRelogioDaQueda, 250);
+
 async function lerFicha(comCache) {
   const id = livroAtual();
   const r = await chamar('GET', `/api/livros/${id}/${comCache ? 'com-cache' : 'sem-cache'}`);
@@ -377,6 +454,16 @@ async function lerFicha(comCache) {
     $('detalhe-cache').innerHTML = `<strong>Sem cache</strong>: a ficha foi montada agora, com ${plural(r.consultas, 'consulta', 'consultas')} ao banco. `
       + 'Esta rota nunca usa o Redis.';
     anotarHistorico('GET ficha sem cache', r, 'banco', 'banco');
+  } else if (r.cache === 'INDISPONIVEL') {
+    mostrarFicha(f);
+    carimbar([{ tipo: 'indisponivel', palavra: 'Indisponível', linha: `veio do banco · ${resumo}` }]);
+    $('detalhe-cache').innerHTML = '<strong>INDISPONIVEL</strong>: o Redis não respondeu, e a ficha veio do banco '
+      + `(${plural(r.consultas, 'consulta', 'consultas')}), como na versão sem cache. A requisição não falhou: o cache é só um atalho.`;
+    anotarHistorico('GET ficha com cache', r, 'INDISPONIVEL', 'indisponivel');
+    avancarQueda(r, id);
+    mostrarMedicao(r);
+    redisForaDoAr(); // sem consultar o TTL: a rota de laboratório também depende do Redis
+    return;
   } else {
     const hit = r.cache === 'HIT';
     const velha = hit && exp.livro === id && exp.tituloPorFora !== null && f.titulo !== exp.tituloPorFora;
@@ -395,6 +482,7 @@ async function lerFicha(comCache) {
     }
     anotarHistorico('GET ficha com cache', r, velha ? 'HIT desatualizada' : r.cache, velha ? 'alerta' : hit ? 'hit' : 'miss');
     avancarExperimento(r, id);
+    avancarQueda(r, id);
   }
   mostrarMedicao(r);
   await sincronizarTtl(id);
@@ -408,10 +496,24 @@ async function alterarPelaApi(titulo, operacao) {
   exp.tituloPorFora = null;
   mostrarFicha(r.dados);
   mostrarMedicao(r);
-  carimbar([{ tipo: 'escrita', palavra: 'Alterado', linha: r.invalidado === 'sim' ? 'ficha apagada do cache' : 'não havia ficha no cache' }]);
-  $('detalhe-cache').innerHTML = `<strong>PUT</strong>: título alterado para “${esc(titulo)}”. Depois do commit, a API apagou a ficha do `
-    + `cache (<code>X-Cache-Invalidado: ${esc(r.invalidado)}</code>). A próxima leitura com cache busca a versão nova no banco.`;
-  anotarHistorico(operacao, r, `invalidou: ${r.invalidado}`, 'escrita');
+  const pendente = r.invalidado === 'pendente';
+  carimbar([{ tipo: pendente ? 'indisponivel' : 'escrita', palavra: 'Alterado',
+    linha: r.invalidado === 'sim' ? 'ficha apagada do cache' : pendente ? 'invalidação pendente' : 'não havia ficha no cache' }]);
+  $('detalhe-cache').innerHTML = pendente
+    ? `<strong>PUT</strong>: título alterado para “${esc(titulo)}”. O Redis não respondeu, então a ficha antiga ainda não foi apagada `
+      + '(<code>X-Cache-Invalidado: pendente</code>). A alteração já vale no banco; a vigia apaga a ficha assim que o Redis voltar, '
+      + 'antes de o cache voltar a ser usado.'
+    : `<strong>PUT</strong>: título alterado para “${esc(titulo)}”. Depois do commit, a API apagou a ficha do `
+      + `cache (<code>X-Cache-Invalidado: ${esc(r.invalidado)}</code>). A próxima leitura com cache busca a versão nova no banco.`;
+  anotarHistorico(operacao, r, `invalidou: ${r.invalidado}`, pendente ? 'indisponivel' : 'escrita');
+  if (pendente) {
+    if (queda.livro !== id) recomecarQueda(id);
+    queda.tituloPendente = titulo;
+    marcarQueda('q2', `<span class="ok">PUT</span> · <code>X-Cache-Invalidado: pendente</code> · ${ms(r.total)}: a alteração vale; `
+      + 'a ficha antiga será apagada quando o Redis voltar');
+    redisForaDoAr();
+    return;
+  }
   if (operacao === 'PUT alterar título') {
     exp.tituloPut = titulo;
     marcar('3', `<span class="ok">PUT</span> · <code>X-Cache-Invalidado: ${esc(r.invalidado)}</code> · ${ms(r.total)}`);
@@ -462,9 +564,11 @@ aoClicar('btn-por-fora', async () => {
   exp.tituloPorFora = novo;
   carimbar([{ tipo: 'escrita', palavra: 'Alterado no banco', linha: 'o cache não foi avisado' }]);
   $('detalhe-cache').innerHTML = `<strong>UPDATE direto no banco</strong>, por fora da API: o título agora é “${esc(novo)}”. `
-    + (r.dados.ficha_no_cache
-      ? `A ficha antiga continua no cache por mais ${r.dados.ttl_restante_segundos} s. Leia com cache para ver o que o usuário recebe.`
-      : 'A ficha não estava no cache, então a próxima leitura já traz o título novo. Para ver o dado desatualizado, leia com cache antes de alterar.');
+    + (r.dados.ficha_no_cache === null
+      ? 'O Redis não respondeu, então não dá para saber se a ficha antiga está no cache.'
+      : r.dados.ficha_no_cache
+        ? `A ficha antiga continua no cache por mais ${r.dados.ttl_restante_segundos} s. Leia com cache para ver o que o usuário recebe.`
+        : 'A ficha não estava no cache, então a próxima leitura já traz o título novo. Para ver o dado desatualizado, leia com cache antes de alterar.');
   anotarHistorico('UPDATE direto no banco', r, 'cache não avisado', 'escrita');
   marcar('5a', `<span class="ok">UPDATE</span> direto no banco: ${r.dados.ficha_no_cache ? 'a ficha antiga continua no cache' : 'a ficha não estava no cache'}`);
   await sincronizarTtl(id);
@@ -485,6 +589,21 @@ aoClicar('btn-encurtar', async () => {
 
 aoClicar('btn-recomecar', async () => recomecarExperimento(livroAtual()));
 
+aoClicar('btn-travar', async () => {
+  const id = livroAtual();
+  const r = await chamar('POST', '/api/laboratorio/cache/pausar?segundos=15');
+  if (!r.ok) throw new Error(erroDa(r));
+  const segundos = r.dados.redis_travado_por_segundos;
+  if (queda.livro !== id) recomecarQueda(id);
+  queda.ate = Date.now() + segundos * 1000;
+  desenharRelogioDaQueda();
+  $('detalhe-cache').innerHTML = `<strong>Redis travado por ${segundos} s</strong> (<code>CLIENT PAUSE</code>): ele segura os comandos `
+    + 'de todos os processos da API, com as fichas ainda na memória. Leia com cache e altere o título enquanto isso; quando ele voltar, leia de novo.';
+  anotarHistorico('POST travar o Redis', r, `travado por ${segundos} s`, 'indisponivel');
+});
+
+aoClicar('btn-recomecar-queda', async () => recomecarQueda(livroAtual()));
+
 aoClicar('btn-disponibilidade', async () => {
   const id = livroAtual();
   const r = await chamar('GET', `/api/livros/${id}/disponibilidade`);
@@ -499,6 +618,7 @@ $('livro').addEventListener('change', () => {
   try {
     const id = livroAtual();
     recomecarExperimento(id);
+    recomecarQueda(id);
     ttl.expirou = false;
     sincronizarTtl(id).catch(() => {});
   } catch { /* número inválido: avisado no próximo clique */ }

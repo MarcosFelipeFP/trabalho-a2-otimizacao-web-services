@@ -146,16 +146,16 @@ As cinco tabelas, com os índices, ocupam 165 MB e cabem inteiras na memória do
 | Rota | O que faz |
 |---|---|
 | `GET /api/livros/{id}/sem-cache` | ficha do livro, sempre montada a partir do banco (3 consultas) |
-| `GET /api/livros/{id}/com-cache` | a mesma ficha, do Redis quando possível (cabeçalho `X-Cache: HIT` ou `MISS`) |
-| `PUT /api/livros/{id}` | altera dados de catálogo e invalida a ficha no cache |
+| `GET /api/livros/{id}/com-cache` | a mesma ficha, do Redis quando possível (cabeçalho `X-Cache: HIT` ou `MISS`; com o Redis fora do ar, `INDISPONIVEL`, e a ficha vem do banco, seção 3.6) |
+| `PUT /api/livros/{id}` | altera dados de catálogo e invalida a ficha no cache (`X-Cache-Invalidado: sim` ou `nao`; com o Redis fora do ar, `pendente`) |
 | `GET /api/livros/{id}/disponibilidade` | exemplares disponíveis, sempre do banco |
 | `GET /api/emprestimos/{estratégia}?desde_id=&quantidade=` | página de empréstimos com livro e leitor, em sete estratégias de carregamento (seção 4) |
 | `GET /api/emprestimos/lazy/resumo` e `/eager/resumo` | a mesma página, sem usar livro e leitor |
 | `GET /api/emprestimos/atrasados` | empréstimos atrasados, dos mais antigos aos mais recentes (busca por intervalo) |
 | `POST /api/emprestimos` e `POST /api/emprestimos/{id}/devolucao` | registram empréstimo e devolução, com bloqueio da linha do livro |
 | `GET /api/leitores/{id}/emprestimos` | histórico de empréstimos do leitor (consulta do experimento de índices) |
-| `/api/laboratorio/...` | preparam e observam os experimentos: esvaziar ou encher o cache, encurtar o TTL de uma ficha, alterar um título direto no banco sem avisar o cache, criar e remover índices, `EXPLAIN ANALYZE`, SQL executado por uma operação, estatísticas dos comandos no banco, ida e volta até o banco |
-| `/painel/` | painel de demonstração: uma página (HTML, CSS e JavaScript, sem dependências) com a arquitetura e o volume de dados, o experimento obrigatório da 3.4 passo a passo, LAZY × EAGER, índices, comparações em volume com as métricas da 6.4 e os resultados dos testes de carga por nível; um rodapé mostra cada chamada HTTP com os cabeçalhos de medição |
+| `/api/laboratorio/...` | preparam e observam os experimentos: esvaziar ou encher o cache, encurtar o TTL de uma ficha, travar o Redis por alguns segundos, alterar um título direto no banco sem avisar o cache, criar e remover índices, `EXPLAIN ANALYZE`, SQL executado por uma operação, estatísticas dos comandos no banco, ida e volta até o banco |
+| `/painel/` | painel de demonstração: uma página (HTML, CSS e JavaScript, sem dependências) com a arquitetura e o volume de dados, o experimento obrigatório da 3.4 passo a passo, a queda do Redis, LAZY × EAGER, índices, comparações em volume com as métricas da 6.4 e os resultados dos testes de carga por nível; um rodapé mostra cada chamada HTTP com os cabeçalhos de medição |
 
 **Instrumentação.** Um ouvinte de eventos do SQLAlchemy (`before_cursor_execute` e
 `after_cursor_execute`) conta cada comando SQL e o tempo dele, e um middleware escreve em toda
@@ -331,6 +331,101 @@ cerca de 6% de acertos e 27 req/s, perto dos 25 req/s de sem cache). E, mesmo ac
 cache não eliminou o limite, só o mudou de lugar: com o cache quente, o gargalo passou a ser a CPU
 da API. O cache melhora o desempenho na medida da taxa de acerto, que depende da repetição das
 leituras, do TTL e das invalidações.
+
+### 3.6 Extra: e se o Redis cair?
+
+O cache é um atalho: a ficha está no banco, e o Redis guarda só uma cópia. Na primeira versão da
+API, porém, uma falha do Redis derrubava as rotas que o usam. Com o contêiner do Redis parado
+(`docker compose stop cache`), antes e depois desta seção:
+
+| Requisição | Antes | Agora |
+|---|---|---|
+| `GET /api/livros/42/com-cache` | 500, depois de 3,3 a 4,4 s | 200 com `X-Cache: INDISPONIVEL`: a ficha vem do banco (3 consultas) |
+| `PUT /api/livros/42` | 500, depois de 3,3 s, **com a alteração já gravada no banco** | 200 com `X-Cache-Invalidado: pendente` |
+| `GET /api/laboratorio/estado` (usado pelo painel) | 500 | 200, com `"redis": null` |
+| as outras rotas de laboratório do cache | 500 | 503, com a explicação |
+
+O PUT era o pior caso: quem chamava recebia um erro de uma alteração que tinha dado certo, e podia
+repeti-la. Três mecanismos, em [`api/app/cache.py`](api/app/cache.py), fazem a API seguir sem o
+Redis:
+
+- **Tempo limite de 0,5 s** (`CACHE_TEMPO_LIMITE_S`) para conectar e para cada leitura no Redis,
+  sem novas tentativas. Uma leitura no Redis leva menos de 1 ms; meio segundo só se esgota se ele
+  parou de responder. Quando o tempo acaba ou a conexão falha, `ler`, `gravar` e `invalidar`
+  levantam `CacheIndisponivel`, e a rota busca a ficha no banco:
+
+  ```python
+  try:
+      guardada = cache.ler(chave)
+  except cache.CacheIndisponivel:                   # Redis fora do ar: a ficha vem do banco
+      return RespostaJSON(_ficha_do_banco(livro_id), headers={"X-Cache": "INDISPONIVEL"})
+  ```
+
+- **Uma vigia no lugar das novas tentativas.** Depois da primeira falha, o processo da API para de
+  tentar o Redis nas requisições, que vão direto ao banco, e uma thread em segundo plano testa o
+  Redis a cada segundo (`PING`). Isso importa porque nem toda falha é rápida: com o contêiner
+  parado, o nome `cache` deixa de existir, e o DNS do Docker leva uns 3 s para responder que ele
+  não existe, tempo que o limite de 0,5 s não cobre. Sem a vigia, uma requisição a cada poucos
+  segundos pagaria esses 3 s.
+- **Invalidação pendente.** Se o PUT não consegue apagar a ficha, a chave fica numa lista do
+  processo. Quando o Redis volta, a vigia apaga as chaves pendentes e só então devolve o cache às
+  requisições. Sem isso, um Redis que volta com os dados de antes (travado, e não reiniciado)
+  serviria a ficha antiga até o TTL acabar.
+
+[`experimentos/falha_do_cache.py`](experimentos/falha_do_cache.py) tira o Redis do ar de dois
+jeitos: parado (`docker compose stop cache`) e travado (`docker compose pause cache`, que congela o
+processo com as fichas na memória e deixa as conexões abertas, sem resposta). Os tempos abaixo
+foram medidos com o banco local (perfil `banco-local`), em que uma ficha montada no banco leva uns
+4 ms; com o Supabase, ela levaria os ~480 ms da seção 3.5. Os tempos de detecção da falha (o DNS e
+o tempo limite) não dependem do banco. Todas as linhas estão em
+[`falha_do_cache.md`](experimentos/resultados/falha_do_cache.md):
+
+| Parte | Situação | X-Cache | Consultas SQL | Tempo no servidor | Título devolvido |
+|---|---|---|---:|---:|---|
+| A | Redis parado: 1ª leitura com cache | INDISPONIVEL | 3 | 3.332 ms | o original |
+| A | Redis parado: as 9 leituras seguintes (mediana) | INDISPONIVEL | 3 | 4,1 ms | o original |
+| A | sem cache, para comparar (mediana de 10) | – | 3 | 3,8 ms | o original |
+| A | PUT com o Redis parado | `X-Cache-Invalidado: pendente` | 5 | 10,7 ms | o novo (A) |
+| A | Redis de volta, 0,5 s depois do `start` | MISS, e depois HIT | 3 e 0 | 4,4 e 0,7 ms | o novo (A) |
+| B | Redis travado: 1ª leitura com cache | INDISPONIVEL | 3 | 505,5 ms | o novo (A) |
+| B | PUT com o Redis travado | `X-Cache-Invalidado: pendente` | 5 | 11,2 ms | o novo (B) |
+| B | as 19 leituras seguintes, em 9 s (mediana) | INDISPONIVEL | 3 | 4,0 ms | o novo (B) |
+| B | Redis de volta, 0,5 s depois do `unpause` | **MISS**, e depois HIT | 3 e 0 | 5,2 e 0,9 ms | **o novo (B)** |
+
+A primeira leitura de cada processo espera a falha aparecer: 3,3 s com o contêiner parado (o DNS) e
+0,5 s com o Redis travado (o tempo limite). As seguintes custam o mesmo que a versão sem cache. A
+parte B é a prova da invalidação pendente: o Redis volta com a ficha antiga na memória, e a primeira
+leitura é MISS com o título novo, e não HIT com o antigo.
+
+Sob carga, com o Redis parado (k6, `VERSAO=redis-fora`, uma execução de cada, banco local;
+[`testes-carga/resultados/2026-11-22_redis-fora/`](testes-carga/resultados/2026-11-22_redis-fora)):
+
+| VUs | Sem cache | Com cache, Redis parado | Erros com o Redis parado |
+|---:|---:|---:|---:|
+| 10 | 1.018 req/s, média de 9,6 ms | 891 req/s, média de 11,0 ms | 0% |
+| 50 | 851 req/s, 58,6 ms | 841 req/s, 59,2 ms | 0% |
+| 200 | 811 req/s, 247 ms | 750 req/s, 267 ms | 0% |
+
+Nenhuma requisição falhou, e a vazão ficou perto da versão sem cache; as diferenças, de 1% a 12%,
+estão dentro da variação entre execuções da seção 5.3. Cada um dos quatro processos registrou no log
+um aviso quando percebeu a falha e outro quando o Redis voltou.
+
+**Limites.**
+
+- Sem o Redis, o banco recebe toda a carga. Com o Supabase, a ficha volta aos ~25 req/s de sem
+  cache (seção 5.3): a queda para o banco mantém a API no ar, não o desempenho.
+- A volta do Redis é um cache frio, porque ele não grava nada em disco, e as primeiras leituras são
+  falhas (o cenário do cache frio da seção 5.3).
+- Cada processo descobre a falha sozinho, na primeira requisição que tenta o Redis depois da queda:
+  ela e as que estiverem esperando o Redis no mesmo processo, naquele momento, pagam a detecção
+  (3,3 s ou 0,5 s); as seguintes, não.
+- A lista de invalidações pendentes fica na memória do processo que recebeu o PUT. Um processo que
+  não percebeu a queda pode servir a ficha antiga por até ~1 s depois que o Redis volta, até a vigia
+  do outro apagá-la. Se a API reiniciar com o Redis fora do ar, a lista se perde, e só o TTL limita
+  a ficha antiga.
+- O painel trava o Redis com `CLIENT PAUSE` (`POST /api/laboratorio/cache/pausar`), porque não tem
+  acesso ao Docker. Nos testes, essa pausa às vezes terminou antes do tempo pedido (7,5 s de 10 s);
+  por isso o roteiro congela o contêiner, que fica parado exatamente o tempo que o roteiro decide.
 
 ## 4. Otimização das consultas
 
@@ -1030,8 +1125,9 @@ controle, e o índice troca escrita e espaço por leitura.
   rota que altera os dados, inclusive nas que forem criadas depois; mais um serviço para operar;
   memória (25 MB para as 20.000 fichas); e o cache frio depois de um reinício ou de uma
   invalidação em massa, quando o banco volta a receber toda a carga, como mostrou o cenário do
-  cache frio. Nesta implementação, se o Redis cair, as rotas com cache respondem com erro; o
-  certo seria cair para o banco.
+  cache frio. Se o Redis cair, a ficha passa a vir do banco (seção 3.6): a API continua
+  respondendo, sem erros, mas com o desempenho de sem cache, e o banco precisa aguentar a carga
+  inteira enquanto isso.
 - *EAGER no mapeamento*: vale para todas as consultas da entidade, inclusive as que não usam os
   relacionamentos (as versões "resumo" da seção 4.3 leram 13 vezes mais dados); com coleções, o
   JOIN multiplica as linhas da consulta principal.
@@ -1158,7 +1254,8 @@ curl http://localhost:8000/api/leitores/150/emprestimos
 curl "http://localhost:8000/api/laboratorio/explain/historico?leitor_id=150"        # EXPLAIN ANALYZE
 ```
 
-As variáveis `CACHE_TTL_SEGUNDOS` (padrão 600), `WORKERS` (processos da API, padrão 4) e
+As variáveis `CACHE_TTL_SEGUNDOS` (padrão 600), `CACHE_TEMPO_LIMITE_S` (quanto esperar o Redis
+antes de buscar a ficha no banco, padrão 0,5), `WORKERS` (processos da API, padrão 4) e
 `CONEXOES_POR_WORKER` (padrão 3) mudam a configuração: por exemplo,
 `CACHE_TTL_SEGUNDOS=30 docker compose up -d api`. Com o Supabase, `WORKERS` × `CONEXOES_POR_WORKER`
 deve ficar abaixo de 15, o limite do pooler, com folga para o `psql` dos roteiros.
@@ -1171,12 +1268,14 @@ Com a API no ar, na pasta do projeto:
 python experimentos/cache.py          # experimento obrigatório do cache (3.4) e tempos com e sem cache
 python experimentos/carregamento.py   # LAZY, EAGER e otimizadas com 10 a 500 empréstimos (4.3 e 4.4)
 python experimentos/indices.py        # planos de execução, índices e custo de escrita (seção 5)
+python experimentos/falha_do_cache.py # o Redis fora do ar: a ficha vem do banco (3.6)
 ```
 
 Com o banco no Supabase, o roteiro do cache leva uns 6 minutos, o de carregamento uns 20 (cada
-requisição do LAZY com 500 empréstimos leva dois minutos e meio) e o de índices uns 5. Eles gravam
-tabelas em Markdown, o SQL gerado e os planos de execução em `experimentos/resultados/`. O banco e
-a API voltam ao estado inicial no fim.
+requisição do LAZY com 500 empréstimos leva dois minutos e meio), o de índices uns 5 e o da falha
+do Redis menos de 2. O da falha do Redis para, congela e sobe de novo o contêiner do Redis. Eles
+gravam tabelas em Markdown, o SQL gerado e os planos de execução em `experimentos/resultados/`. O
+banco e a API voltam ao estado inicial no fim.
 
 ### 4. Testes de desempenho (k6)
 
@@ -1186,6 +1285,14 @@ Um cenário avulso, com o painel web do k6 ao vivo em <http://localhost:5665>:
 docker compose run --rm --service-ports -e K6_WEB_DASHBOARD=true k6 run k6/cache.js -e VERSAO=com-cache-quente
 docker compose run --rm k6 run k6/persistencia.js -e VERSAO=lazy -e CARGAS=10,50
 docker compose run --rm k6 run k6/indice.js -e VERSAO=com-indice
+```
+
+A ficha com cache sob carga, com o Redis parado (seção 3.6):
+
+```bash
+docker compose stop cache
+docker compose run --rm k6 run k6/cache.js -e VERSAO=redis-fora -e CARGAS=10,50,200
+docker compose start cache
 ```
 
 A matriz completa, com repetições, medição de CPU e memória e geração de tabelas e gráficos:
@@ -1216,7 +1323,9 @@ Uma sequência de uns 7 minutos que cobre o que a 7.3 do enunciado pede, com a A
    (<http://localhost:8000/docs>).
 3. **Cache e atualização**: a ficha com cache duas vezes (`X-Cache: MISS` e depois `HIT`; de meio
    segundo para menos de 1 ms), um `PUT` (`X-Cache-Invalidado: sim`) e a ficha de novo, já com o
-   título novo.
+   título novo. Se sobrar tempo, a queda do Redis: no painel, "Travar o Redis por 15 s", a ficha
+   com cache (`X-Cache: INDISPONIVEL`, ainda 200), um `PUT` (`X-Cache-Invalidado: pendente`) e, quando
+   o Redis volta, a ficha com o título novo (MISS).
 4. **LAZY e EAGER**: `X-Consultas-SQL` da página de 20 empréstimos em `/api/emprestimos/lazy` e
    `/eager` (41 contra 1) e o SQL de cada uma em `/api/laboratorio/sql/emprestimos/lazy?quantidade=3`.
 5. **Consulta otimizada**: o SQL da versão `otimizada`, com 8 colunas no lugar das 89 do EAGER.
@@ -1227,7 +1336,7 @@ Uma sequência de uns 7 minutos que cobre o que a 7.3 do enunciado pede, com a A
 8. **Resultados**: as tabelas e os gráficos da seção 5.3 e a discussão.
 
 O painel (<http://localhost:8000/painel/>) acompanha o roteiro inteiro, uma seção por passo: Visão
-geral (1), Cache (3, com o experimento da 3.4 completo), LAZY × EAGER (4 e 5), Índices (6), Testes
+geral (1), Cache (3, com o experimento da 3.4 completo e a queda do Redis), LAZY × EAGER (4 e 5), Índices (6), Testes
 de carga (7, com o comando para copiar e o link do painel do k6) e Resultados e conclusões (8). O
 rodapé mostra cada chamada HTTP com os cabeçalhos de medição (2).
 
@@ -1246,7 +1355,7 @@ O `PUT` altera o livro 42 de verdade; para voltar ao estado inicial, recarregue 
 api/                  Web Services (FastAPI + SQLAlchemy)
   app/modelos.py      mapeamento das tabelas, com a versão LAZY e a EAGER do empréstimo
   app/rotas/          livros (cache), emprestimos (EAGER x LAZY), leitores (índice) e laboratório
-  app/cache.py        cache das fichas no Redis
+  app/cache.py        cache das fichas no Redis, com a queda para o banco se ele falhar
   app/medicao.py      contagem de comandos SQL e tempos de cada requisição
   app/painel/         painel de demonstração (HTML, CSS e JavaScript), servido em /painel
 banco/                criação das tabelas e geração dos dados (semente fixa), executadas pelo psql
@@ -1257,7 +1366,7 @@ testes-carga/
   executar.py         roteiro que roda a matriz de testes de carga
   analisar.py         tabelas e gráficos a partir dos resultados
   graficos.py         gráficos em SVG, sem dependências externas (usado pelo analisar.py)
-  resultados/         resultados da matriz usada neste relatório
+  resultados/         resultados da matriz usada neste relatório e da carga com o Redis parado
 docker-compose.yml    cache (Redis), API, k6, psql e o PostgreSQL local opcional
 .env.exemplo          modelo do .env com a conexão ao banco no Supabase
 ```

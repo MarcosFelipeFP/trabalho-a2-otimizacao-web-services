@@ -212,6 +212,29 @@
     </ol>
   </section>
 
+  <section class="bloco" aria-labelledby="t-queda">
+    <div class="bloco-topo">
+      <h2 id="t-queda">E se o Redis cair?</h2>
+      <button id="btn-recomecar-queda" class="botao discreto">Recomeçar a marcação</button>
+    </div>
+    <p class="nota">O cache é um atalho, não a fonte dos dados. Se o Redis não responder em <span id="queda-limite">0,5 s</span>,
+      a ficha vem do banco (<code>X-Cache: INDISPONIVEL</code>) e a requisição não falha. Até o Redis voltar, a API nem tenta
+      usá-lo: uma vigia o testa a cada segundo. Uma alteração feita nesse intervalo deixa a invalidação pendente, e a vigia a
+      faz antes de o cache voltar a ser usado.</p>
+    <div class="controles">
+      <button id="btn-travar" class="botao escrita">Travar o Redis por 15 s</button>
+      <span class="progresso" id="queda-relogio" aria-live="polite"></span>
+    </div>
+    <ol class="passos" id="passos-queda">
+      <li data-passo="q1"><span class="passo-n">1</span><div><strong>Ler com o Redis fora do ar</strong>
+        <span class="prova">Com o Redis travado, “Ler com cache”: 200, com a ficha vinda do banco (INDISPONIVEL).</span></div></li>
+      <li data-passo="q2"><span class="passo-n">2</span><div><strong>Alterar com o Redis fora do ar</strong>
+        <span class="prova">“Alterar pela API (PUT)”: a alteração vale e a invalidação fica pendente.</span></div></li>
+      <li data-passo="q3"><span class="passo-n">3</span><div><strong>O Redis de volta: a ficha antiga não volta</strong>
+        <span class="prova">Quando o Redis voltar, “Ler com cache”: MISS com o título novo, e não HIT com o antigo.</span></div></li>
+    </ol>
+  </section>
+
   <section class="bloco" aria-labelledby="t-volatil">
     <h2 id="t-volatil">O que não vai para o cache</h2>
     <div class="volatil">

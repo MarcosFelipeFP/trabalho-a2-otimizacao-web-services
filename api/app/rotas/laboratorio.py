@@ -6,6 +6,7 @@
     GET    /api/laboratorio/cache/livros/{id}            a ficha está no cache? quanto falta do TTL?
     PUT    /api/laboratorio/cache/livros/{id}/ttl        encurta o TTL de uma ficha (demonstração da expiração)
     POST   /api/laboratorio/cache/encher                 guarda as fichas de todos os livros (cache quente)
+    POST   /api/laboratorio/cache/pausar                 trava o Redis por alguns segundos (Redis fora do ar)
     GET    /api/laboratorio/indices                      índices da tabela emprestimo
     PUT    /api/laboratorio/indices/{nome}               cria um índice do experimento
     DELETE /api/laboratorio/indices/{nome}               remove um índice do experimento
@@ -22,6 +23,9 @@
 
 Os testes de carga do k6 usam estas rotas para deixar o cache e os índices no estado certo antes
 de cada medição. Num sistema em produção, elas ficariam desligadas ou protegidas.
+
+As rotas do cache usam o Redis direto: se ele não responder, elas devolvem 503 (tratador em
+main.py), enquanto as rotas da biblioteca continuam respondendo com os dados do banco.
 """
 
 import platform
@@ -33,6 +37,7 @@ from importlib.metadata import version
 from time import perf_counter
 from typing import Annotated
 
+import redis
 from fastapi import APIRouter, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import text
@@ -86,13 +91,15 @@ def estado():
         "banco": {"servidor": config.SERVIDOR_DO_BANCO, **dict(servidor._mapping)},
         "configuracao": {
             "cache_ttl_segundos": config.CACHE_TTL_SEGUNDOS,
+            "cache_tempo_limite_s": config.CACHE_TEMPO_LIMITE_S,
+            "cache_intervalo_da_vigia_s": cache.INTERVALO_DA_VIGIA_S,
             "workers": config.WORKERS,
             "conexoes_por_worker": config.CONEXOES_POR_WORKER,
             "threads_por_worker": config.THREADS_POR_WORKER,
         },
         "versoes": {
             "postgresql": servidor.versao,
-            "redis": cache.cliente.info("server")["redis_version"],
+            "redis": cache.versao(),  # None: o Redis não respondeu (o resto continua valendo)
             "python": platform.python_version(),
             "bibliotecas_python": {
                 pacote: version(pacote)
@@ -178,6 +185,24 @@ def encurtar_ttl(
         "no_cache": True,
         "ttl_restante_segundos": cache.cliente.ttl(chave),
         "ttl_configurado_segundos": config.CACHE_TTL_SEGUNDOS,
+    })
+
+
+@rotas.post("/cache/pausar", summary="Trava o Redis por alguns segundos (Redis fora do ar)")
+def pausar_o_redis(segundos: Annotated[int, Query(ge=1, le=60)] = 15):
+    """Simula um Redis que parou de responder, sem precisar do Docker: `CLIENT PAUSE` faz o Redis
+    segurar os comandos de todos os clientes, de todos os processos da API, até o tempo acabar. Os
+    dados continuam lá. Enquanto isso, a ficha com cache vem do banco (`X-Cache: INDISPONIVEL`) e
+    uma alteração pelo PUT deixa a invalidação pendente; quando o Redis volta, a invalidação é
+    feita antes de o cache voltar a ser usado.
+
+    Serve para a demonstração no painel: nos testes, a pausa às vezes terminou antes do tempo
+    pedido. Para medir, experimentos/falha_do_cache.py congela o contêiner (docker compose pause)."""
+    cache.cliente.client_pause(segundos * 1000, all=True)
+    return RespostaJSON({
+        "redis_travado_por_segundos": segundos,
+        "tempo_limite_da_api_s": config.CACHE_TEMPO_LIMITE_S,
+        "intervalo_da_vigia_s": cache.INTERVALO_DA_VIGIA_S,
     })
 
 
@@ -544,11 +569,16 @@ def alterar_titulo_por_fora_da_api(livro_id: Annotated[int, Path(gt=0)], dados: 
         ).rowcount
     if not alteradas:
         raise HTTPException(404, "Livro não encontrado.")
-    ttl = cache.cliente.ttl(cache.chave_do_livro(livro_id))  # -2: a chave não existe
+    try:
+        ttl = cache.cliente.ttl(cache.chave_do_livro(livro_id))  # -2: a chave não existe
+    except redis.RedisError as erro:
+        # o UPDATE já foi feito; só não dá para dizer se a ficha está no cache
+        cache.registrar_falha(erro)
+        ttl = None
     return RespostaJSON({
         "livro_id": livro_id,
         "titulo_no_banco": dados.titulo,
         "cache_avisado": False,
-        "ficha_no_cache": ttl != -2,
-        "ttl_restante_segundos": ttl if ttl >= 0 else None,
+        "ficha_no_cache": None if ttl is None else ttl != -2,
+        "ttl_restante_segundos": ttl if ttl is not None and ttl >= 0 else None,
     })

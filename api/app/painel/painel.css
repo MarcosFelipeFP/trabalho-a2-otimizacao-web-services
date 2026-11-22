@@ -24,6 +24,8 @@
   --verde-claro: #e3f2ea;
   --violeta: #5b3e96;
   --violeta-claro: #efeaf8;
+  --ambar: #8a5a00;
+  --ambar-claro: #fcefd6;
   --pauta: rgba(47, 93, 158, .22);
 
   /* séries dos gráficos (paleta validada para daltonismo, na ordem fixa) */
@@ -212,6 +214,7 @@ td.ganho { font-weight: 700; }
 .etiqueta.banco { background: #eef1f3; color: var(--tinta-2); }
 .etiqueta.escrita { background: var(--violeta-claro); color: var(--violeta); }
 .etiqueta.alerta { background: var(--vermelho); color: #fff; }
+.etiqueta.indisponivel { background: var(--ambar-claro); color: var(--ambar); }
 
 .delta { font-weight: 700; }
 .delta.perda { margin-left: 6px; font-size: 12.5px; color: var(--vermelho); }
@@ -265,6 +268,8 @@ td.ganho { font-weight: 700; }
 .carimbo.alerta { --cor: var(--vermelho); }
 .carimbo.escrita .carimbo-palavra { font-size: 24px; }
 .carimbo.alerta .carimbo-palavra { font-size: 20px; }
+.carimbo.indisponivel { --cor: var(--ambar); }
+.carimbo.indisponivel .carimbo-palavra { font-size: 20px; }
 @keyframes carimbar {
   0% { opacity: 0; transform: rotate(calc(var(--giro, -6deg) - 9deg)) scale(1.7); }
   70% { opacity: .95; transform: rotate(var(--giro, -6deg)) scale(.97); }

@@ -14,6 +14,10 @@ SERVIDOR_DO_BANCO = os.environ.get("PGHOST", "localhost")
 # Tempo de vida das fichas de livro no cache, em segundos.
 CACHE_TTL_SEGUNDOS = int(os.environ.get("CACHE_TTL_SEGUNDOS", "600"))
 
+# Quanto esperar o Redis antes de desistir dele e buscar a ficha no banco, em segundos. Uma leitura
+# no Redis leva menos de 1 ms; 0,5 s só se esgota se ele parou de responder.
+CACHE_TEMPO_LIMITE_S = float(os.environ.get("CACHE_TEMPO_LIMITE_S", "0.5"))
+
 # Conexões com o banco em cada processo da API. O pooler de sessões do Supabase aceita até 15
 # conexões simultâneas por usuário; com 4 processos, 3 conexões em cada um.
 CONEXOES_POR_WORKER = int(os.environ.get("CONEXOES_POR_WORKER", "3"))
