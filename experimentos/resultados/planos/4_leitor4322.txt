@@ -6,28 +6,28 @@ SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, empr
 FROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id 
 WHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC
 
-Sort  (cost=2627.87..2628.62 rows=300 width=60) (actual time=1.423..1.438 rows=243 loops=1)
+Sort  (cost=2697.31..2698.03 rows=290 width=60) (actual time=1.443..1.458 rows=243 loops=1)
   Sort Key: emprestimo.data_emprestimo DESC
   Sort Method: quicksort  Memory: 44kB
-  Buffers: shared hit=963
-  ->  Nested Loop  (cost=11.04..2615.53 rows=300 width=60) (actual time=0.076..1.349 rows=243 loops=1)
-        Buffers: shared hit=963
-        ->  Bitmap Heap Scan on emprestimo  (cost=10.75..947.64 rows=300 width=32) (actual time=0.063..0.408 rows=243 loops=1)
+  Buffers: shared hit=965
+  ->  Nested Loop  (cost=10.97..2685.45 rows=290 width=60) (actual time=0.077..1.371 rows=243 loops=1)
+        Buffers: shared hit=965
+        ->  Bitmap Heap Scan on emprestimo  (cost=10.67..1029.16 rows=290 width=32) (actual time=0.063..0.410 rows=243 loops=1)
               Recheck Cond: (leitor_id = 4322)
-              Heap Blocks: exact=239
-              Buffers: shared hit=243
-              ->  Bitmap Index Scan on idx_emprestimo_leitor_data  (cost=0.00..10.67 rows=300 width=0) (actual time=0.033..0.033 rows=243 loops=1)
+              Heap Blocks: exact=241
+              Buffers: shared hit=245
+              ->  Bitmap Index Scan on idx_emprestimo_leitor_data  (cost=0.00..10.60 rows=290 width=0) (actual time=0.034..0.034 rows=243 loops=1)
                     Index Cond: (leitor_id = 4322)
                     Buffers: shared hit=4
-        ->  Memoize  (cost=0.30..5.58 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=243)
+        ->  Memoize  (cost=0.30..5.74 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=243)
               Cache Key: emprestimo.livro_id
               Cache Mode: logical
               Hits: 3  Misses: 240  Evictions: 0  Overflows: 0  Memory Usage: 31kB
               Buffers: shared hit=720
-              ->  Index Scan using livro_pkey on livro  (cost=0.29..5.57 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=240)
+              ->  Index Scan using livro_pkey on livro  (cost=0.29..5.73 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=240)
                     Index Cond: (id = emprestimo.livro_id)
                     Buffers: shared hit=720
 Planning:
   Buffers: shared hit=14
-Planning Time: 0.247 ms
-Execution Time: 1.487 ms
+Planning Time: 0.249 ms
+Execution Time: 1.509 ms

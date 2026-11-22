@@ -245,9 +245,13 @@ def custo_de_escrita(linhas: Annotated[int, Query(ge=100, le=200_000)] = 20_000)
         inicio = perf_counter()
         [plano] = conn.execute(text("""
             EXPLAIN (ANALYZE, TIMING OFF, FORMAT JSON)
-            INSERT INTO emprestimo (livro_id, leitor_id, data_emprestimo, data_prevista)
+            INSERT INTO emprestimo (livro_id, leitor_id, data_emprestimo, data_prevista, protocolo,
+                                    codigo_exemplar, assinatura_termo)
             SELECT 1 + (g * 7919) % 20000, 1 + (g * 7907) % 10000,
-                   localtimestamp - make_interval(mins => g), current_date + 14
+                   localtimestamp - make_interval(mins => g), current_date + 14,
+                   'EMP-' || to_char(current_date, 'YYYYMMDD') || '-T' || lpad(g::text, 6, '0'),
+                   '3' || lpad((1 + (g * 7919) % 20000)::text, 8, '0') || '0001',
+                   md5('custo-de-escrita-' || g)
             FROM generate_series(1, :linhas) AS g
         """), {"linhas": linhas}).scalar()
         no_cliente = perf_counter() - inicio

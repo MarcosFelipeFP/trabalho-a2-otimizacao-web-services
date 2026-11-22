@@ -507,7 +507,7 @@ $('livro').addEventListener('change', () => {
 // ------------------------------------------------------------------ 2. LAZY x EAGER
 const ESTRATEGIAS = [
   ['lazy', 'LAZY', 'lazy="select": livro e leitor buscados um a um ao montar a resposta'],
-  ['eager', 'EAGER', 'lazy="joined": LEFT OUTER JOIN com livro e leitor, 89 colunas'],
+  ['eager', 'EAGER', 'lazy="joined": LEFT OUTER JOIN com livro e leitor, 178 colunas'],
   ['eager-selectin', 'EAGER com selectinload', 'consultas separadas: SELECT … IN para livros e leitores'],
   ['eager-immediate', 'EAGER com immediateload', 'busca cada livro e cada leitor logo depois da página'],
   ['join-fetch', 'JOIN FETCH (joinedload)', 'mapeamento LAZY; a consulta pede o JOIN'],
@@ -802,12 +802,12 @@ aoClicar('btn-vol-emp', async () => {
     + `${seg(melhor.totalMs)}</strong> contra ${seg(pior.totalMs)} do ${esc(pior.nome)}, <strong class="ganho">${fator(pior.totalMs / melhor.totalMs)} `
     + `mais rápido</strong>. p95 de ${ms(melhor.p95)} contra ${ms(pior.p95)}.`;
   if (q > 20) {
-    // com páginas grandes, o que importa é o custo das 89 colunas: EAGER contra a projeção
+    // com páginas grandes, o que importa é o custo das 178 colunas: EAGER contra a projeção
     const de = (c) => linhas.find((l) => l.chave === c);
     const eager = de('eager');
     const otim = de('otimizada');
     const x = eager.totalMs / otim.totalMs;
-    frase = `${n} páginas de ${q} empréstimos: o <strong>EAGER</strong> leu <strong>${eager.extra}</strong> do banco por página, com as 89 colunas, `
+    frase = `${n} páginas de ${q} empréstimos: o <strong>EAGER</strong> leu <strong>${eager.extra}</strong> do banco por página, com as 178 colunas, `
       + `e a <strong>otimizada</strong>, <strong class="ganho">${otim.extra}</strong>; tempo total de ${seg(eager.totalMs)} contra `
       + `${seg(otim.totalMs)}${x >= 1.05 ? `, <strong class="ganho">${fator(x)} mais rápida</strong>` : ', sem diferença de tempo nesta rodada'}. `
       + 'O SQL nativo executa a mesma consulta da otimizada e lê os mesmos bytes: a diferença de tempo entre os dois muda de uma rodada para outra.';

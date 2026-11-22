@@ -6,23 +6,19 @@ SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, empr
 FROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id 
 WHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC
 
-Sort  (cost=329.44..329.69 rows=100 width=60) (actual time=0.336..0.340 rows=58 loops=1)
+Sort  (cost=107.51..107.58 rows=30 width=60) (actual time=0.316..0.320 rows=58 loops=1)
   Sort Key: emprestimo.data_emprestimo DESC
   Sort Method: quicksort  Memory: 29kB
   Buffers: shared hit=234
-  ->  Nested Loop  (cost=2.46..326.11 rows=100 width=60) (actual time=0.033..0.312 rows=58 loops=1)
+  ->  Nested Loop  (cost=0.58..106.77 rows=30 width=60) (actual time=0.018..0.293 rows=58 loops=1)
         Buffers: shared hit=234
-        ->  Bitmap Heap Scan on emprestimo  (cost=2.17..110.81 rows=100 width=32) (actual time=0.023..0.100 rows=58 loops=1)
-              Recheck Cond: (leitor_id = 150)
-              Heap Blocks: exact=58
+        ->  Index Scan using idx_emprestimo_leitor on emprestimo  (cost=0.30..34.92 rows=30 width=32) (actual time=0.009..0.079 rows=58 loops=1)
+              Index Cond: (leitor_id = 150)
               Buffers: shared hit=60
-              ->  Bitmap Index Scan on idx_emprestimo_leitor  (cost=0.00..2.15 rows=100 width=0) (actual time=0.010..0.010 rows=58 loops=1)
-                    Index Cond: (leitor_id = 150)
-                    Buffers: shared hit=2
-        ->  Index Scan using livro_pkey on livro  (cost=0.29..2.15 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=58)
+        ->  Index Scan using livro_pkey on livro  (cost=0.29..2.40 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=58)
               Index Cond: (id = emprestimo.livro_id)
               Buffers: shared hit=174
 Planning:
   Buffers: shared hit=14
-Planning Time: 0.253 ms
-Execution Time: 0.376 ms
+Planning Time: 0.285 ms
+Execution Time: 0.360 ms

@@ -6,15 +6,15 @@ SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, empr
 FROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id 
 WHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC
 
-Nested Loop  (cost=0.71..636.84 rows=210 width=60) (actual time=0.032..1.126 rows=243 loops=1)
-  Buffers: shared hit=972
-  ->  Index Scan using idx_emprestimo_leitor_data on emprestimo  (cost=0.42..230.69 rows=210 width=32) (actual time=0.023..0.305 rows=243 loops=1)
+Nested Loop  (cost=0.71..720.22 rows=240 width=60) (actual time=0.028..1.064 rows=243 loops=1)
+  Buffers: shared hit=974
+  ->  Index Scan using idx_emprestimo_leitor_data on emprestimo  (cost=0.42..267.52 rows=240 width=32) (actual time=0.019..0.283 rows=243 loops=1)
         Index Cond: (leitor_id = 4322)
-        Buffers: shared hit=243
-  ->  Index Scan using livro_pkey on livro  (cost=0.29..1.93 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=243)
+        Buffers: shared hit=245
+  ->  Index Scan using livro_pkey on livro  (cost=0.29..1.89 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=243)
         Index Cond: (id = emprestimo.livro_id)
         Buffers: shared hit=729
 Planning:
   Buffers: shared hit=14
-Planning Time: 0.279 ms
-Execution Time: 1.173 ms
+Planning Time: 0.250 ms
+Execution Time: 1.113 ms

@@ -99,19 +99,19 @@
     <div class="entidades">
       <div class="tabela-no" style="grid-area: cat"><code>categoria</code><span class="qtd" data-tabela="categoria">20</span><span>2 colunas · gêneros</span></div>
       <div class="rel rel-h" style="grid-area: r1"><span>1 : N</span></div>
-      <div class="tabela-no" style="grid-area: liv"><code>livro</code><span class="qtd" data-tabela="livro">20.000</span><span>47 colunas · a ficha catalográfica inteira</span></div>
+      <div class="tabela-no" style="grid-area: liv"><code>livro</code><span class="qtd" data-tabela="livro">20.000</span><span>79 colunas · ficha catalográfica, registro MARC e resenha</span></div>
       <div class="rel rel-h rel-volta" style="grid-area: r2"><span>N : 1</span></div>
       <div class="tabela-no" style="grid-area: aut"><code>autor</code><span class="qtd" data-tabela="autor">5.000</span><span>9 colunas · nome, biografia, prêmios</span></div>
       <div class="rel rel-v" style="grid-area: r3"><span>1 : N</span></div>
-      <div class="tabela-no" style="grid-area: lei"><code>leitor</code><span class="qtd" data-tabela="leitor">10.000</span><span>28 colunas · o cadastro completo</span></div>
+      <div class="tabela-no" style="grid-area: lei"><code>leitor</code><span class="qtd" data-tabela="leitor">10.000</span><span>60 colunas · cadastro, documentos e contatos</span></div>
       <div class="rel rel-h" style="grid-area: r4"><span>1 : N</span></div>
-      <div class="tabela-no tabela-principal" style="grid-area: emp"><code>emprestimo</code><span class="qtd" data-tabela="emprestimo">300.000</span><span>14 colunas · entidade principal</span></div>
+      <div class="tabela-no tabela-principal" style="grid-area: emp"><code>emprestimo</code><span class="qtd" data-tabela="emprestimo">300.000</span><span>39 colunas · entidade principal</span></div>
       <div class="entidades-resumo" style="grid-area: res" id="resumo-dados">
-        <span>74 MB nas cinco tabelas, com os índices</span>
+        <span>165 MB nas cinco tabelas, com os índices</span>
       </div>
     </div>
     <p class="nota">Tabelas largas de propósito: a listagem de empréstimos usa 8 colunas, mas carregar as entidades
-      inteiras traz 89. Os números acima vêm do banco agora (seção 6.5: registrar a quantidade de dados).</p>
+      inteiras traz 178. Os números acima vêm do banco agora (seção 6.5: registrar a quantidade de dados).</p>
   </section>
 
   <section class="bloco" aria-labelledby="t-metodo">
@@ -284,7 +284,7 @@
   <section class="bloco volume" aria-labelledby="t-vol-emp">
     <h2 id="t-vol-emp">Em volume: várias páginas seguidas</h2>
     <p class="nota">Várias páginas em sequência, 6 ao mesmo tempo. Com 20 por página aparece o N+1 do LAZY. Com 100 ou 500,
-      o LAZY fica de fora (levaria minutos) e aparece o custo das 89 colunas do EAGER contra as 8 da otimizada, no tempo e
+      o LAZY fica de fora (levaria minutos) e aparece o custo das 178 colunas do EAGER contra as 8 da otimizada, no tempo e
       nos dados lidos do banco (seção 4.3: diferentes quantidades de registros e volume de informações recuperadas).</p>
     <div class="controles">
       <label class="campo">Páginas <select id="vol-emp-n"><option>5</option><option selected>10</option><option>20</option></select></label>
@@ -333,9 +333,9 @@
         <table>
           <thead><tr><th>Índices extras em <code>emprestimo</code></th><th class="n">Tamanho dos índices</th><th class="n">Inserir 20.000</th><th class="n">Por linha</th></tr></thead>
           <tbody>
-            <tr><td>nenhum (só a chave primária e <code>livro_id</code>)</td><td class="n">8,9 MB</td><td class="n">655 ms</td><td class="n">32,8 µs</td></tr>
-            <tr><td><code>(leitor_id, data_emprestimo DESC)</code></td><td class="n">17,9 MB</td><td class="n">749 ms</td><td class="n">37,5 µs <span class="delta perda">+14%</span></td></tr>
-            <tr><td>os três índices do experimento</td><td class="n">20,1 MB</td><td class="n">837 ms</td><td class="n">41,9 µs <span class="delta perda">+28%</span></td></tr>
+            <tr><td>nenhum (só a chave primária e <code>livro_id</code>)</td><td class="n">8,9 MB</td><td class="n">851 ms</td><td class="n">42,5 µs</td></tr>
+            <tr><td><code>(leitor_id, data_emprestimo DESC)</code></td><td class="n">17,9 MB</td><td class="n">1.224 ms</td><td class="n">61,2 µs <span class="delta perda">+44%</span></td></tr>
+            <tr><td>os três índices do experimento</td><td class="n">20,1 MB</td><td class="n">1.693 ms</td><td class="n">84,6 µs <span class="delta perda">+99%</span></td></tr>
           </tbody>
         </table>
       </div>

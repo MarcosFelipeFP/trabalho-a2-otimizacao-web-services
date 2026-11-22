@@ -15,6 +15,7 @@ Também aqui ficam o registro de empréstimo e de devolução e a lista de empr�
 """
 
 from datetime import date, datetime, timedelta
+from hashlib import md5
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Path, Query
@@ -307,11 +308,16 @@ def registrar_emprestimo(dados: NovoEmprestimo):
             raise HTTPException(409, "Nenhum exemplar disponível.")
 
         agora = datetime.now().replace(microsecond=0)
+        exemplar = livro.total_exemplares - livro.exemplares_disponiveis + 1
         emprestimo = Emprestimo(
             livro_id=livro.id,
             leitor_id=dados.leitor_id,
             data_emprestimo=agora,
             data_prevista=agora.date() + timedelta(days=14),
+            protocolo=f"EMP-{agora:%Y%m%d}-{agora:%H%M%S}{dados.leitor_id % 100:02d}",
+            codigo_exemplar=f"3{livro.id:08d}{exemplar:04d}",
+            numero_exemplar=exemplar,
+            assinatura_termo=md5(f"termo-{livro.id}-{dados.leitor_id}-{agora.isoformat()}".encode()).hexdigest(),
         )
         sessao.add(emprestimo)
         livro.exemplares_disponiveis -= 1

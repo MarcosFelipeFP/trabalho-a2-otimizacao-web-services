@@ -6,9 +6,9 @@
       "status": 200,
       "x_cache": "MISS",
       "consultas_sql": 3,
-      "tempo_no_servidor_ms": 468.16,
+      "tempo_no_servidor_ms": 445.65,
       "titulo": "A Biblioteca Eterna dos Esquecidos",
-      "gerada_em": "00:21:44.531",
+      "gerada_em": "17:26:11.168",
       "ttl_restante_s": 20,
       "observacao": "falha: monta a ficha no banco e guarda"
     },
@@ -18,9 +18,9 @@
       "status": 200,
       "x_cache": "HIT",
       "consultas_sql": 0,
-      "tempo_no_servidor_ms": 0.41,
+      "tempo_no_servidor_ms": 0.5,
       "titulo": "A Biblioteca Eterna dos Esquecidos",
-      "gerada_em": "00:21:44.531",
+      "gerada_em": "17:26:11.168",
       "ttl_restante_s": 20,
       "observacao": "acerto: nenhuma consulta ao banco"
     },
@@ -30,7 +30,7 @@
       "status": 200,
       "x_cache": "–",
       "consultas_sql": 5,
-      "tempo_no_servidor_ms": 1093.22,
+      "tempo_no_servidor_ms": 1053.45,
       "titulo": "A Biblioteca Eterna dos Esquecidos (edição revista)",
       "gerada_em": "–",
       "ttl_restante_s": null,
@@ -42,9 +42,9 @@
       "status": 200,
       "x_cache": "MISS",
       "consultas_sql": 3,
-      "tempo_no_servidor_ms": 466.44,
+      "tempo_no_servidor_ms": 447.72,
       "titulo": "A Biblioteca Eterna dos Esquecidos (edição revista)",
-      "gerada_em": "00:21:46.096",
+      "gerada_em": "17:26:12.675",
       "ttl_restante_s": 20,
       "observacao": "falha: busca a versão nova no banco"
     },
@@ -54,9 +54,9 @@
       "status": 200,
       "x_cache": "HIT",
       "consultas_sql": 0,
-      "tempo_no_servidor_ms": 0.41,
+      "tempo_no_servidor_ms": 0.55,
       "titulo": "A Biblioteca Eterna dos Esquecidos (edição revista)",
-      "gerada_em": "00:21:46.096",
+      "gerada_em": "17:26:12.675",
       "ttl_restante_s": 20,
       "observacao": "acerto, já com o título novo"
     },
@@ -78,9 +78,9 @@
       "status": 200,
       "x_cache": "HIT",
       "consultas_sql": 0,
-      "tempo_no_servidor_ms": 0.64,
+      "tempo_no_servidor_ms": 0.71,
       "titulo": "A Biblioteca Eterna dos Esquecidos (edição revista)",
-      "gerada_em": "00:21:46.096",
+      "gerada_em": "17:26:12.675",
       "ttl_restante_s": 18,
       "observacao": "acerto com o título ANTIGO: dado desatualizado"
     },
@@ -90,9 +90,9 @@
       "status": 200,
       "x_cache": "MISS",
       "consultas_sql": 3,
-      "tempo_no_servidor_ms": 481.19,
+      "tempo_no_servidor_ms": 466.02,
       "titulo": "A Biblioteca Eterna dos Esquecidos (edição revista) [alterado direto no banco]",
-      "gerada_em": "00:22:15.638",
+      "gerada_em": "17:26:42.245",
       "ttl_restante_s": 20,
       "observacao": "a ficha expirou: falha e título atual"
     }
@@ -102,25 +102,25 @@
       "requisicoes": 300,
       "consultas_sql_por_requisicao": 3.0,
       "acertos": 0,
-      "servidor_mediana_ms": 486.07,
-      "servidor_p95_ms": 497.231,
-      "cliente_mediana_ms": 486.8649000000005
+      "servidor_mediana_ms": 478.115,
+      "servidor_p95_ms": 490.0625,
+      "cliente_mediana_ms": 478.86195000319276
     },
     "com cache, falha (cache vazio)": {
       "requisicoes": 300,
       "consultas_sql_por_requisicao": 3.0,
       "acertos": 0,
-      "servidor_mediana_ms": 477.62,
-      "servidor_p95_ms": 484.79600000000005,
-      "cliente_mediana_ms": 478.3344000006764
+      "servidor_mediana_ms": 479.95000000000005,
+      "servidor_p95_ms": 496.0055,
+      "cliente_mediana_ms": 480.65314999985276
     },
     "com cache, acerto (mesmos livros de novo)": {
       "requisicoes": 300,
       "consultas_sql_por_requisicao": 0.0,
       "acertos": 300,
-      "servidor_mediana_ms": 0.42,
-      "servidor_p95_ms": 0.56,
-      "cliente_mediana_ms": 0.9449500003029243
+      "servidor_mediana_ms": 0.35,
+      "servidor_p95_ms": 0.4105000000000001,
+      "cliente_mediana_ms": 0.8008500008145347
     }
   }
 }

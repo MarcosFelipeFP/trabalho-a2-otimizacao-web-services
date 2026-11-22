@@ -6,23 +6,19 @@ SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, empr
 FROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id 
 WHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC
 
-Sort  (cost=614.39..614.89 rows=200 width=60) (actual time=1.233..1.249 rows=243 loops=1)
+Sort  (cost=509.86..510.26 rows=160 width=60) (actual time=1.181..1.196 rows=243 loops=1)
   Sort Key: emprestimo.data_emprestimo DESC
   Sort Method: quicksort  Memory: 44kB
-  Buffers: shared hit=970
-  ->  Nested Loop  (cost=3.23..606.75 rows=200 width=60) (actual time=0.064..1.135 rows=243 loops=1)
-        Buffers: shared hit=970
-        ->  Bitmap Heap Scan on emprestimo  (cost=2.95..216.85 rows=200 width=32) (actual time=0.055..0.368 rows=243 loops=1)
-              Recheck Cond: (leitor_id = 4322)
-              Heap Blocks: exact=239
-              Buffers: shared hit=241
-              ->  Bitmap Index Scan on idx_emprestimo_leitor  (cost=0.00..2.90 rows=200 width=0) (actual time=0.024..0.024 rows=243 loops=1)
-                    Index Cond: (leitor_id = 4322)
-                    Buffers: shared hit=2
-        ->  Index Scan using livro_pkey on livro  (cost=0.29..1.95 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=243)
+  Buffers: shared hit=972
+  ->  Nested Loop  (cost=0.58..504.00 rows=160 width=60) (actual time=0.020..1.097 rows=243 loops=1)
+        Buffers: shared hit=972
+        ->  Index Scan using idx_emprestimo_leitor on emprestimo  (cost=0.30..179.10 rows=160 width=32) (actual time=0.011..0.302 rows=243 loops=1)
+              Index Cond: (leitor_id = 4322)
+              Buffers: shared hit=243
+        ->  Index Scan using livro_pkey on livro  (cost=0.29..2.03 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=243)
               Index Cond: (id = emprestimo.livro_id)
               Buffers: shared hit=729
 Planning:
   Buffers: shared hit=14
-Planning Time: 0.259 ms
-Execution Time: 1.300 ms
+Planning Time: 0.273 ms
+Execution Time: 1.249 ms

@@ -6,25 +6,25 @@ SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, empr
 FROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id 
 WHERE emprestimo.leitor_id = %(leitor_id_1)s::INTEGER ORDER BY emprestimo.data_emprestimo DESC
 
-Gather Merge  (cost=7514.38..7516.45 rows=18 width=60) (actual time=17.366..21.683 rows=58 loops=1)
+Gather Merge  (cost=15253.38..15255.45 rows=18 width=60) (actual time=34.549..41.494 rows=58 loops=1)
   Workers Planned: 1
   Workers Launched: 1
-  Buffers: shared hit=4447
-  ->  Sort  (cost=6514.37..6514.41 rows=18 width=60) (actual time=14.197..14.203 rows=29 loops=2)
+  Buffers: shared hit=12186
+  ->  Sort  (cost=14253.37..14253.41 rows=18 width=60) (actual time=26.922..26.925 rows=29 loops=2)
         Sort Key: emprestimo.data_emprestimo DESC
-        Sort Method: quicksort  Memory: 27kB
-        Buffers: shared hit=4447
-        Worker 0:  Sort Method: quicksort  Memory: 26kB
-        ->  Nested Loop  (cost=0.29..6513.99 rows=18 width=60) (actual time=0.175..14.158 rows=29 loops=2)
-              Buffers: shared hit=4440
-              ->  Parallel Seq Scan on emprestimo  (cost=0.00..6470.88 rows=18 width=32) (actual time=0.134..13.894 rows=29 loops=2)
+        Sort Method: quicksort  Memory: 28kB
+        Buffers: shared hit=12186
+        Worker 0:  Sort Method: quicksort  Memory: 25kB
+        ->  Nested Loop  (cost=0.29..14252.99 rows=18 width=60) (actual time=1.096..26.868 rows=29 loops=2)
+              Buffers: shared hit=12179
+              ->  Parallel Seq Scan on emprestimo  (cost=0.00..14209.88 rows=18 width=32) (actual time=1.071..26.598 rows=29 loops=2)
                     Filter: (leitor_id = 150)
                     Rows Removed by Filter: 149971
-                    Buffers: shared hit=4265
-              ->  Index Scan using livro_pkey on livro  (cost=0.29..2.40 rows=1 width=32) (actual time=0.008..0.008 rows=1 loops=58)
+                    Buffers: shared hit=12004
+              ->  Index Scan using livro_pkey on livro  (cost=0.29..2.40 rows=1 width=32) (actual time=0.007..0.007 rows=1 loops=58)
                     Index Cond: (id = emprestimo.livro_id)
                     Buffers: shared hit=175
 Planning:
   Buffers: shared hit=14
-Planning Time: 0.281 ms
-Execution Time: 21.734 ms
+Planning Time: 0.306 ms
+Execution Time: 41.553 ms

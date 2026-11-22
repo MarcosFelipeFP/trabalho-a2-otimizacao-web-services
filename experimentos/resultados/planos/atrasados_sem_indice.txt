@@ -3,42 +3,42 @@ FROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id JOIN leitor ON leit
 WHERE emprestimo.data_devolucao IS NULL AND emprestimo.data_prevista < %(data_prevista_1)s::DATE ORDER BY emprestimo.data_prevista, emprestimo.id 
  LIMIT %(param_1)s::INTEGER
 
-Limit  (cost=7595.00..7667.75 rows=50 width=78) (actual time=18.419..22.849 rows=50 loops=1)
-  Buffers: shared hit=4610
-  ->  Nested Loop  (cost=7595.00..13090.41 rows=3777 width=78) (actual time=18.418..22.841 rows=50 loops=1)
-        Buffers: shared hit=4610
-        ->  Nested Loop  (cost=7594.71..11616.14 rows=3777 width=56) (actual time=18.403..22.627 rows=50 loops=1)
-              Buffers: shared hit=4460
-              ->  Gather Merge  (cost=7594.41..8024.88 rows=3777 width=28) (actual time=18.373..22.364 rows=50 loops=1)
+Limit  (cost=15330.80..15419.57 rows=50 width=78) (actual time=28.298..34.301 rows=50 loops=1)
+  Buffers: shared hit=12349
+  ->  Nested Loop  (cost=15330.80..21883.80 rows=3691 width=78) (actual time=28.297..34.294 rows=50 loops=1)
+        Buffers: shared hit=12349
+        ->  Nested Loop  (cost=15330.51..19802.75 rows=3691 width=56) (actual time=28.255..34.045 rows=50 loops=1)
+              Buffers: shared hit=12199
+              ->  Gather Merge  (cost=15330.21..15750.88 rows=3691 width=28) (actual time=28.226..33.790 rows=50 loops=1)
                     Workers Planned: 1
                     Workers Launched: 1
-                    Buffers: shared hit=4310
-                    ->  Sort  (cost=6594.40..6599.95 rows=2222 width=28) (actual time=14.915..14.928 rows=212 loops=2)
+                    Buffers: shared hit=12049
+                    ->  Sort  (cost=14330.20..14335.63 rows=2171 width=28) (actual time=25.225..25.239 rows=225 loops=2)
                           Sort Key: emprestimo.data_prevista, emprestimo.id
-                          Sort Method: quicksort  Memory: 48kB
-                          Buffers: shared hit=4310
-                          Worker 0:  Sort Method: quicksort  Memory: 43kB
-                          ->  Parallel Seq Scan on emprestimo  (cost=0.00..6470.88 rows=2222 width=28) (actual time=14.020..14.725 rows=450 loops=2)
-                                Filter: ((data_devolucao IS NULL) AND (data_prevista < '2026-11-21'::date))
+                          Sort Method: quicksort  Memory: 47kB
+                          Buffers: shared hit=12049
+                          Worker 0:  Sort Method: quicksort  Memory: 44kB
+                          ->  Parallel Seq Scan on emprestimo  (cost=0.00..14209.88 rows=2171 width=28) (actual time=24.305..25.012 rows=450 loops=2)
+                                Filter: ((data_devolucao IS NULL) AND (data_prevista < '2026-11-22'::date))
                                 Rows Removed by Filter: 149550
-                                Buffers: shared hit=4265
-              ->  Memoize  (cost=0.30..1.03 rows=1 width=32) (actual time=0.004..0.004 rows=1 loops=50)
+                                Buffers: shared hit=12004
+              ->  Memoize  (cost=0.30..1.18 rows=1 width=32) (actual time=0.005..0.005 rows=1 loops=50)
                     Cache Key: emprestimo.livro_id
                     Cache Mode: logical
                     Hits: 0  Misses: 50  Evictions: 0  Overflows: 0  Memory Usage: 7kB
                     Buffers: shared hit=150
-                    ->  Index Scan using livro_pkey on livro  (cost=0.29..1.02 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=50)
+                    ->  Index Scan using livro_pkey on livro  (cost=0.29..1.17 rows=1 width=32) (actual time=0.004..0.004 rows=1 loops=50)
                           Index Cond: (id = emprestimo.livro_id)
                           Buffers: shared hit=150
-        ->  Memoize  (cost=0.30..0.45 rows=1 width=26) (actual time=0.004..0.004 rows=1 loops=50)
+        ->  Memoize  (cost=0.30..0.65 rows=1 width=26) (actual time=0.005..0.005 rows=1 loops=50)
               Cache Key: emprestimo.leitor_id
               Cache Mode: logical
               Hits: 0  Misses: 50  Evictions: 0  Overflows: 0  Memory Usage: 7kB
               Buffers: shared hit=150
-              ->  Index Scan using leitor_pkey on leitor  (cost=0.29..0.44 rows=1 width=26) (actual time=0.003..0.003 rows=1 loops=50)
+              ->  Index Scan using leitor_pkey on leitor  (cost=0.29..0.64 rows=1 width=26) (actual time=0.004..0.004 rows=1 loops=50)
                     Index Cond: (id = emprestimo.leitor_id)
                     Buffers: shared hit=150
 Planning:
   Buffers: shared hit=20
-Planning Time: 0.389 ms
-Execution Time: 22.913 ms
+Planning Time: 0.413 ms
+Execution Time: 34.365 ms

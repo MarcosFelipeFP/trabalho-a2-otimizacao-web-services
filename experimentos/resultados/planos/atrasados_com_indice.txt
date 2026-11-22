@@ -3,38 +3,38 @@ FROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id JOIN leitor ON leit
 WHERE emprestimo.data_devolucao IS NULL AND emprestimo.data_prevista < %(data_prevista_1)s::DATE ORDER BY emprestimo.data_prevista, emprestimo.id 
  LIMIT %(param_1)s::INTEGER
 
-Limit  (cost=5.68..76.98 rows=50 width=78) (actual time=0.643..0.732 rows=50 loops=1)
-  Buffers: shared hit=458
-  ->  Incremental Sort  (cost=5.68..5140.36 rows=3601 width=78) (actual time=0.642..0.726 rows=50 loops=1)
+Limit  (cost=6.97..93.61 rows=50 width=78) (actual time=0.662..0.770 rows=50 loops=1)
+  Buffers: shared hit=471
+  ->  Incremental Sort  (cost=6.97..6537.79 rows=3769 width=78) (actual time=0.661..0.764 rows=50 loops=1)
         Sort Key: emprestimo.data_prevista, emprestimo.id
         Presorted Key: emprestimo.data_prevista
         Full-sort Groups: 1  Sort Method: quicksort  Average Memory: 33kB  Peak Memory: 33kB
         Pre-sorted Groups: 3  Sort Methods: top-N heapsort, quicksort  Average Memory: 26kB  Peak Memory: 26kB
-        Buffers: shared hit=458
-        ->  Nested Loop  (cost=0.87..5042.35 rows=3601 width=78) (actual time=0.039..0.679 rows=74 loops=1)
-              Buffers: shared hit=458
-              ->  Nested Loop  (cost=0.58..3607.63 rows=3601 width=56) (actual time=0.029..0.374 rows=74 loops=1)
-                    Buffers: shared hit=236
-                    ->  Index Scan using idx_emprestimo_em_aberto on emprestimo  (cost=0.28..122.00 rows=3601 width=28) (actual time=0.013..0.043 rows=74 loops=1)
-                          Index Cond: (data_prevista < '2026-11-21'::date)
-                          Buffers: shared hit=14
-                    ->  Memoize  (cost=0.30..1.04 rows=1 width=32) (actual time=0.004..0.004 rows=1 loops=74)
+        Buffers: shared hit=471
+        ->  Nested Loop  (cost=0.87..6434.99 rows=3769 width=78) (actual time=0.075..0.709 rows=74 loops=1)
+              Buffers: shared hit=471
+              ->  Nested Loop  (cost=0.58..4338.19 rows=3769 width=56) (actual time=0.029..0.373 rows=74 loops=1)
+                    Buffers: shared hit=249
+                    ->  Index Scan using idx_emprestimo_em_aberto on emprestimo  (cost=0.28..224.72 rows=3769 width=28) (actual time=0.013..0.053 rows=74 loops=1)
+                          Index Cond: (data_prevista < '2026-11-22'::date)
+                          Buffers: shared hit=27
+                    ->  Memoize  (cost=0.30..1.18 rows=1 width=32) (actual time=0.004..0.004 rows=1 loops=74)
                           Cache Key: emprestimo.livro_id
                           Cache Mode: logical
                           Hits: 0  Misses: 74  Evictions: 0  Overflows: 0  Memory Usage: 10kB
                           Buffers: shared hit=222
-                          ->  Index Scan using livro_pkey on livro  (cost=0.29..1.03 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=74)
+                          ->  Index Scan using livro_pkey on livro  (cost=0.29..1.17 rows=1 width=32) (actual time=0.003..0.003 rows=1 loops=74)
                                 Index Cond: (id = emprestimo.livro_id)
                                 Buffers: shared hit=222
-              ->  Memoize  (cost=0.30..0.45 rows=1 width=26) (actual time=0.004..0.004 rows=1 loops=74)
+              ->  Memoize  (cost=0.30..0.65 rows=1 width=26) (actual time=0.004..0.004 rows=1 loops=74)
                     Cache Key: emprestimo.leitor_id
                     Cache Mode: logical
                     Hits: 0  Misses: 74  Evictions: 0  Overflows: 0  Memory Usage: 10kB
                     Buffers: shared hit=222
-                    ->  Index Scan using leitor_pkey on leitor  (cost=0.29..0.44 rows=1 width=26) (actual time=0.003..0.003 rows=1 loops=74)
+                    ->  Index Scan using leitor_pkey on leitor  (cost=0.29..0.64 rows=1 width=26) (actual time=0.003..0.003 rows=1 loops=74)
                           Index Cond: (id = emprestimo.leitor_id)
                           Buffers: shared hit=222
 Planning:
   Buffers: shared hit=20
-Planning Time: 0.441 ms
-Execution Time: 0.778 ms
+Planning Time: 0.420 ms
+Execution Time: 0.822 ms
