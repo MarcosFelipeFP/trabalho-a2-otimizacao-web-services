@@ -1458,7 +1458,7 @@ Uma sequência de uns 7 minutos que cobre o que a 7.3 do enunciado pede, com a A
    o Redis volta, a ficha com o título novo (MISS).
 4. **LAZY e EAGER**: `X-Consultas-SQL` da página de 20 empréstimos em `/api/emprestimos/lazy` e
    `/eager` (41 contra 1) e o SQL de cada uma em `/api/laboratorio/sql/emprestimos/lazy?quantidade=3`.
-5. **Consulta otimizada**: o SQL da versão `otimizada`, com 8 colunas no lugar das 89 do EAGER.
+5. **Consulta otimizada**: o SQL da versão `otimizada`, com 8 colunas no lugar das 178 do EAGER.
 6. **Índices**: `GET /api/laboratorio/explain/historico?leitor_id=150` (Seq Scan), depois
    `PUT /api/laboratorio/indices/leitor-data` e o mesmo `EXPLAIN` (Index Scan); no fim, `DELETE`
    no mesmo endereço do índice.
