@@ -1,0 +1,75 @@
+{
+  "total": {
+    "execucoes": 10398,
+    "tempo_total_ms": 37077.4586199997,
+    "linhas": 207846,
+    "blocos_em_memoria": 1549716,
+    "blocos_do_disco": 0
+  },
+  "comandos": [
+    {
+      "execucoes": 9237,
+      "tempo_total_ms": 32384.564349000204,
+      "linhas": 184740,
+      "blocos_em_memoria": 1366311,
+      "blocos_do_disco": 0,
+      "comando": "SELECT emprestimo.id, emprestimo.livro_id, emprestimo.leitor_id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, emprestimo.canal, emprestimo.atendente, emprestimo.renovacoes, emprestimo.data_renovacao, emprestimo.multa, emprestimo.avaliacao, emprestimo.observacoes, emprestimo.registrado_em, emprestimo.protocolo, emprestimo.unidade, emprestimo.balcao, emprestimo.te"
+    },
+    {
+      "execucoes": 1157,
+      "tempo_total_ms": 4013.9589929999993,
+      "linhas": 23140,
+      "blocos_em_memoria": 171287,
+      "blocos_do_disco": 0,
+      "comando": "SELECT emprestimo.id, emprestimo.livro_id, emprestimo.leitor_id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, emprestimo.canal, emprestimo.atendente, emprestimo.renovacoes, emprestimo.data_renovacao, emprestimo.multa, emprestimo.avaliacao, emprestimo.observacoes, emprestimo.registrado_em, emprestimo.protocolo, emprestimo.unidade, emprestimo.balcao, emprestimo.te"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 631.1100290000031,
+      "linhas": 1,
+      "blocos_em_memoria": 12004,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM emprestimo WHERE data_devolucao IS NULL"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 46.40805,
+      "linhas": 1,
+      "blocos_em_memoria": 310,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM emprestimo"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 2.705633999999918,
+      "linhas": 1,
+      "blocos_em_memoria": 40,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM livro"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 1.2686429999998836,
+      "linhas": 1,
+      "blocos_em_memoria": 30,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM leitor"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 0.9482920000000377,
+      "linhas": 1,
+      "blocos_em_memoria": 16,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM autor"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 0.05510699999999957,
+      "linhas": 1,
+      "blocos_em_memoria": 1,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM categoria"
+    }
+  ]
+}

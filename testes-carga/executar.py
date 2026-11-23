@@ -121,8 +121,17 @@ def reiniciar_api(api, ttl):
     """Recria o contêiner da API (processos novos, sem fila e sem conexões abertas), com o TTL de
     cache pedido (variável CACHE_TTL_SEGUNDOS)."""
     ambiente = {**os.environ, 'CACHE_TTL_SEGUNDOS': str(ttl)}
-    subprocess.run(['docker', 'compose', 'up', '-d', '--force-recreate', '--no-deps', 'api'], cwd=RAIZ,
-                   env=ambiente, check=True, capture_output=True)
+    for tentativa in range(1, 4):
+        r = subprocess.run(['docker', 'compose', 'up', '-d', '--force-recreate', '--no-deps', 'api'], cwd=RAIZ,
+                           env=ambiente, capture_output=True, encoding='utf-8', errors='replace')
+        if r.returncode == 0:
+            break
+        # o Docker Desktop às vezes falha ao recriar o contêiner, de forma passageira (aconteceu uma vez
+        # na matriz com o banco local): espera e tenta de novo antes de desistir da matriz
+        print(f'  a API não foi recriada (tentativa {tentativa} de 3): {r.stderr.strip()[-300:]}', flush=True)
+        time.sleep(15)
+    else:
+        raise SystemExit('Não foi possível recriar o contêiner da API; retome com --continuar.')
     time.sleep(2)
     api.esperar()
     if api.chamar('GET', '/api/laboratorio/estado')['configuracao']['cache_ttl_segundos'] != ttl:

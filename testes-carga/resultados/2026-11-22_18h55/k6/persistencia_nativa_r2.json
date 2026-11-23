@@ -1,0 +1,191 @@
+{
+  "cenario": "persistencia",
+  "versao": "nativa",
+  "quantidade_por_pagina": 20,
+  "base_url": "http://api:8000",
+  "aquecimento_s": 10,
+  "duracao_s": 30,
+  "requisicoes_ao_endpoint": 419617,
+  "preparo": {
+    "estado": {
+      "banco": {
+        "max_parallel_workers_per_gather": "2",
+        "random_page_cost": "4",
+        "servidor": "banco",
+        "shared_buffers": "256MB",
+        "usuario": "biblioteca",
+        "versao": "17.11 (Debian 17.11-1.pgdg13+2)",
+        "work_mem": "4MB",
+        "max_connections": "200"
+      },
+      "configuracao": {
+        "cache_intervalo_da_vigia_s": 1,
+        "cache_tempo_limite_s": 0.5,
+        "cache_ttl_segundos": 600,
+        "conexoes_por_worker": 3,
+        "threads_por_worker": 40,
+        "workers": 4
+      },
+      "emprestimos_em_aberto": 3722,
+      "indices_de_emprestimo": [
+        {
+          "bytes": 6758400,
+          "definicao": "CREATE UNIQUE INDEX emprestimo_pkey ON public.emprestimo USING btree (id)",
+          "nome": "emprestimo_pkey"
+        },
+        {
+          "bytes": 2547712,
+          "definicao": "CREATE INDEX idx_emprestimo_livro ON public.emprestimo USING btree (livro_id)",
+          "nome": "idx_emprestimo_livro"
+        }
+      ],
+      "tabelas": {
+        "livro": 20000,
+        "autor": 5000,
+        "categoria": 20,
+        "emprestimo": 300000,
+        "leitor": 10000
+      },
+      "tamanho_do_banco": "165 MB",
+      "versoes": {
+        "postgresql": "17.11 (Debian 17.11-1.pgdg13+2)",
+        "python": "3.14.10",
+        "redis": "8.10.3",
+        "bibliotecas_python": {
+          "fastapi": "0.163.1",
+          "orjson": "3.13.0",
+          "psycopg": "3.3.9",
+          "redis": "8.1.0",
+          "sqlalchemy": "2.1.8",
+          "uvicorn": "0.54.0"
+        }
+      }
+    },
+    "inicio_dos_cenarios_ms": 1795389389355,
+    "quantidade_por_pagina": 20
+  },
+  "janelas": [
+    {
+      "vus": 10,
+      "inicio_s": 10,
+      "fim_s": 40
+    },
+    {
+      "vus": 50,
+      "inicio_s": 53,
+      "fim_s": 83
+    },
+    {
+      "vus": 100,
+      "inicio_s": 96,
+      "fim_s": 126
+    },
+    {
+      "vus": 200,
+      "inicio_s": 139,
+      "fim_s": 169
+    }
+  ],
+  "niveis": [
+    {
+      "vus": 10,
+      "requisicoes": 82218,
+      "vazao_rps": 2740.6,
+      "latencia_ms": {
+        "media": 3.5224861339974143,
+        "minima": 1.177074,
+        "mediana": 3.184996,
+        "maxima": 127.985416,
+        "p90": 5.499376500000001,
+        "p95": 6.45612215,
+        "p99": 8.97048643
+      },
+      "taxa_de_erros": 0,
+      "consultas_sql_por_requisicao": 1,
+      "tempo_no_banco_ms": 1.3508755990172394,
+      "tempo_no_servidor_ms": 2.904082074484883,
+      "taxa_de_acerto_do_cache": null,
+      "bytes_recebidos": 399772583,
+      "limites": {
+        "p(95)<1000": true,
+        "p(99)<2000": true,
+        "rate<0.01": true
+      }
+    },
+    {
+      "vus": 50,
+      "requisicoes": 80115,
+      "vazao_rps": 2670.5,
+      "latencia_ms": {
+        "media": 18.578608559870325,
+        "minima": 1.807077,
+        "mediana": 15.391745,
+        "maxima": 224.432777,
+        "p90": 32.766462600000004,
+        "p95": 41.50535840000001,
+        "p99": 65.62847748
+      },
+      "taxa_de_erros": 0,
+      "consultas_sql_por_requisicao": 1,
+      "tempo_no_banco_ms": 3.1575300505523347,
+      "tempo_no_servidor_ms": 16.257763964301425,
+      "taxa_de_acerto_do_cache": null,
+      "bytes_recebidos": 389620330,
+      "limites": {
+        "p(95)<1000": true,
+        "p(99)<2000": true,
+        "rate<0.01": true
+      }
+    },
+    {
+      "vus": 100,
+      "requisicoes": 79033,
+      "vazao_rps": 2634.4333333333334,
+      "latencia_ms": {
+        "media": 37.80841991905981,
+        "minima": 1.82481,
+        "mediana": 31.304928,
+        "maxima": 431.044138,
+        "p90": 73.20247160000002,
+        "p95": 95.04109199999998,
+        "p99": 146.87757795999994
+      },
+      "taxa_de_erros": 0,
+      "consultas_sql_por_requisicao": 1,
+      "tempo_no_banco_ms": 3.371101691698407,
+      "tempo_no_servidor_ms": 34.87158832386467,
+      "taxa_de_acerto_do_cache": null,
+      "bytes_recebidos": 384355763,
+      "limites": {
+        "p(95)<1000": true,
+        "p(99)<2000": true,
+        "rate<0.01": true
+      }
+    },
+    {
+      "vus": 200,
+      "requisicoes": 73004,
+      "vazao_rps": 2433.4666666666667,
+      "latencia_ms": {
+        "media": 82.07158318571548,
+        "minima": 2.014317,
+        "mediana": 69.873787,
+        "maxima": 818.308775,
+        "p90": 160.2272731,
+        "p95": 196.3730095999998,
+        "p99": 288.28165062000016
+      },
+      "taxa_de_erros": 0,
+      "consultas_sql_por_requisicao": 1,
+      "tempo_no_banco_ms": 3.6757325625992783,
+      "tempo_no_servidor_ms": 78.46502835461173,
+      "taxa_de_acerto_do_cache": null,
+      "bytes_recebidos": 355076446,
+      "limites": {
+        "p(95)<1000": true,
+        "p(99)<2000": true,
+        "rate<0.01": true
+      }
+    }
+  ]
+}

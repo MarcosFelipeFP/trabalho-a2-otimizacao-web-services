@@ -1,0 +1,187 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="930" viewBox="0 0 960 930" role="img" aria-labelledby="titulo descricao">
+<title id="titulo">Cenário 2: página de 20 empréstimos com livro e leitor</title>
+<desc id="descricao">Média das repetições em cada nível de carga; na escala logarítmica, cada linha da grade vale 10 vezes a de baixo. Séries: LAZY, EAGER, otimizada, SQL nativo. Eixo x: usuários virtuais (VUs) (10, 50, 100, 200).</desc>
+<style>
+svg { --fundo: #fcfcfb; --tinta1: #0b0b0b; --tinta2: #52514e; --tinta3: #898781;
+      --grade: #e1e0d9; --eixo: #c3c2b7; --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+@media (prefers-color-scheme: dark) {
+  svg { --fundo: #1a1a19; --tinta1: #f0efec; --tinta2: #c3c2b7; --tinta3: #898781;
+        --grade: #2c2c2a; --eixo: #383835; --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; }
+}
+.fundo { fill: var(--fundo); }
+.grade { stroke: var(--grade); stroke-width: 1; }
+.eixo { stroke: var(--eixo); stroke-width: 1; }
+.t1 { fill: var(--tinta1); }
+.t2 { fill: var(--tinta2); }
+.t3 { fill: var(--tinta3); }
+.num { font-variant-numeric: tabular-nums; }
+.linha { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.ponto { stroke: var(--fundo); stroke-width: 2; }
+.c1 .linha { stroke: var(--s1); } .c1 .ponto { fill: var(--s1); }
+.c2 .linha { stroke: var(--s2); } .c2 .ponto { fill: var(--s2); }
+.c3 .linha { stroke: var(--s3); } .c3 .ponto { fill: var(--s3); }
+.c4 .linha { stroke: var(--s4); } .c4 .ponto { fill: var(--s4); }
+</style>
+<rect class="fundo" width="960" height="930" rx="8"/>
+<text class="t1" x="24" y="40" font-size="17" font-weight="600">Cenário 2: página de 20 empréstimos com livro e leitor</text>
+<text class="t2" x="24" y="62" font-size="12">Média das repetições em cada nível de carga; na escala logarítmica, cada linha da grade vale 10 vezes a de baixo</text>
+<g class="c1"><line class="linha" x1="24" y1="84" x2="42" y2="84"/><circle class="ponto" cx="33" cy="84" r="4"/></g>
+<text class="t2" x="48" y="88" font-size="12">LAZY</text>
+<g class="c2"><line class="linha" x1="97.84" y1="84" x2="115.84" y2="84"/><circle class="ponto" cx="106.84" cy="84" r="4"/></g>
+<text class="t2" x="121.84" y="88" font-size="12">EAGER</text>
+<g class="c3"><line class="linha" x1="178.64" y1="84" x2="196.64" y2="84"/><circle class="ponto" cx="187.64" cy="84" r="4"/></g>
+<text class="t2" x="202.64" y="88" font-size="12">otimizada</text>
+<g class="c4"><line class="linha" x1="287.28" y1="84" x2="305.28" y2="84"/><circle class="ponto" cx="296.28" cy="84" r="4"/></g>
+<text class="t2" x="311.28" y="88" font-size="12">SQL nativo</text>
+<text class="t1" x="24.0" y="114" font-size="13" font-weight="600">Vazão (escala logarítmica)</text>
+<line class="eixo" x1="80.0" y1="310.0" x2="374.0" y2="310.0"/>
+<text class="t3 num" x="72.0" y="314.0" font-size="11" text-anchor="end">0,01</text>
+<line class="grade" x1="80.0" y1="265.5" x2="374.0" y2="265.5"/>
+<text class="t3 num" x="72.0" y="269.5" font-size="11" text-anchor="end">0,1</text>
+<line class="grade" x1="80.0" y1="221.0" x2="374.0" y2="221.0"/>
+<text class="t3 num" x="72.0" y="225.0" font-size="11" text-anchor="end">1</text>
+<line class="grade" x1="80.0" y1="176.5" x2="374.0" y2="176.5"/>
+<text class="t3 num" x="72.0" y="180.5" font-size="11" text-anchor="end">10</text>
+<line class="grade" x1="80.0" y1="132.0" x2="374.0" y2="132.0"/>
+<text class="t3 num" x="72.0" y="136.0" font-size="11" text-anchor="end">100</text>
+<text class="t3 num" x="94.0" y="327" font-size="11" text-anchor="middle">10</text>
+<text class="t3 num" x="182.7" y="327" font-size="11" text-anchor="middle">50</text>
+<text class="t3 num" x="271.3" y="327" font-size="11" text-anchor="middle">100</text>
+<text class="t3 num" x="360.0" y="327" font-size="11" text-anchor="middle">200</text>
+<text class="t3" x="227.0" y="343" font-size="11" text-anchor="middle">usuários virtuais (VUs)</text>
+<g class="c1"><path class="linha" d="M 94.0 225.9 L 182.7 226.1 L 271.3 265.5 L 360.0 286.7"/></g>
+<g class="c2"><path class="linha" d="M 94.0 150.5 L 182.7 138.3 L 271.3 139.1 L 360.0 141.3"/></g>
+<g class="c3"><path class="linha" d="M 94.0 145.1 L 182.7 137.8 L 271.3 137.5 L 360.0 137.6"/></g>
+<g class="c4"><path class="linha" d="M 94.0 147.3 L 182.7 138.0 L 271.3 139.7 L 360.0 140.2"/></g>
+<g class="c1"><circle class="ponto" cx="94.0" cy="225.9" r="4"><title>LAZY · 10 usuários · 0,8 req/s</title></circle><circle class="ponto" cx="182.7" cy="226.1" r="4"><title>LAZY · 50 usuários · 0,8 req/s</title></circle><circle class="ponto" cx="271.3" cy="265.5" r="4"><title>LAZY · 100 usuários · 0,1 req/s</title></circle><circle class="ponto" cx="360.0" cy="286.7" r="4"><title>LAZY · 200 usuários · 0,0 req/s</title></circle></g>
+<g class="c2"><circle class="ponto" cx="94.0" cy="150.5" r="4"><title>EAGER · 10 usuários · 38,4 req/s</title></circle><circle class="ponto" cx="182.7" cy="138.3" r="4"><title>EAGER · 50 usuários · 72,1 req/s</title></circle><circle class="ponto" cx="271.3" cy="139.1" r="4"><title>EAGER · 100 usuários · 69,1 req/s</title></circle><circle class="ponto" cx="360.0" cy="141.3" r="4"><title>EAGER · 200 usuários · 61,7 req/s</title></circle></g>
+<g class="c3"><circle class="ponto" cx="94.0" cy="145.1" r="4"><title>otimizada · 10 usuários · 50,7 req/s</title></circle><circle class="ponto" cx="182.7" cy="137.8" r="4"><title>otimizada · 50 usuários · 74,1 req/s</title></circle><circle class="ponto" cx="271.3" cy="137.5" r="4"><title>otimizada · 100 usuários · 75,4 req/s</title></circle><circle class="ponto" cx="360.0" cy="137.6" r="4"><title>otimizada · 200 usuários · 74,8 req/s</title></circle></g>
+<g class="c4"><circle class="ponto" cx="94.0" cy="147.3" r="4"><title>SQL nativo · 10 usuários · 45,3 req/s</title></circle><circle class="ponto" cx="182.7" cy="138.0" r="4"><title>SQL nativo · 50 usuários · 73,4 req/s</title></circle><circle class="ponto" cx="271.3" cy="139.7" r="4"><title>SQL nativo · 100 usuários · 67,1 req/s</title></circle><circle class="ponto" cx="360.0" cy="140.2" r="4"><title>SQL nativo · 200 usuários · 65,5 req/s</title></circle></g>
+<text class="t2" x="370.0" y="143.7" font-size="11">SQL nativo</text>
+<text class="t2" x="370.0" y="290.7" font-size="11">LAZY</text>
+<text class="t1" x="494.0" y="114" font-size="13" font-weight="600">Latência média (escala logarítmica)</text>
+<line class="eixo" x1="550.0" y1="310.0" x2="844.0" y2="310.0"/>
+<text class="t3 num" x="542.0" y="314.0" font-size="11" text-anchor="end">100</text>
+<line class="grade" x1="550.0" y1="250.7" x2="844.0" y2="250.7"/>
+<text class="t3 num" x="542.0" y="254.7" font-size="11" text-anchor="end">1 mil</text>
+<line class="grade" x1="550.0" y1="191.3" x2="844.0" y2="191.3"/>
+<text class="t3 num" x="542.0" y="195.3" font-size="11" text-anchor="end">10 mil</text>
+<line class="grade" x1="550.0" y1="132.0" x2="844.0" y2="132.0"/>
+<text class="t3 num" x="542.0" y="136.0" font-size="11" text-anchor="end">100 mil</text>
+<text class="t3 num" x="564.0" y="327" font-size="11" text-anchor="middle">10</text>
+<text class="t3 num" x="652.7" y="327" font-size="11" text-anchor="middle">50</text>
+<text class="t3 num" x="741.3" y="327" font-size="11" text-anchor="middle">100</text>
+<text class="t3 num" x="830.0" y="327" font-size="11" text-anchor="middle">200</text>
+<text class="t3" x="697.0" y="343" font-size="11" text-anchor="middle">usuários virtuais (VUs)</text>
+<g class="c1"><path class="linha" d="M 564.0 188.1 L 652.7 172.2 L 741.3 177.3 L 830.0 166.7"/></g>
+<g class="c2"><path class="linha" d="M 564.0 284.6 L 652.7 259.8 L 741.3 240.6 L 830.0 220.4"/></g>
+<g class="c3"><path class="linha" d="M 564.0 292.4 L 652.7 260.4 L 741.3 242.8 L 830.0 225.2"/></g>
+<g class="c4"><path class="linha" d="M 564.0 288.5 L 652.7 260.1 L 741.3 239.7 L 830.0 220.8"/></g>
+<g class="c1"><circle class="ponto" cx="564.0" cy="188.1" r="4"><title>LAZY · 10 usuários · 11.356 ms</title></circle><circle class="ponto" cx="652.7" cy="172.2" r="4"><title>LAZY · 50 usuários · 21.045 ms</title></circle><circle class="ponto" cx="741.3" cy="177.3" r="4"><title>LAZY · 100 usuários · 17.209 ms</title></circle><circle class="ponto" cx="830.0" cy="166.7" r="4"><title>LAZY · 200 usuários · 25.976 ms</title></circle></g>
+<g class="c2"><circle class="ponto" cx="564.0" cy="284.6" r="4"><title>EAGER · 10 usuários · 268 ms</title></circle><circle class="ponto" cx="652.7" cy="259.8" r="4"><title>EAGER · 50 usuários · 703 ms</title></circle><circle class="ponto" cx="741.3" cy="240.6" r="4"><title>EAGER · 100 usuários · 1.476 ms</title></circle><circle class="ponto" cx="830.0" cy="220.4" r="4"><title>EAGER · 200 usuários · 3.241 ms</title></circle></g>
+<g class="c3"><circle class="ponto" cx="564.0" cy="292.4" r="4"><title>otimizada · 10 usuários · 198 ms</title></circle><circle class="ponto" cx="652.7" cy="260.4" r="4"><title>otimizada · 50 usuários · 684 ms</title></circle><circle class="ponto" cx="741.3" cy="242.8" r="4"><title>otimizada · 100 usuários · 1.354 ms</title></circle><circle class="ponto" cx="830.0" cy="225.2" r="4"><title>otimizada · 200 usuários · 2.688 ms</title></circle></g>
+<g class="c4"><circle class="ponto" cx="564.0" cy="288.5" r="4"><title>SQL nativo · 10 usuários · 230 ms</title></circle><circle class="ponto" cx="652.7" cy="260.1" r="4"><title>SQL nativo · 50 usuários · 693 ms</title></circle><circle class="ponto" cx="741.3" cy="239.7" r="4"><title>SQL nativo · 100 usuários · 1.531 ms</title></circle><circle class="ponto" cx="830.0" cy="220.8" r="4"><title>SQL nativo · 200 usuários · 3.183 ms</title></circle></g>
+<text class="t2" x="840.0" y="170.7" font-size="11">LAZY</text>
+<text class="t2" x="840.0" y="226.1" font-size="11">SQL nativo</text>
+<text class="t1" x="24.0" y="392" font-size="13" font-weight="600">Latência p95 (escala logarítmica)</text>
+<line class="eixo" x1="80.0" y1="588.0" x2="374.0" y2="588.0"/>
+<text class="t3 num" x="72.0" y="592.0" font-size="11" text-anchor="end">100</text>
+<line class="grade" x1="80.0" y1="528.7" x2="374.0" y2="528.7"/>
+<text class="t3 num" x="72.0" y="532.7" font-size="11" text-anchor="end">1 mil</text>
+<line class="grade" x1="80.0" y1="469.3" x2="374.0" y2="469.3"/>
+<text class="t3 num" x="72.0" y="473.3" font-size="11" text-anchor="end">10 mil</text>
+<line class="grade" x1="80.0" y1="410.0" x2="374.0" y2="410.0"/>
+<text class="t3 num" x="72.0" y="414.0" font-size="11" text-anchor="end">100 mil</text>
+<text class="t3 num" x="94.0" y="605" font-size="11" text-anchor="middle">10</text>
+<text class="t3 num" x="182.7" y="605" font-size="11" text-anchor="middle">50</text>
+<text class="t3 num" x="271.3" y="605" font-size="11" text-anchor="middle">100</text>
+<text class="t3 num" x="360.0" y="605" font-size="11" text-anchor="middle">200</text>
+<text class="t3" x="227.0" y="621" font-size="11" text-anchor="middle">usuários virtuais (VUs)</text>
+<g class="c1"><path class="linha" d="M 94.0 448.1 L 182.7 441.6 L 271.3 448.3 L 360.0 442.3"/></g>
+<g class="c2"><path class="linha" d="M 94.0 550.8 L 182.7 526.2 L 271.3 499.0 L 360.0 477.5"/></g>
+<g class="c3"><path class="linha" d="M 94.0 560.7 L 182.7 533.1 L 271.3 497.8 L 360.0 481.7"/></g>
+<g class="c4"><path class="linha" d="M 94.0 553.3 L 182.7 531.9 L 271.3 491.1 L 360.0 476.8"/></g>
+<g class="c1"><circle class="ponto" cx="94.0" cy="448.1" r="4"><title>LAZY · 10 usuários · 22.834 ms</title></circle><circle class="ponto" cx="182.7" cy="441.6" r="4"><title>LAZY · 50 usuários · 29.285 ms</title></circle><circle class="ponto" cx="271.3" cy="448.3" r="4"><title>LAZY · 100 usuários · 22.605 ms</title></circle><circle class="ponto" cx="360.0" cy="442.3" r="4"><title>LAZY · 200 usuários · 28.562 ms</title></circle></g>
+<g class="c2"><circle class="ponto" cx="94.0" cy="550.8" r="4"><title>EAGER · 10 usuários · 423 ms</title></circle><circle class="ponto" cx="182.7" cy="526.2" r="4"><title>EAGER · 50 usuários · 1.100 ms</title></circle><circle class="ponto" cx="271.3" cy="499.0" r="4"><title>EAGER · 100 usuários · 3.159 ms</title></circle><circle class="ponto" cx="360.0" cy="477.5" r="4"><title>EAGER · 200 usuários · 7.273 ms</title></circle></g>
+<g class="c3"><circle class="ponto" cx="94.0" cy="560.7" r="4"><title>otimizada · 10 usuários · 289 ms</title></circle><circle class="ponto" cx="182.7" cy="533.1" r="4"><title>otimizada · 50 usuários · 843 ms</title></circle><circle class="ponto" cx="271.3" cy="497.8" r="4"><title>otimizada · 100 usuários · 3.316 ms</title></circle><circle class="ponto" cx="360.0" cy="481.7" r="4"><title>otimizada · 200 usuários · 6.188 ms</title></circle></g>
+<g class="c4"><circle class="ponto" cx="94.0" cy="553.3" r="4"><title>SQL nativo · 10 usuários · 385 ms</title></circle><circle class="ponto" cx="182.7" cy="531.9" r="4"><title>SQL nativo · 50 usuários · 882 ms</title></circle><circle class="ponto" cx="271.3" cy="491.1" r="4"><title>SQL nativo · 100 usuários · 4.296 ms</title></circle><circle class="ponto" cx="360.0" cy="476.8" r="4"><title>SQL nativo · 200 usuários · 7.474 ms</title></circle></g>
+<text class="t2" x="370.0" y="446.3" font-size="11">LAZY</text>
+<text class="t2" x="370.0" y="482.7" font-size="11">SQL nativo</text>
+<text class="t1" x="494.0" y="392" font-size="13" font-weight="600">Latência p99 (escala logarítmica)</text>
+<line class="eixo" x1="550.0" y1="588.0" x2="844.0" y2="588.0"/>
+<text class="t3 num" x="542.0" y="592.0" font-size="11" text-anchor="end">100</text>
+<line class="grade" x1="550.0" y1="528.7" x2="844.0" y2="528.7"/>
+<text class="t3 num" x="542.0" y="532.7" font-size="11" text-anchor="end">1 mil</text>
+<line class="grade" x1="550.0" y1="469.3" x2="844.0" y2="469.3"/>
+<text class="t3 num" x="542.0" y="473.3" font-size="11" text-anchor="end">10 mil</text>
+<line class="grade" x1="550.0" y1="410.0" x2="844.0" y2="410.0"/>
+<text class="t3 num" x="542.0" y="414.0" font-size="11" text-anchor="end">100 mil</text>
+<text class="t3 num" x="564.0" y="605" font-size="11" text-anchor="middle">10</text>
+<text class="t3 num" x="652.7" y="605" font-size="11" text-anchor="middle">50</text>
+<text class="t3 num" x="741.3" y="605" font-size="11" text-anchor="middle">100</text>
+<text class="t3 num" x="830.0" y="605" font-size="11" text-anchor="middle">200</text>
+<text class="t3" x="697.0" y="621" font-size="11" text-anchor="middle">usuários virtuais (VUs)</text>
+<g class="c1"><path class="linha" d="M 564.0 445.4 L 652.7 441.2 L 741.3 447.8 L 830.0 442.2"/></g>
+<g class="c2"><path class="linha" d="M 564.0 544.3 L 652.7 519.7 L 741.3 483.6 L 830.0 470.2"/></g>
+<g class="c3"><path class="linha" d="M 564.0 554.3 L 652.7 523.3 L 741.3 486.7 L 830.0 473.5"/></g>
+<g class="c4"><path class="linha" d="M 564.0 546.4 L 652.7 524.5 L 741.3 478.2 L 830.0 467.9"/></g>
+<g class="c1"><circle class="ponto" cx="564.0" cy="445.4" r="4"><title>LAZY · 10 usuários · 25.301 ms</title></circle><circle class="ponto" cx="652.7" cy="441.2" r="4"><title>LAZY · 50 usuários · 29.848 ms</title></circle><circle class="ponto" cx="741.3" cy="447.8" r="4"><title>LAZY · 100 usuários · 23.032 ms</title></circle><circle class="ponto" cx="830.0" cy="442.2" r="4"><title>LAZY · 200 usuários · 28.707 ms</title></circle></g>
+<g class="c2"><circle class="ponto" cx="564.0" cy="544.3" r="4"><title>EAGER · 10 usuários · 546 ms</title></circle><circle class="ponto" cx="652.7" cy="519.7" r="4"><title>EAGER · 50 usuários · 1.418 ms</title></circle><circle class="ponto" cx="741.3" cy="483.6" r="4"><title>EAGER · 100 usuários · 5.743 ms</title></circle><circle class="ponto" cx="830.0" cy="470.2" r="4"><title>EAGER · 200 usuários · 9.659 ms</title></circle></g>
+<g class="c3"><circle class="ponto" cx="564.0" cy="554.3" r="4"><title>otimizada · 10 usuários · 370 ms</title></circle><circle class="ponto" cx="652.7" cy="523.3" r="4"><title>otimizada · 50 usuários · 1.230 ms</title></circle><circle class="ponto" cx="741.3" cy="486.7" r="4"><title>otimizada · 100 usuários · 5.097 ms</title></circle><circle class="ponto" cx="830.0" cy="473.5" r="4"><title>otimizada · 200 usuários · 8.508 ms</title></circle></g>
+<g class="c4"><circle class="ponto" cx="564.0" cy="546.4" r="4"><title>SQL nativo · 10 usuários · 503 ms</title></circle><circle class="ponto" cx="652.7" cy="524.5" r="4"><title>SQL nativo · 50 usuários · 1.177 ms</title></circle><circle class="ponto" cx="741.3" cy="478.2" r="4"><title>SQL nativo · 100 usuários · 7.083 ms</title></circle><circle class="ponto" cx="830.0" cy="467.9" r="4"><title>SQL nativo · 200 usuários · 10.569 ms</title></circle></g>
+<text class="t2" x="840.0" y="446.2" font-size="11">LAZY</text>
+<text class="t2" x="840.0" y="474.5" font-size="11">SQL nativo</text>
+<text class="t1" x="24.0" y="670" font-size="13" font-weight="600">CPU da API (% de um núcleo)</text>
+<line class="eixo" x1="80.0" y1="866.0" x2="374.0" y2="866.0"/>
+<text class="t3 num" x="72.0" y="870.0" font-size="11" text-anchor="end">0</text>
+<line class="grade" x1="80.0" y1="806.7" x2="374.0" y2="806.7"/>
+<text class="t3 num" x="72.0" y="810.7" font-size="11" text-anchor="end">20</text>
+<line class="grade" x1="80.0" y1="747.3" x2="374.0" y2="747.3"/>
+<text class="t3 num" x="72.0" y="751.3" font-size="11" text-anchor="end">40</text>
+<line class="grade" x1="80.0" y1="688.0" x2="374.0" y2="688.0"/>
+<text class="t3 num" x="72.0" y="692.0" font-size="11" text-anchor="end">60</text>
+<text class="t3 num" x="94.0" y="883" font-size="11" text-anchor="middle">10</text>
+<text class="t3 num" x="182.7" y="883" font-size="11" text-anchor="middle">50</text>
+<text class="t3 num" x="271.3" y="883" font-size="11" text-anchor="middle">100</text>
+<text class="t3 num" x="360.0" y="883" font-size="11" text-anchor="middle">200</text>
+<text class="t3" x="227.0" y="899" font-size="11" text-anchor="middle">usuários virtuais (VUs)</text>
+<g class="c1"><path class="linha" d="M 94.0 838.6 L 182.7 832.2 L 271.3 831.2 L 360.0 830.8"/></g>
+<g class="c2"><path class="linha" d="M 94.0 801.8 L 182.7 746.9 L 271.3 755.7 L 360.0 757.4"/></g>
+<g class="c3"><path class="linha" d="M 94.0 820.8 L 182.7 806.1 L 271.3 806.4 L 360.0 805.2"/></g>
+<g class="c4"><path class="linha" d="M 94.0 830.3 L 182.7 816.7 L 271.3 819.5 L 360.0 816.6"/></g>
+<g class="c1"><circle class="ponto" cx="94.0" cy="838.6" r="4"><title>LAZY · 10 usuários · 9,2 %</title></circle><circle class="ponto" cx="182.7" cy="832.2" r="4"><title>LAZY · 50 usuários · 11,4 %</title></circle><circle class="ponto" cx="271.3" cy="831.2" r="4"><title>LAZY · 100 usuários · 11,7 %</title></circle><circle class="ponto" cx="360.0" cy="830.8" r="4"><title>LAZY · 200 usuários · 11,9 %</title></circle></g>
+<g class="c2"><circle class="ponto" cx="94.0" cy="801.8" r="4"><title>EAGER · 10 usuários · 21,7 %</title></circle><circle class="ponto" cx="182.7" cy="746.9" r="4"><title>EAGER · 50 usuários · 40,1 %</title></circle><circle class="ponto" cx="271.3" cy="755.7" r="4"><title>EAGER · 100 usuários · 37,2 %</title></circle><circle class="ponto" cx="360.0" cy="757.4" r="4"><title>EAGER · 200 usuários · 36,6 %</title></circle></g>
+<g class="c3"><circle class="ponto" cx="94.0" cy="820.8" r="4"><title>otimizada · 10 usuários · 15,2 %</title></circle><circle class="ponto" cx="182.7" cy="806.1" r="4"><title>otimizada · 50 usuários · 20,2 %</title></circle><circle class="ponto" cx="271.3" cy="806.4" r="4"><title>otimizada · 100 usuários · 20,1 %</title></circle><circle class="ponto" cx="360.0" cy="805.2" r="4"><title>otimizada · 200 usuários · 20,5 %</title></circle></g>
+<g class="c4"><circle class="ponto" cx="94.0" cy="830.3" r="4"><title>SQL nativo · 10 usuários · 12,0 %</title></circle><circle class="ponto" cx="182.7" cy="816.7" r="4"><title>SQL nativo · 50 usuários · 16,6 %</title></circle><circle class="ponto" cx="271.3" cy="819.5" r="4"><title>SQL nativo · 100 usuários · 15,7 %</title></circle><circle class="ponto" cx="360.0" cy="816.6" r="4"><title>SQL nativo · 200 usuários · 16,7 %</title></circle></g>
+<text class="t2" x="370.0" y="761.4" font-size="11">EAGER</text>
+<text class="t2" x="370.0" y="814.9" font-size="11">SQL nativo</text>
+<text class="t2" x="370.0" y="834.8" font-size="11">LAZY</text>
+<text class="t1" x="494.0" y="670" font-size="13" font-weight="600">Banco executando consultas (%)</text>
+<line class="eixo" x1="550.0" y1="866.0" x2="844.0" y2="866.0"/>
+<text class="t3 num" x="542.0" y="870.0" font-size="11" text-anchor="end">0</text>
+<line class="grade" x1="550.0" y1="821.5" x2="844.0" y2="821.5"/>
+<text class="t3 num" x="542.0" y="825.5" font-size="11" text-anchor="end">50</text>
+<line class="grade" x1="550.0" y1="777.0" x2="844.0" y2="777.0"/>
+<text class="t3 num" x="542.0" y="781.0" font-size="11" text-anchor="end">100</text>
+<line class="grade" x1="550.0" y1="732.5" x2="844.0" y2="732.5"/>
+<text class="t3 num" x="542.0" y="736.5" font-size="11" text-anchor="end">150</text>
+<line class="grade" x1="550.0" y1="688.0" x2="844.0" y2="688.0"/>
+<text class="t3 num" x="542.0" y="692.0" font-size="11" text-anchor="end">200</text>
+<text class="t3 num" x="564.0" y="883" font-size="11" text-anchor="middle">10</text>
+<text class="t3 num" x="652.7" y="883" font-size="11" text-anchor="middle">50</text>
+<text class="t3 num" x="741.3" y="883" font-size="11" text-anchor="middle">100</text>
+<text class="t3 num" x="830.0" y="883" font-size="11" text-anchor="middle">200</text>
+<text class="t3" x="697.0" y="899" font-size="11" text-anchor="middle">usuários virtuais (VUs)</text>
+<g class="c1"><path class="linha" d="M 564.0 861.9 L 652.7 861.5 L 741.3 861.6 L 830.0 862.8"/></g>
+<g class="c2"><path class="linha" d="M 564.0 846.1 L 652.7 847.3 L 741.3 824.4 L 830.0 764.7"/></g>
+<g class="c3"><path class="linha" d="M 564.0 846.4 L 652.7 852.8 L 741.3 853.4 L 830.0 854.8"/></g>
+<g class="c4"><path class="linha" d="M 564.0 799.2 L 652.7 811.5 L 741.3 732.6 L 830.0 731.3"/></g>
+<g class="c1"><circle class="ponto" cx="564.0" cy="861.9" r="4"><title>LAZY · 10 usuários · 4,6 %</title></circle><circle class="ponto" cx="652.7" cy="861.5" r="4"><title>LAZY · 50 usuários · 5,0 %</title></circle><circle class="ponto" cx="741.3" cy="861.6" r="4"><title>LAZY · 100 usuários · 4,9 %</title></circle><circle class="ponto" cx="830.0" cy="862.8" r="4"><title>LAZY · 200 usuários · 3,7 %</title></circle></g>
+<g class="c2"><circle class="ponto" cx="564.0" cy="846.1" r="4"><title>EAGER · 10 usuários · 22,4 %</title></circle><circle class="ponto" cx="652.7" cy="847.3" r="4"><title>EAGER · 50 usuários · 21,0 %</title></circle><circle class="ponto" cx="741.3" cy="824.4" r="4"><title>EAGER · 100 usuários · 46,7 %</title></circle><circle class="ponto" cx="830.0" cy="764.7" r="4"><title>EAGER · 200 usuários · 114 %</title></circle></g>
+<g class="c3"><circle class="ponto" cx="564.0" cy="846.4" r="4"><title>otimizada · 10 usuários · 22,0 %</title></circle><circle class="ponto" cx="652.7" cy="852.8" r="4"><title>otimizada · 50 usuários · 14,8 %</title></circle><circle class="ponto" cx="741.3" cy="853.4" r="4"><title>otimizada · 100 usuários · 14,2 %</title></circle><circle class="ponto" cx="830.0" cy="854.8" r="4"><title>otimizada · 200 usuários · 12,6 %</title></circle></g>
+<g class="c4"><circle class="ponto" cx="564.0" cy="799.2" r="4"><title>SQL nativo · 10 usuários · 75,1 %</title></circle><circle class="ponto" cx="652.7" cy="811.5" r="4"><title>SQL nativo · 50 usuários · 61,3 %</title></circle><circle class="ponto" cx="741.3" cy="732.6" r="4"><title>SQL nativo · 100 usuários · 150 %</title></circle><circle class="ponto" cx="830.0" cy="731.3" r="4"><title>SQL nativo · 200 usuários · 151 %</title></circle></g>
+<text class="t2" x="840.0" y="735.3" font-size="11">SQL nativo</text>
+<text class="t2" x="840.0" y="768.7" font-size="11">EAGER</text>
+<text class="t2" x="840.0" y="862.8" font-size="11">otimizada</text>
+</svg>

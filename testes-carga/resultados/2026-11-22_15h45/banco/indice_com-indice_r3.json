@@ -1,0 +1,67 @@
+{
+  "total": {
+    "execucoes": 10587,
+    "tempo_total_ms": 137816.09554600995,
+    "linhas": 318420,
+    "blocos_em_memoria": 1520864,
+    "blocos_do_disco": 1157
+  },
+  "comandos": [
+    {
+      "execucoes": 10587,
+      "tempo_total_ms": 142798.53601800045,
+      "linhas": 318637,
+      "blocos_em_memoria": 1581169,
+      "blocos_do_disco": 1157,
+      "comando": "SELECT emprestimo.id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, livro.id AS livro_id, livro.titulo FROM emprestimo JOIN livro ON livro.id = emprestimo.livro_id WHERE emprestimo.leitor_id = $1::INTEGER ORDER BY emprestimo.data_emprestimo DESC"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 296.55076499999996,
+      "linhas": 1,
+      "blocos_em_memoria": 311,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM emprestimo"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 62.04277300002286,
+      "linhas": 1,
+      "blocos_em_memoria": 12004,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM emprestimo WHERE data_devolucao IS NULL"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 19.847427000000152,
+      "linhas": 1,
+      "blocos_em_memoria": 40,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM livro"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 16.69807400000002,
+      "linhas": 1,
+      "blocos_em_memoria": 16,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM autor"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 12.699026999999887,
+      "linhas": 1,
+      "blocos_em_memoria": 30,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM leitor"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 1.2603480000000076,
+      "linhas": 1,
+      "blocos_em_memoria": 1,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM categoria"
+    }
+  ]
+}

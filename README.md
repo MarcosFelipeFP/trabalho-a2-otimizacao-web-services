@@ -286,18 +286,18 @@ paga as três consultas e mais uma leitura e uma gravação no Redis, que está 
 menos de 1 ms, abaixo da variação da rede até o banco (a falha chegou a sair 8 ms mais rápida, o
 que é ruído).
 
-Sob carga (seção 5.3, cenário 1), com 50 VUs: sem cache, 25,4 req/s e 2.009 ms de latência média;
-com o cache quente, 5.713 req/s e 8,6 ms; com o cache frio, esvaziado logo antes da medição,
-30,6 req/s e 1.662 ms, com 13% de acertos. O efeito do TTL foi medido à parte, com o cache
+Sob carga (seção 5.3, cenário 1), com 50 VUs: sem cache, 25,7 req/s e 2.000 ms de latência média;
+com o cache quente, 6.765 req/s e 7,3 ms; com o cache frio, esvaziado logo antes da medição,
+30,2 req/s e 1.675 ms, com 14% de acertos. O efeito do TTL foi medido à parte, com o cache
 começando vazio (seção 5.3, "Extra: efeito do TTL"): com TTL de 5 s, a taxa de acerto ficou em
-torno de 6% e a vazão em 27 req/s; com 120 ou 600 s, a taxa chegou a 24% a 27% no fim do minuto
-medido, e a vazão, a 32 e 33 req/s.
+torno de 6% e a vazão em 27 req/s; com 120 ou 600 s, a taxa chegou a 26% no fim do minuto
+medido, e a vazão, a 32 req/s.
 
 **Em quais situações o cache apresentou maior benefício?** Quando a mesma ficha é lida muitas vezes
 antes de mudar ou expirar, e mais ainda sob carga. Sem cache, cada ficha prende uma conexão com o
 banco durante três viagens (~465 ms), e a fila por conexões cresce com o número de usuários: a
-latência média foi de 0,58 s com 10 VUs para 8,8 s com 200. No acerto, o banco nem é consultado, e
-a API sustentou ~5.700 req/s com latência média abaixo de 35 ms em todos os níveis. O benefício
+latência média foi de 0,59 s com 10 VUs para 8,5 s com 200. No acerto, o banco nem é consultado, e
+a API sustentou de 5.800 a 6.800 req/s com latência média abaixo de 31 ms em todos os níveis. O benefício
 também depende de quantas leituras se repetem: num catálogo, poucos livros concentram a maior parte
 das consultas, e são eles que o cache passa a atender primeiro.
 
@@ -375,50 +375,60 @@ Redis:
 [`experimentos/falha_do_cache.py`](experimentos/falha_do_cache.py) tira o Redis do ar de dois
 jeitos: parado (`docker compose stop cache`) e travado (`docker compose pause cache`, que congela o
 processo com as fichas na memória e deixa as conexões abertas, sem resposta). Os tempos abaixo
-foram medidos com o banco local (perfil `banco-local`), em que uma ficha montada no banco leva uns
-4 ms; com o Supabase, ela levaria os ~480 ms da seção 3.5. Os tempos de detecção da falha (o DNS e
-o tempo limite) não dependem do banco. Todas as linhas estão em
+foram medidos com o banco no Supabase, como o resto do relatório: uma ficha montada no banco leva
+~480 ms (seção 3.5). Os tempos de detecção da falha (o DNS e o tempo limite) não dependem do
+banco. Todas as linhas estão em
 [`falha_do_cache.md`](experimentos/resultados/falha_do_cache.md):
 
 | Parte | Situação | X-Cache | Consultas SQL | Tempo no servidor | Título devolvido |
 |---|---|---|---:|---:|---|
-| A | Redis parado: 1ª leitura com cache | INDISPONIVEL | 3 | 3.332 ms | o original |
-| A | Redis parado: as 9 leituras seguintes (mediana) | INDISPONIVEL | 3 | 4,1 ms | o original |
-| A | sem cache, para comparar (mediana de 10) | – | 3 | 3,8 ms | o original |
-| A | PUT com o Redis parado | `X-Cache-Invalidado: pendente` | 5 | 10,7 ms | o novo (A) |
-| A | Redis de volta, 0,5 s depois do `start` | MISS, e depois HIT | 3 e 0 | 4,4 e 0,7 ms | o novo (A) |
-| B | Redis travado: 1ª leitura com cache | INDISPONIVEL | 3 | 505,5 ms | o novo (A) |
-| B | PUT com o Redis travado | `X-Cache-Invalidado: pendente` | 5 | 11,2 ms | o novo (B) |
-| B | as 19 leituras seguintes, em 9 s (mediana) | INDISPONIVEL | 3 | 4,0 ms | o novo (B) |
-| B | Redis de volta, 0,5 s depois do `unpause` | **MISS**, e depois HIT | 3 e 0 | 5,2 e 0,9 ms | **o novo (B)** |
+| A | Redis parado: 1ª leitura com cache | INDISPONIVEL | 3 | 8.453 ms | o original |
+| A | Redis parado: as 9 leituras seguintes (mediana) | INDISPONIVEL | 3 | 479,0 ms | o original |
+| A | sem cache, para comparar (mediana de 10) | – | 3 | 485,6 ms | o original |
+| A | PUT com o Redis parado | `X-Cache-Invalidado: pendente` | 5 | 1.188 ms | o novo (A) |
+| A | Redis de volta, 5,4 s depois do `start` | MISS, e depois HIT | 3 e 0 | 480,5 e 0,8 ms | o novo (A) |
+| B | Redis travado: 1ª leitura com cache | INDISPONIVEL | 3 | 979,4 ms | o novo (A) |
+| B | PUT com o Redis travado | `X-Cache-Invalidado: pendente` | 5 | 1.120 ms | o novo (B) |
+| B | as 9 leituras seguintes, em 8 s (mediana) | INDISPONIVEL | 3 | 478,8 ms | o novo (B) |
+| B | Redis de volta, 1,5 s depois do `unpause` | **MISS**, e depois HIT | 3 e 0 | 479,3 e 0,5 ms | **o novo (B)** |
 
-A primeira leitura de cada processo espera a falha aparecer: 3,3 s com o contêiner parado (o DNS) e
-0,5 s com o Redis travado (o tempo limite). As seguintes custam o mesmo que a versão sem cache. A
+A primeira leitura de cada processo espera a falha aparecer: cerca de 8 s com o contêiner parado (a
+busca do nome `cache`, que só falha depois de esgotar as tentativas no DNS; numa rodada anterior, em
+outra rede, foram 3,3 s) e 0,5 s com o Redis travado (o tempo limite); os ~480 ms restantes são a
+ficha montada no banco. As seguintes custam o mesmo que a versão sem cache. Na parte A, a vigia levou
+5,4 s para perceber a volta do Redis, porque cada tentativa dela, com o contêiner parado, também
+espera a busca no DNS falhar; nesse intervalo, as leituras continuaram vindo do banco, sem erro. A
 parte B é a prova da invalidação pendente: o Redis volta com a ficha antiga na memória, e a primeira
 leitura é MISS com o título novo, e não HIT com o antigo.
 
-Sob carga, com o Redis parado (k6, `VERSAO=redis-fora`, uma execução de cada, banco local;
-[`testes-carga/resultados/2026-11-22_redis-fora/`](testes-carga/resultados/2026-11-22_redis-fora)):
+Sob carga, com o Redis parado (k6, `VERSAO=redis-fora`; banco local, para que a vazão não fique presa
+aos ~26 req/s do Supabase; três execuções de cada versão, alternadas, nos quatro níveis da matriz;
+[`testes-carga/resultados/2026-11-22_19h49_redis-fora/`](testes-carga/resultados/2026-11-22_19h49_redis-fora)):
 
-| VUs | Sem cache | Com cache, Redis parado | Erros com o Redis parado |
-|---:|---:|---:|---:|
-| 10 | 1.018 req/s, média de 9,6 ms | 891 req/s, média de 11,0 ms | 0% |
-| 50 | 851 req/s, 58,6 ms | 841 req/s, 59,2 ms | 0% |
-| 200 | 811 req/s, 247 ms | 750 req/s, 267 ms | 0% |
+| VUs | Sem cache | Com cache, Redis parado | Diferença na vazão | Erros com o Redis parado |
+|---:|---:|---:|---:|---:|
+| 10 | 1.472 req/s, média de 6,7 ms | 1.372 req/s, média de 7,2 ms | −6,8% | 0% |
+| 50 | 1.439 req/s, média de 35,1 ms | 1.469 req/s, média de 34,0 ms | +2,1% | 0% |
+| 100 | 1.435 req/s, média de 69,7 ms | 1.405 req/s, média de 71,3 ms | −2,1% | 0% |
+| 200 | 1.364 req/s, média de 148,0 ms | 1.378 req/s, média de 145,8 ms | +1,0% | 0% |
 
-Nenhuma requisição falhou, e a vazão ficou perto da versão sem cache; as diferenças, de 1% a 12%,
-estão dentro da variação entre execuções da seção 5.3. Cada um dos quatro processos registrou no log
-um aviso quando percebeu a falha e outro quando o Redis voltou.
+Nenhuma requisição falhou, e a vazão com o Redis parado ficou entre 7% abaixo e 2% acima da versão
+sem cache: diferenças do tamanho da variação entre as repetições de uma mesma versão (até ±15%).
+Cada processo registra no log um aviso quando percebe a falha e outro quando o Redis volta
+(`cache.py`). A primeira execução deste teste, com as tabelas ainda estreitas, três níveis de carga
+e uma execução de cada versão, está em
+[`testes-carga/resultados/2026-11-22_redis-fora/`](testes-carga/resultados/2026-11-22_redis-fora), com
+o mesmo resultado: nenhum erro e a vazão perto da versão sem cache.
 
 **Limites.**
 
-- Sem o Redis, o banco recebe toda a carga. Com o Supabase, a ficha volta aos ~25 req/s de sem
+- Sem o Redis, o banco recebe toda a carga. Com o Supabase, a ficha volta aos ~26 req/s de sem
   cache (seção 5.3): a queda para o banco mantém a API no ar, não o desempenho.
 - A volta do Redis é um cache frio, porque ele não grava nada em disco, e as primeiras leituras são
   falhas (o cenário do cache frio da seção 5.3).
 - Cada processo descobre a falha sozinho, na primeira requisição que tenta o Redis depois da queda:
   ela e as que estiverem esperando o Redis no mesmo processo, naquele momento, pagam a detecção
-  (3,3 s ou 0,5 s); as seguintes, não.
+  (cerca de 8 s ou 0,5 s); as seguintes, não.
 - A lista de invalidações pendentes fica na memória do processo que recebeu o PUT. Um processo que
   não percebeu a queda pode servir a ficha antiga por até ~1 s depois que o Redis volta, até a vigia
   do outro apagá-la. Se a API reiniciar com o Redis fora do ar, a lista se perde, e só o TTL limita
@@ -595,19 +605,22 @@ do EAGER e 157 s do LAZY. Ela lê 28 vezes menos dados (54 KB contra 1.538 KB) e
 entidades; com o banco longe, quase todo o resto é a própria viagem. Sob carga, a comparação está
 na seção 5.
 
-**O SQL nativo trouxe benefício real?** Não. Ele executa a mesma consulta da versão otimizada (as
-duas leram 54 KB), e a diferença de tempo entre as duas ficou abaixo de 3 ms em todos os tamanhos
-de página, perto da variação entre medições: o trabalho que o SQLAlchemy faz a mais para montar a
-consulta e ler o resultado some perto da viagem de 160 ms. Sob carga (seção 5.3), o SQL nativo
-usou um pouco menos de CPU na API (16% contra 21% de um núcleo com 50 VUs), e as diferenças de
-vazão e de latência entre os dois ficaram dentro da variação entre as repetições. O ganho grande
-(cerca de 930 vezes com 500 empréstimos, de 157 s para 0,17 s) veio de eliminar o N+1 e de buscar
-só as colunas usadas, e o ORM faz as duas coisas. Em troca, o SQL nativo cobra na manutenção: é
-texto que o ORM não confere (um nome de coluna errado só aparece quando a rota roda), não acompanha
-uma mudança no mapeamento, exige converter as linhas à mão e depende do dialeto do banco (`LIMIT` e
-as conversões de tipo mudam entre PostgreSQL, SQL Server e Oracle). Faz sentido usá-lo em consultas
-que o ORM não expressa bem (funções de janela, CTEs recursivas, dicas específicas do banco), não
-como regra.
+**O SQL nativo trouxe benefício real?** Com o banco no Supabase, não. Ele executa a mesma consulta
+da versão otimizada (as duas leram 54 KB), e a diferença de tempo entre as duas ficou abaixo de
+3 ms em todos os tamanhos de página, perto da variação entre medições: o trabalho que o SQLAlchemy
+faz a mais para montar a consulta e ler o resultado some perto da viagem de 160 ms. Sob carga
+(seção 5.3), o SQL nativo usou um pouco menos de CPU na API (17% contra 20% de um núcleo com
+50 VUs), e as diferenças de vazão e de latência entre os dois ficaram dentro da variação entre as
+repetições. Com o banco local (seção 5.4), em que a CPU da API passou a ser o limite, essa economia
+virou vazão: 2.470 contra 2.057 req/s com 50 VUs (20% mais), com 1,1 ms de CPU por requisição
+contra 1,5 ms. O ganho grande (cerca de 930 vezes com 500 empréstimos, de 157 s para 0,17 s) veio
+de eliminar o N+1 e de buscar só as colunas usadas, e o ORM faz as duas coisas. Em troca, o SQL
+nativo cobra na manutenção: é texto que o ORM não confere (um nome de coluna errado só aparece
+quando a rota roda), não acompanha uma mudança no mapeamento, exige converter as linhas à mão e
+depende do dialeto do banco (`LIMIT` e as conversões de tipo mudam entre PostgreSQL, SQL Server e
+Oracle). Faz sentido usá-lo em consultas que o ORM não expressa bem (funções de janela, CTEs
+recursivas, dicas específicas do banco) ou numa rota muito usada em que a CPU da API seja o limite
+e a medição mostre o ganho, não como regra.
 
 ### 4.5 Índices (seção 5 do enunciado)
 
@@ -682,11 +695,11 @@ Sort  (cost=358.42..358.49 rows=30 width=60) (actual time=0.373..0.378 rows=58 l
 Execution Time: 0.418 ms
 ```
 
-Na API, o histórico do leitor 150 passou de 183,8 ms para 162,7 ms no servidor. Também foi medida
+Na API, o histórico do leitor 150 passou de 227,2 ms para 158,2 ms no servidor. Também foi medida
 a busca por intervalo (os 50 empréstimos atrasados mais antigos: `data_devolucao IS NULL AND
-data_prevista < hoje ORDER BY data_prevista`): sem índice, 23,1 ms com Parallel Seq Scan; com o
+data_prevista < hoje ORDER BY data_prevista`): sem índice, 33,6 ms com Parallel Seq Scan; com o
 índice parcial `ON emprestimo (data_prevista) WHERE data_devolucao IS NULL`, de apenas 48 KB,
-0,78 ms.
+0,82 ms.
 
 **O índice foi efetivamente utilizado?** Sim: a varredura completa (Seq Scan) deu lugar ao
 `Index Scan` em `idx_emprestimo_leitor_data`, e as 299.942 linhas descartadas pelo filtro caíram
@@ -779,8 +792,9 @@ API: consultas SQL por requisição, tempo no banco e acerto do cache.
 | Cenário | Script | Versões comparadas | Requisição |
 |---|---|---|---|
 | 1. Cache | `cache.js` | sem cache; cache frio (esvaziado logo antes de cada medição); cache quente (as 20.000 fichas guardadas antes do teste, de uma vez, por `POST /api/laboratorio/cache/encher`) | ficha de um livro sorteado entre 20.000, com popularidade: 1% dos livros recebe 22% das requisições, e 10% recebe 46% |
-| 2. Persistência | `persistencia.js` | LAZY, EAGER, otimizada e SQL nativo | página de 20 empréstimos a partir de um id sorteado; o EAGER traz 89 colunas por linha, a otimizada 8 |
+| 2. Persistência | `persistencia.js` | LAZY, EAGER, otimizada e SQL nativo | página de 20 empréstimos a partir de um id sorteado; o EAGER traz 178 colunas por linha, a otimizada 8 |
 | 3. Índices | `indice.js` | sem índice; com o índice proposto | histórico de um leitor sorteado entre 10.000 |
+| Extra: banco local | os três | as versões dos cenários 1, 2 e 3 | as mesmas, com o banco num contêiner na mesma máquina (seção 5.4) |
 | Extra: TTL | `cache.js` | TTL de 5, 30, 120 e 600 s, com o cache começando vazio | ficha, 50 VUs, 60 s |
 
 **Cargas**: 10, 50, 100 e 200 usuários virtuais (VUs) simultâneos. Cada VU manda a próxima
@@ -816,27 +830,31 @@ medida (6.3 do enunciado).
 ### 5.3 Resultados
 
 A matriz completa tem 39 execuções do k6: 27 dos três cenários (9 versões, 3 repetições, cada
-execução com os quatro níveis de carga) e 12 do experimento do TTL. Ela rodou em 20 e 21/11/2026,
-com os volumes da seção 2. Cada número abaixo é a média das três repetições. Tudo o que foi medido
-está em [`testes-carga/resultados/2026-11-20_21h56/`](testes-carga/resultados/2026-11-20_21h56):
-o resumo gerado pelo `analisar.py` ([`resumo.md`](testes-carga/resultados/2026-11-20_21h56/resumo.md)),
-uma linha por nível de carga de cada execução (`execucoes.csv`), os relatórios HTML do painel do k6
-(`html/`), os comandos SQL de cada execução segundo o `pg_stat_statements` (`banco/`) e o ambiente
-(`ambiente.json`).
+execução com os quatro níveis de carga) e 12 do experimento do TTL. Ela rodou de uma vez em
+22/11/2026, das 15h45 às 17h54, com as tabelas e os volumes da seção 2. Cada número abaixo é a
+média das três repetições. Tudo o que foi medido está em
+[`testes-carga/resultados/2026-11-22_15h45/`](testes-carga/resultados/2026-11-22_15h45): o resumo gerado
+pelo `analisar.py` ([`resumo.md`](testes-carga/resultados/2026-11-22_15h45/resumo.md)), uma linha por
+nível de carga de cada execução (`execucoes.csv`), os relatórios HTML do painel do k6 (`html/`), os
+comandos SQL de cada execução segundo o `pg_stat_statements` (`banco/`) e o ambiente
+(`ambiente.json`). A matriz anterior, com as tabelas estreitas (89 colunas no EAGER e 4.265 páginas
+na tabela de empréstimos), está em
+[`testes-carga/resultados/2026-11-20_21h56/`](testes-carga/resultados/2026-11-20_21h56); ela aparece
+abaixo só para comparar.
 
 **Comparação das versões com 50 VUs**, a carga "média" da 6.3, no formato da tabela da 6.6:
 
 | Cenário | Versão | Latência média | p95 | p99 | Vazão | Erros | Consultas SQL por requisição |
 |---|---|---:|---:|---:|---:|---:|---:|
-| 1. Cache | sem cache | 2.009 ms | 2.888 ms | 5.433 ms | 25,4 req/s | 0% | 3 |
-| 1. Cache | cache frio | 1.662 ms | 3.611 ms | 3.638 ms | 30,6 req/s | 0% | 2,6 |
-| 1. Cache | cache quente | 8,6 ms | 18,5 ms | 28,9 ms | 5.713 req/s | 0% | 0 |
-| 2. Persistência | LAZY | 22.453 ms¹ | 29.729 ms¹ | 30.050 ms¹ | 0,8 req/s | 0% | 41 |
-| 2. Persistência | EAGER | 674 ms | 808 ms | 1.217 ms | 75,0 req/s | 0% | 1 |
-| 2. Persistência | otimizada (projeção) | 659 ms | 922 ms | 1.140 ms | 76,8 req/s | 0% | 1 |
-| 2. Persistência | SQL nativo | 725 ms | 1.115 ms | 1.309 ms | 71,1 req/s | 0% | 1 |
-| 3. Índices | sem índice | 1.059 ms | 2.220 ms | 2.479 ms | 48,5 req/s | 0% | 1 |
-| 3. Índices | com índice | 659 ms | 765 ms | 1.118 ms | 76,7 req/s | 0% | 1 |
+| 1. Cache | sem cache | 2.000 ms | 2.392 ms | 3.802 ms | 25,7 req/s | 0% | 3 |
+| 1. Cache | cache frio | 1.675 ms | 3.887 ms | 4.125 ms | 30,2 req/s | 0% | 2,6 |
+| 1. Cache | cache quente | 7,3 ms | 15,1 ms | 20,8 ms | 6.765 req/s | 0% | 0 |
+| 2. Persistência | LAZY | 21.045 ms¹ | 29.285 ms¹ | 29.848 ms¹ | 0,8 req/s | 0% | 41 |
+| 2. Persistência | EAGER | 703 ms | 1.100 ms | 1.418 ms | 72,1 req/s | 0% | 1 |
+| 2. Persistência | otimizada (projeção) | 684 ms | 843 ms | 1.230 ms | 74,1 req/s | 0% | 1 |
+| 2. Persistência | SQL nativo | 693 ms | 882 ms | 1.177 ms | 73,4 req/s | 0% | 1 |
+| 3. Índices | sem índice | 1.414 ms | 2.326 ms | 3.776 ms | 36,1 req/s | 0% | 1 |
+| 3. Índices | com índice | 720 ms | 1.343 ms | 1.683 ms | 71,1 req/s | 0% | 1 |
 
 ¹ Só as requisições que terminaram dentro da janela de medição de 30 s; as outras foram
 interrompidas pelo k6 no fim do nível.
@@ -851,118 +869,132 @@ que faz *n* consultas prende a conexão por *n* × 155 ms, e a vazão máxima é
 cerca de 77 req/s com uma consulta, 26 req/s com as três da ficha e menos de 2 req/s com as 41 do
 LAZY. Acima desse teto, mais usuários só aumentam a fila: a vazão para de subir e a latência cresce
 na proporção da carga (pela lei de Little, latência média ≈ VUs ÷ vazão; com 200 VUs e 73 req/s,
-2,7 s, como medido no EAGER).
+2,7 s, como medido na versão otimizada).
 
 #### Cenário 1: cache
 
 | VUs | Versão | Vazão (req/s) | Média (ms) | p95 (ms) | p99 (ms) | Erros | Acertos no cache | SQL por req. | CPU da API | Banco executando | Variação |
 |---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 10 | sem cache | 18 | 577 | 771 | 1.348 | 0,00% | – | 3,0 | 11% | 4% | ±18,2% |
-| 10 | cache frio | 18 | 578 | 936 | 1.116 | 0,00% | 9% | 2,7 | 12% | 6% | ±11,3% |
-| 10 | cache quente | 4.626 | 2,12 | 4,51 | 6,79 | 0,00% | 100% | 0,0 | 260% | 0% | ±27,7% |
-| 50 | sem cache | 25 | 2.009 | 2.888 | 5.433 | 0,00% | – | 3,0 | 14% | 2% | ±1,5% |
-| 50 | cache frio | 31 | 1.662 | 3.611 | 3.638 | 0,00% | 13% | 2,6 | 15% | 3% | ±1,7% |
-| 50 | cache quente | 5.713 | 8,60 | 18,5 | 28,9 | 0,00% | 100% | 0,0 | 304% | 0% | ±6,1% |
-| 100 | sem cache | 24 | 3.904 | 10.638 | 16.782 | 0,00% | – | 3,0 | 15% | 1% | ±2,3% |
-| 100 | cache frio | 30 | 3.268 | 6.570 | 6.659 | 0,00% | 14% | 2,6 | 16% | 8% | ±0,4% |
-| 100 | cache quente | 5.700 | 17,4 | 36,2 | 53,5 | 0,00% | 100% | 0,0 | 318% | 0% | ±8,6% |
-| 200 | sem cache | 18 | 8.764 | 19.313 | 25.153 | 0,00% | – | 3,0 | 14% | 15% | ±28,3% |
-| 200 | cache frio | 27 | 6.866 | 13.558 | 17.881 | 0,00% | 14% | 2,6 | 16% | 2% | ±2,6% |
-| 200 | cache quente | 5.746 | 34,6 | 66,2 | 102 | 0,00% | 100% | 0,0 | 319% | 0% | ±13,0% |
+| 10 | sem cache | 17 | 594 | 778 | 1.257 | 0,00% | – | 3,0 | 11% | 14% | ±18,0% |
+| 10 | cache frio | 16 | 655 | 1.142 | 1.408 | 0,00% | 9% | 2,7 | 11% | 16% | ±24,7% |
+| 10 | cache quente | 5.773 | 1,63 | 3,44 | 5,31 | 0,00% | 100% | 0,0 | 296% | 0% | ±11,3% |
+| 50 | sem cache | 26 | 2.000 | 2.392 | 3.802 | 0,00% | – | 3,0 | 15% | 18% | ±1,9% |
+| 50 | cache frio | 30 | 1.675 | 3.887 | 4.125 | 0,00% | 14% | 2,6 | 14% | 43% | ±4,0% |
+| 50 | cache quente | 6.765 | 7,28 | 15,1 | 20,8 | 0,00% | 100% | 0,0 | 316% | 0% | ±8,9% |
+| 100 | sem cache | 24 | 4.065 | 9.091 | 12.640 | 0,00% | – | 3,0 | 14% | 19% | ±2,3% |
+| 100 | cache frio | 30 | 3.181 | 8.514 | 9.428 | 0,00% | 13% | 2,6 | 15% | 16% | ±2,8% |
+| 100 | cache quente | 6.532 | 15,3 | 33,6 | 48,4 | 0,00% | 100% | 0,0 | 319% | 0% | ±14,0% |
+| 200 | sem cache | 21 | 8.477 | 18.110 | 22.388 | 0,00% | – | 3,0 | 14% | 15% | ±2,1% |
+| 200 | cache frio | 28 | 6.720 | 11.895 | 15.887 | 0,00% | 14% | 2,6 | 15% | 14% | ±4,1% |
+| 200 | cache quente | 6.579 | 30,3 | 51,8 | 77,7 | 0,00% | 100% | 0,0 | 323% | 0% | ±8,1% |
 
 CPU da API em % de um núcleo (400% = os quatro processos ocupados o tempo todo). Banco executando:
 soma do tempo de execução das consultas da API no banco (`pg_stat_statements`) dividida pela
 duração da medição; 100% equivale a uma consulta executando o tempo todo, e 400%, a quatro ao
 mesmo tempo. Variação: maior distância entre a vazão de uma repetição e a média.
 
-![Cenário 1: ficha do livro sem e com cache](testes-carga/resultados/2026-11-20_21h56/graficos/cache.svg)
+![Cenário 1: ficha do livro sem e com cache](testes-carga/resultados/2026-11-22_15h45/graficos/cache.svg)
 
-- **Sem cache**, a vazão parou em ~25 req/s a partir de 50 VUs, o teto das três consultas da
-  ficha (cada requisição passou ~465 ms no banco). Dali em diante só a fila cresceu: a latência
-  média foi de 0,58 s (10 VUs) a 8,8 s (200 VUs), e o p99 chegou a 25 s.
-- **Cache quente**: de 4.600 a 5.750 req/s, sem nenhuma consulta ao banco. Com 50 VUs, a vazão
-  foi 225 vezes a de sem cache, e a latência média, 8,6 ms contra 2.009 ms. O limite passou a ser
-  a CPU da API, perto de 300% dos 400% que os quatro processos podem usar; o k6, na mesma máquina,
-  usou mais ~140%. A latência ainda cresce com a carga (de 2,1 para 35 ms), agora na fila da CPU.
+- **Sem cache**, a vazão ficou entre 21 e 26 req/s a partir de 50 VUs, o teto das três consultas
+  da ficha (cada requisição passou ~465 ms no banco). Dali em diante só a fila cresceu: a latência
+  média foi de 0,59 s (10 VUs) a 8,5 s (200 VUs), e o p99 chegou a 22 s.
+- **Cache quente**: de 5.800 a 6.800 req/s, sem nenhuma consulta ao banco. Com 50 VUs, a vazão foi
+  263 vezes a de sem cache, e a latência média, 7,3 ms contra 2.000 ms. O limite passou a ser a CPU
+  da API, de 300% a 320% dos 400% que os quatro processos podem usar; o k6, na mesma máquina, usou
+  mais ~145%. A latência ainda cresce com a carga (de 1,6 para 30 ms), agora na fila da CPU.
 - **Cache frio**, esvaziado antes de cada nível: em 30 s só os livros mais procurados se repetem,
-  e a taxa de acerto ficou entre 9% e 14%. O ganho foi pequeno: nenhum com 10 VUs (18 req/s nas
-  duas versões) e 20% de vazão com 50 VUs (30,6 contra 25,4 req/s). Os limites do k6 estouraram a
-  partir de 50 VUs, como sem cache; com o cache quente, todos os níveis ficaram dentro deles.
+  e a taxa de acerto ficou entre 9% e 14%. O ganho foi pequeno: nenhum com 10 VUs (16 contra
+  17 req/s de sem cache, dentro da variação) e 18% de vazão com 50 VUs (30,2 contra 25,7 req/s).
+  Os limites do k6 estouraram em todos os níveis do cache frio e a partir de 50 VUs sem cache; com
+  o cache quente, todos os níveis ficaram dentro deles.
 
 #### Cenário 2: estratégias de persistência
 
 | VUs | Versão | Vazão (req/s) | Média (ms) | p95 (ms) | p99 (ms) | Erros | SQL por req. | CPU da API | Banco executando | Variação |
 |---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 10 | LAZY | 0,8 | 10.714 | 19.156 | 21.092 | 0,00% | 40,9 | – | 1% | ±15,1% |
-| 10 | EAGER | 45 | 230 | 320 | 381 | 0,00% | 1,0 | 19% | 8% | ±18,4% |
-| 10 | otimizada | 58 | 172 | 225 | 281 | 0,00% | 1,0 | 16% | 3% | ±5,8% |
-| 10 | SQL nativo | 48 | 218 | 305 | 381 | 0,00% | 1,0 | 12% | 4% | ±30,9% |
-| 50 | LAZY | 0,8 | 22.453 | 29.729 | 30.050 | 0,00% | 41,0 | – | 3% | ±50,0% |
-| 50 | EAGER | 75 | 674 | 808 | 1.217 | 0,00% | 1,0 | 30% | 7% | ±0,7% |
-| 50 | otimizada | 77 | 659 | 922 | 1.140 | 0,00% | 1,0 | 21% | 3% | ±3,3% |
-| 50 | SQL nativo | 71 | 725 | 1.115 | 1.309 | 0,00% | 1,0 | 16% | 4% | ±17,0% |
-| 100 | LAZY | 0,2 | 18.353 | 27.627 | 28.617 | 0,00% | 41,0 | – | 3% | ±50,0% |
-| 100 | EAGER | 74 | 1.379 | 2.802 | 4.624 | 0,00% | 1,0 | 28% | 7% | ±1,8% |
-| 100 | otimizada | 77 | 1.335 | 3.476 | 5.059 | 0,00% | 1,0 | 22% | 6% | ±3,4% |
-| 100 | SQL nativo | 77 | 1.320 | 3.299 | 4.928 | 0,00% | 1,0 | 18% | 4% | ±1,9% |
-| 200 | LAZY | 0,0 | – | – | – | – | – | – | 2% | – |
-| 200 | EAGER | 73 | 2.746 | 5.613 | 8.336 | 0,00% | 1,0 | 29% | 7% | ±1,5% |
-| 200 | otimizada | 75 | 2.698 | 5.957 | 8.695 | 0,00% | 1,0 | 23% | 3% | ±3,2% |
-| 200 | SQL nativo | 76 | 2.671 | 6.417 | 8.810 | 0,00% | 1,0 | 20% | 3% | ±2,3% |
+| 10 | LAZY | 0,8 | 11.356 | 22.834 | 25.301 | 0,00% | 41,0 | 9% | 5% | ±10,0% |
+| 10 | EAGER | 38 | 268 | 423 | 546 | 0,00% | 1,0 | 22% | 22% | ±23,4% |
+| 10 | otimizada | 51 | 198 | 289 | 370 | 0,00% | 1,0 | 15% | 22% | ±7,7% |
+| 10 | SQL nativo | 45 | 230 | 385 | 503 | 0,00% | 1,0 | 12% | 75% | ±25,3% |
+| 50 | LAZY | 0,8 | 21.045 | 29.285 | 29.848 | 0,00% | 41,0 | 11% | 5% | ±60,9% |
+| 50 | EAGER | 72 | 703 | 1.100 | 1.418 | 0,00% | 1,0 | 40% | 21% | ±0,1% |
+| 50 | otimizada | 74 | 684 | 843 | 1.230 | 0,00% | 1,0 | 20% | 15% | ±7,7% |
+| 50 | SQL nativo | 73 | 693 | 882 | 1.177 | 0,00% | 1,0 | 17% | 61% | ±10,0% |
+| 100 | LAZY | 0,1 | 17.209 | 22.605 | 23.032 | 0,00% | 41,0 | 12% | 5% | ±66,7% |
+| 100 | EAGER | 69 | 1.476 | 3.159 | 5.743 | 0,00% | 1,0 | 37% | 47% | ±5,1% |
+| 100 | otimizada | 75 | 1.354 | 3.316 | 5.097 | 0,00% | 1,0 | 20% | 14% | ±5,4% |
+| 100 | SQL nativo | 67 | 1.531 | 4.296 | 7.083 | 0,00% | 1,0 | 16% | 150% | ±13,1% |
+| 200 | LAZY | 0,0 | 25.976 | 28.562 | 28.707 | 0,00% | 41,0 | 12% | 4% | – |
+| 200 | EAGER | 62 | 3.241 | 7.273 | 9.659 | 0,00% | 1,0 | 37% | 114% | ±14,9% |
+| 200 | otimizada | 75 | 2.688 | 6.188 | 8.508 | 0,00% | 1,0 | 21% | 13% | ±2,7% |
+| 200 | SQL nativo | 66 | 3.183 | 7.474 | 10.569 | 0,00% | 1,0 | 17% | 151% | ±25,1% |
 
-![Cenário 2: página de 20 empréstimos com livro e leitor](testes-carga/resultados/2026-11-20_21h56/graficos/persistencia.svg)
+**LAZY com 200 VUs**: em duas das três repetições, nenhuma requisição terminou dentro da janela
+de medição; as latências dessa linha são as da repetição restante.
+
+![Cenário 2: página de 20 empréstimos com livro e leitor](testes-carga/resultados/2026-11-22_15h45/graficos/persistencia.svg)
 
 - **LAZY**: 41 consultas por requisição (1 para a página e 2 por empréstimo), cada uma com sua
-  viagem até o banco, ou seja, 6,4 s no banco por requisição. Com 10 VUs, 0,8 req/s e 10,7 s de
-  latência média; com 50 e 100 VUs, a latência chegou ao tamanho da janela (p95 de 28 a 30 s) e a
-  vazão caiu até 0,2 req/s; com 200 VUs, nenhuma requisição terminou dentro da janela, em nenhuma
-  repetição. Cada requisição dura mais que o aquecimento, e as que o k6 abandona no fim de um nível
-  continuam ocupando conexões na API durante o seguinte: o LAZY nunca chega a um regime estável, e
-  os números dele mostram o colapso, não uma capacidade.
-- **EAGER, otimizada e SQL nativo** fazem uma consulta só e bateram no mesmo teto, ~75 req/s a
-  partir de 50 VUs, com latências praticamente iguais em cada nível. Com 10 VUs, a diferença entre
-  elas (de 172 a 230 ms de média) é menor que a variação entre as repetições de uma mesma versão
-  (de 159 a 263 ms no SQL nativo): ela depende de como as conexões dos VUs se distribuíram entre
-  os quatro processos da API, cada um com três conexões com o banco.
-- **O custo das 89 colunas** aparece nos recursos, não na latência. Com a mesma vazão, o EAGER
-  ocupou mais a CPU da API (30% de um núcleo com 50 VUs, contra 21% da projeção e 16% do SQL
-  nativo) e o banco: segundo o `pg_stat_statements`, cada consulta do EAGER levou 1,7 ms de
-  execução, contra 0,6 ms da projeção e 0,8 ms do SQL nativo, lendo as mesmas 20 linhas e os mesmos
-  127 blocos. A diferença é montar e enviar 89 colunas, com a sinopse e o sumário de cada livro, em
-  vez de 8, e, na API, transformá-las em objetos. Com o banco a 155 ms, esse milissegundo some na
-  viagem; com páginas maiores ou um banco próximo, ele vira tempo de resposta (seção 4.3: com 500
-  empréstimos, 685 KB contra 54 KB lidos do banco e 206 contra 167 ms), e a mesma CPU atenderia
-  menos requisições.
+  viagem até o banco, ou seja, 6,4 s no banco por requisição. Com 10 VUs, 0,8 req/s e 11,4 s de
+  latência média; com 50 e 100 VUs, a latência chegou perto do tamanho da janela (p95 de 23 a 29 s)
+  e a vazão caiu até 0,1 req/s; com 200 VUs, em duas das três repetições nenhuma requisição
+  terminou dentro da janela. Cada requisição dura mais que o aquecimento, e as que o k6 abandona no
+  fim de um nível continuam ocupando conexões na API durante o seguinte: o LAZY nunca chega a um
+  regime estável, e os números dele mostram o colapso, não uma capacidade.
+- **EAGER, otimizada e SQL nativo** fazem uma consulta só e chegaram perto do mesmo teto, de 72 a
+  74 req/s com 50 VUs. A diferença está no que cada uma traz: o EAGER lê as 178 colunas do
+  empréstimo, do livro e do leitor (63 KB por página); a projeção e o SQL nativo, só as 8 da
+  resposta (2,2 KB). Com as tabelas largas, essa diferença chegou ao usuário:
+  - com 10 VUs, o EAGER levou 268 ms em média, contra 198 ms da projeção (35% a mais);
+  - com 50 VUs, a vazão foi quase a mesma (72 contra 74 req/s), mas o p95 do EAGER foi de 1.100 ms,
+    contra 843 ms: ele estourou o limite de 1 s já nesse nível, e a projeção, só com 100 VUs;
+  - com 200 VUs, o EAGER atendeu 62 req/s, contra 75 da projeção (21% a menos), com latência
+    média de 3,2 s contra 2,7 s. Pela conta do teto, cada requisição do EAGER prendeu a conexão
+    ~190 ms, contra ~160 ms: o tempo de trazer e transformar em objetos quase 30 vezes mais dados.
+    Parte da diferença nesse nível vem da repetição 3, em que o banco ficou lento (ver as
+    observações abaixo); na repetição 2, sem lentidão, foram 70 contra 76 req/s.
+
+  Na matriz anterior, com as tabelas estreitas, as três versões tinham ficado empatadas em todos
+  os níveis: alargar as tabelas tornou visível o custo de carregar entidades inteiras.
+- **O custo das 178 colunas** também aparece nos recursos. Com a mesma vazão, o EAGER ocupou o
+  dobro da CPU da API (de 37% a 40% de um núcleo, contra 20% da projeção e 16% a 17% do SQL
+  nativo), porque transforma cada linha em objetos com todas as colunas, e mais memória (444 contra
+  399 MB com 200 VUs). No banco, cada requisição do EAGER leu 152 blocos, contra 128: os 24 a mais
+  são as colunas longas do livro (sinopse, sumário, registro MARC e resenha), que o PostgreSQL
+  guarda fora da linha (TOAST) e só lê quando a consulta as pede.
+- **SQL nativo e projeção** fazem a mesma consulta (o mesmo JOIN, as mesmas 8 colunas, os mesmos
+  blocos) e empataram nos níveis em que a instância não ficou lenta. As médias do SQL nativo ficaram
+  um pouco piores por causa de três níveis lentos (ver as observações), e não por causa da consulta.
 
 #### Cenário 3: índices
 
 | VUs | Versão | Vazão (req/s) | Média (ms) | p95 (ms) | p99 (ms) | Erros | SQL por req. | CPU da API | Banco executando | Variação |
 |---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 10 | sem índice | 35 | 321 | 439 | 669 | 0,00% | 1,0 | 12% | 211% | ±37,2% |
-| 10 | com índice | 54 | 188 | 254 | 302 | 0,00% | 1,0 | 16% | 5% | ±10,4% |
-| 50 | sem índice | 48 | 1.059 | 2.220 | 2.479 | 0,00% | 1,0 | 16% | 374% | ±7,8% |
-| 50 | com índice | 77 | 659 | 765 | 1.118 | 0,00% | 1,0 | 20% | 2% | ±2,0% |
-| 100 | sem índice | 52 | 1.964 | 4.857 | 7.256 | 0,00% | 1,0 | 17% | 383% | ±1,3% |
-| 100 | com índice | 66 | 1.543 | 4.922 | 7.051 | 0,00% | 1,0 | 19% | 54% | ±14,7% |
-| 200 | sem índice | 49 | 4.030 | 9.367 | 13.085 | 0,00% | 1,0 | 16% | 396% | ±2,0% |
-| 200 | com índice | 75 | 2.683 | 6.228 | 9.002 | 0,00% | 1,0 | 22% | 3% | ±1,5% |
+| 10 | sem índice | 32 | 319 | 447 | 615 | 0,00% | 1,0 | 11% | 351% | ±11,3% |
+| 10 | com índice | 48 | 212 | 351 | 567 | 0,00% | 1,0 | 15% | 87% | ±18,4% |
+| 50 | sem índice | 36 | 1.414 | 2.326 | 3.776 | 0,00% | 1,0 | 12% | 620% | ±1,9% |
+| 50 | com índice | 71 | 720 | 1.343 | 1.683 | 0,00% | 1,0 | 20% | 47% | ±10,9% |
+| 100 | sem índice | 37 | 2.741 | 5.320 | 9.473 | 0,00% | 1,0 | 13% | 603% | ±3,9% |
+| 100 | com índice | 75 | 1.360 | 3.565 | 5.366 | 0,00% | 1,0 | 20% | 56% | ±2,4% |
+| 200 | sem índice | 34 | 5.575 | 12.155 | 16.465 | 0,00% | 1,0 | 12% | 596% | ±2,5% |
+| 200 | com índice | 72 | 2.813 | 6.377 | 8.659 | 0,00% | 1,0 | 19% | 76% | ±3,3% |
 
-![Cenário 3: histórico de empréstimos de um leitor, sem e com índice](testes-carga/resultados/2026-11-20_21h56/graficos/indice.svg)
+![Cenário 3: histórico de empréstimos de um leitor, sem e com índice](testes-carga/resultados/2026-11-22_15h45/graficos/indice.svg)
 
 - **Sem índice**, o gargalo foi o próprio banco. Cada requisição percorreu a tabela de
-  empréstimos (4.487 blocos por consulta, contra 132 com o índice), e o banco executando passou de
-  370% a partir de 50 VUs: em média, quase quatro varreduras ao mesmo tempo. Disputando a CPU da
-  instância, cada varredura levou em média 77 ms no banco, três vezes e meia os 22 ms medidos com
-  uma consulta por vez (seção 4.5), e a vazão parou em ~50 req/s.
-- **Com o índice**, o banco quase não trabalha (2% a 5% na maioria dos níveis, 2,3 ms de execução
-  por consulta), e a vazão subiu até o teto das conexões. Com 50 VUs: 58% mais vazão (76,7 contra
-  48,5 req/s), latência média 38% menor (659 contra 1.059 ms) e p95 66% menor (765 contra 2.220 ms).
-  Com uma requisição por vez, o ganho na API tinha sido de só 21 ms (seção 4.5): o índice vale mais
-  justamente quando o banco está ocupado.
-- Na repetição 3, com 100 VUs, o banco ficou mais lento: 27 ms de execução por consulta com o
-  índice, em média, contra 0,2 ms nas outras repetições, lendo as mesmas linhas e blocos. Isso
-  explica os 54% de banco executando e a variação de ±14,7% nesse nível; a instância Nano do
-  Supabase tem CPU compartilhada.
+  empréstimos (mais de 12.000 blocos por consulta, a tabela inteira, contra ~123 com o índice), e o
+  banco executando passou de 590% a partir de 50 VUs: em média, seis varreduras ao mesmo tempo.
+  Disputando a CPU da instância, cada varredura levou de 150 a 180 ms no banco, cerca de cinco vezes
+  os 35 ms medidos com uma consulta por vez (seção 4.5), e a vazão parou em ~36 req/s.
+- **Com o índice**, a vazão subiu até o teto das conexões. Com 50 VUs: praticamente o dobro da
+  vazão (71,1 contra 36,1 req/s), latência média 49% menor (720 contra 1.414 ms) e p95 42% menor
+  (1.343 contra 2.326 ms); com 100 e 200 VUs, também o dobro. Com uma requisição por vez, o ganho na
+  API tinha sido de 69 ms (seção 4.5): o índice vale mais justamente quando o banco está ocupado.
+  Na matriz anterior, com a tabela de empréstimos quase três vezes menor, o ganho com 50 VUs tinha
+  sido de 58%: quanto maior a tabela, mais cara a varredura que o índice evita.
+- Com o índice, o banco executando variou de 22% a 122%, conforme o nível e a repetição, e o tempo
+  de execução por requisição, de 3,5 a 31 ms, lendo sempre os mesmos ~123 blocos. A variação vem
+  das lentidões da instância (ver as observações abaixo), e não da consulta.
 
 #### Memória
 
@@ -972,126 +1004,198 @@ acessível no Supabase.
 
 | Cenário | Versão | API, 10 VUs | API, 50 VUs | API, 100 VUs | API, 200 VUs | Redis (todos os níveis) |
 |---|---|---:|---:|---:|---:|---:|
-| 1. Cache | sem cache | 380 | 378 | 390 | 398 | 27 a 28 |
-| 1. Cache | cache frio | 372 | 383 | 394 | 401 | 28 a 30 |
-| 1. Cache | cache quente | 574 | 552 | 554 | 540 | 52 a 53 |
-| 2. Persistência | LAZY | – | – | – | – | 28 a 30 |
-| 2. Persistência | EAGER | 372 | 390 | 401 | 411 | 27 a 30 |
-| 2. Persistência | otimizada | 368 | 374 | 382 | 392 | 27 a 28 |
-| 2. Persistência | SQL nativo | 368 | 369 | 382 | 380 | 27 |
-| 3. Índices | sem índice | 365 | 377 | 383 | 391 | 27 |
-| 3. Índices | com índice | 366 | 377 | 381 | 394 | 27 a 29 |
+| 1. Cache | sem cache | 380 | 388 | 396 | 401 | 7 a 8 |
+| 1. Cache | cache frio | 382 | 387 | 402 | 411 | 7 a 9 |
+| 1. Cache | cache quente | 548 | 520 | 521 | 530 | 31 a 32 |
+| 2. Persistência | LAZY | 378 | 395 | 404 | 422 | 15 a 16 |
+| 2. Persistência | EAGER | 387 | 415 | 436 | 444 | 9 a 17 |
+| 2. Persistência | otimizada | 376 | 383 | 391 | 399 | 8 a 10 |
+| 2. Persistência | SQL nativo | 373 | 382 | 388 | 395 | 8 a 10 |
+| 3. Índices | sem índice | 373 | 383 | 395 | 397 | 7 a 8 |
+| 3. Índices | com índice | 378 | 386 | 397 | 403 | 7 a 9 |
 
-- A memória não foi limite em nenhum cenário. Fora do cache quente, a API ficou entre 365 e
-  411 MB, menos de 7% dos 5,8 GB da máquina virtual do Docker, e cresceu no máximo 11% de 10 para
-  200 VUs, com mais requisições em andamento ao mesmo tempo. O EAGER foi o que mais cresceu (de
-  372 para 411 MB, contra 368 a 380 MB do SQL nativo): cada requisição em andamento mantém na
-  memória objetos com as 89 colunas.
-- O Redis passou de ~27 MB, vazio, para 52 MB com as 20.000 fichas: os 25 MB das fichas (seção
-  3.3) são o custo de memória do cache.
-- No cache quente, a API ocupou de 140 a 190 MB a mais que sem cache, desde o nível de 10 VUs, e
-  a memória não cresceu com a carga. O acréscimo vem do preparo, não das requisições: para encher
-  o cache, um dos processos monta as 20.000 fichas de uma vez (`POST /api/laboratorio/cache/encher`)
+- A memória não foi limite em nenhum cenário. Fora do cache quente, a API ficou entre 373 e
+  444 MB, menos de 8% dos 5,8 GB da máquina virtual do Docker, e cresceu no máximo 15% de 10 para
+  200 VUs, com mais requisições em andamento ao mesmo tempo. O EAGER foi o que mais cresceu (de 387
+  para 444 MB, contra 373 a 395 MB do SQL nativo): cada requisição em andamento mantém na memória
+  objetos com as 178 colunas.
+- O Redis passou de ~7 MB, vazio, para 31 MB com as 20.000 fichas: a diferença, ~24 MB, são as
+  fichas (seção 3.3), o custo de memória do cache.
+- No cache quente, a API ocupou de 125 a 170 MB a mais que sem cache, desde o nível de 10 VUs, e a
+  memória não cresceu com a carga. O acréscimo vem do preparo, não das requisições: para encher o
+  cache, um dos processos monta as 20.000 fichas de uma vez (`POST /api/laboratorio/cache/encher`)
   e continua com essa memória. Medido à parte, com a API recém-recriada, esse processo passou de
   107 para 302 MB, e o contêiner, de 348 para 544 MB.
-- No LAZY, a memória da API não foi registrada (ver as observações abaixo).
 
 #### Extra: efeito do TTL
 
 O cache começa vazio e a carga é de 50 VUs por 60 s, com a API recriada com cada TTL
-(`CACHE_TTL_SEGUNDOS`); três repetições de cada, menos o TTL de 30 s, que ficou com duas (ver as
-observações abaixo).
+(`CACHE_TTL_SEGUNDOS`); três repetições de cada.
 
 | TTL | Vazão (req/s) | Média (ms) | p95 (ms) | Acertos no cache (60 s) | Acertos nos últimos 20 s | Variação |
 |---:|---:|---:|---:|---:|---:|---:|
-| 5 s | 27 | 1.804 | 2.238 | 6% | 5% | ±10,7% |
-| 30 s | 31 | 1.622 | 2.308 | 14% | 17% | ±0,1% |
-| 120 s | 32 | 1.565 | 2.530 | 19% | 27% | ±5,8% |
-| 600 s | 33 | 1.553 | 2.285 | 18% | 24% | ±3,5% |
+| 5 s | 27 | 1.855 | 2.420 | 6% | 5% | ±1,2% |
+| 30 s | 31 | 1.662 | 2.393 | 15% | 16% | ±3,9% |
+| 120 s | 32 | 1.569 | 2.753 | 19% | 26% | ±2,7% |
+| 600 s | 32 | 1.587 | 2.382 | 19% | 26% | ±5,3% |
 
-![Taxa de acerto do cache ao longo do tempo, por TTL](testes-carga/resultados/2026-11-20_21h56/graficos/ttl.svg)
+![Taxa de acerto do cache ao longo do tempo, por TTL](testes-carga/resultados/2026-11-22_15h45/graficos/ttl.svg)
 
 - Com 5 s, a ficha quase sempre expira antes de ser pedida de novo; só os livros mais procurados
   se repetem tão rápido. A taxa de acerto ficou em torno de 6% do começo ao fim, e a vazão
-  (27 req/s), perto da de sem cache (25 req/s com 50 VUs, no cenário 1).
+  (27 req/s), perto da de sem cache (26 req/s com 50 VUs, no cenário 1).
 - Com 30 s, a taxa sobe enquanto o cache se enche e para de subir a partir dos 30 s, quando as
-  primeiras fichas começam a expirar: fica entre 15% e 19%.
+  primeiras fichas começam a expirar: fica entre 16% e 20%.
 - Com 120 e 600 s, nenhuma ficha expira dentro do minuto medido, e as duas curvas andam juntas,
-  subindo até o fim (24% a 27% nos últimos 20 s). Um TTL maior que o intervalo entre duas leituras
+  subindo até o fim (26% nos últimos 20 s, nas duas). Um TTL maior que o intervalo entre duas leituras
   da mesma ficha não muda nada; abaixo disso, cada redução derruba a taxa de acerto.
-- Mesmo no melhor caso, a vazão subiu pouco, de 27 para 33 req/s: com 20.000 livros e ~30 leituras
+- Mesmo no melhor caso, a vazão subiu pouco, de 27 para 32 req/s: com 20.000 livros e ~30 leituras
   por segundo, a maior parte das leituras de um minuto é de livros ainda não guardados. O TTL
   define o teto da taxa de acerto; quem a enche é a repetição das leituras.
 
 **Observações sobre a execução.**
 
-- A matriz foi executada em partes (opções `--minutos` e `--continuar` do `executar.py`). Cada
-  parte recria a API, carrega as tabelas na memória do banco e mede de novo a ida e volta até ele
-  (mediana entre 145 e 160 ms nas retomadas, registradas no `ambiente.json`).
-- A conexão com o Supabase parou de responder algumas vezes durante a matriz, com a API inteira
-  esperando o banco. Na repetição 3 do SQL nativo, a parada durou cerca de um minuto, nos níveis
-  de 100 e 200 VUs: nem a API nem o `psql` que lê o `pg_stat_statements`, numa conexão à parte,
-  receberam respostas, e o k6 registrou zero requisições. A execução foi refeita no fim da matriz.
-  Na repetição 1 do TTL de 30 s, as leituras do Redis, segundo a segundo, mostram 18 s sem nenhuma
-  requisição chegando ao cache; refeita, ela parou de novo, por 40 s, e ficou de fora: o TTL de
-  30 s tem duas repetições. As mesmas leituras mostram uma parada de 9 s no fim da repetição 3 do
-  TTL de 5 s, que foi mantida. Os dados descartados estão em
-  [`descartadas/`](testes-carga/resultados/2026-11-20_21h56/descartadas).
-- Os contêineres do outro projeto (seção 5.2) ficaram abaixo de 2% de um núcleo em quase todos os
-  níveis. O maior pico foi na repetição 1 do cache quente, com 70% e 45% de um núcleo nos níveis de
-  10 e 50 VUs; a vazão dessa repetição ficou dentro da faixa das outras (4.005 req/s com 10 VUs,
-  entre os 3.965 e os 5.907 das repetições 3 e 2).
-- No LAZY, a API é recriada logo depois de cada execução, para descartar as requisições
-  abandonadas. Por isso a CPU dela acabou registrada junto com a de outros contêineres, e a memória
-  não foi registrada: as duas colunas ficaram vazias. A CPU ficou em torno de 11% de um núcleo; a
-  API passa o tempo esperando o banco. O roteiro foi corrigido para ler os contêineres antes de
-  recriar a API.
+- A matriz rodou de uma vez, sem interrupções. A ida e volta até o banco, medida no início, teve
+  mediana de 152,7 ms (`ambiente.json`). Nenhuma execução precisou ser refeita, e nenhum nível ficou
+  sem requisições, fora o LAZY com 200 VUs, que não termina nenhuma dentro da janela.
+- A instância do Supabase (Nano, com CPU compartilhada) ficou mais lenta em níveis isolados de
+  algumas execuções. O tempo de execução no banco por requisição, que fica entre 1,5 e 3 ms nas
+  versões de uma consulta do cenário 2, subiu para 15 a 86 ms no SQL nativo (repetição 1 com 100 e
+  200 VUs, repetição 2 com 50 e 100 VUs, repetição 3 com 10 VUs) e no EAGER (repetição 3 com 100 e
+  200 VUs), lendo as mesmas linhas e os mesmos blocos. Nesses níveis a vazão caiu (até 49 req/s,
+  no SQL nativo com 200 VUs), e as médias das duas versões carregam essas quedas. A coluna
+  `banco_execucao_pct` de `execucoes.csv` mostra cada caso.
+- Os contêineres do outro projeto (seção 5.2) ficaram abaixo de 8% de um núcleo em todos os níveis
+  (coluna `cpu_outros_pct`).
+
+### 5.4 Cenário extra: o banco na mesma máquina
+
+Com o banco no Supabase, a viagem de ~155 ms até ele explica quase todos os resultados da seção 5.3.
+Para ver o que muda sem ela, os cenários 1, 2 e 3 foram repetidos com o banco num contêiner local
+(perfil `banco-local` do Compose: PostgreSQL 17, 256 MB de `shared_buffers`), com o mesmo código, os
+mesmos dados e a mesma matriz (27 execuções: 3 repetições, 4 níveis de carga, 10 s de aquecimento e
+30 s de medição). A ida e volta da API até o banco caiu de 152,7 ms para 0,23 ms (mediana). O banco
+local divide as 6 CPUs da máquina virtual do Docker com a API, o Redis e o k6, e a CPU dele também
+foi medida. Os resultados estão em
+[`testes-carga/resultados/2026-11-22_18h55/`](testes-carga/resultados/2026-11-22_18h55), no mesmo
+formato da seção 5.3.
+
+**Comparação com 50 VUs.** CPU da API por requisição: o tempo de CPU dos quatro processos dividido
+pelas requisições atendidas. CPU do banco: em % de um núcleo, como a da API.
+
+| Cenário | Versão | Vazão no Supabase | Vazão local | Local ÷ Supabase | Latência média local | p95 local | CPU da API por requisição | CPU do banco |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| 1. Cache | sem cache | 25,7 req/s | 1.452 req/s | 56× | 34,4 ms | 72,7 ms | 2,5 ms | 50% |
+| 1. Cache | cache frio | 30,2 req/s | 3.613 req/s | 120× | 13,8 ms | 41,1 ms | 0,9 ms | 24% |
+| 1. Cache | cache quente | 6.765 req/s | 6.450 req/s | 0,95× | 7,7 ms | 16,4 ms | 0,5 ms | 2% |
+| 2. Persistência | LAZY | 0,8 req/s | 174 req/s | 217× | 291 ms | 465 ms | 21,9 ms | 67% |
+| 2. Persistência | EAGER | 72,1 req/s | 1.101 req/s | 15× | 45,5 ms | 138 ms | 2,8 ms | 131% |
+| 2. Persistência | otimizada (projeção) | 74,1 req/s | 2.057 req/s | 28× | 24,3 ms | 60,3 ms | 1,5 ms | 118% |
+| 2. Persistência | SQL nativo | 73,4 req/s | 2.470 req/s | 34× | 20,5 ms | 48,9 ms | 1,1 ms | 139% |
+| 3. Índices | sem índice | 36,1 req/s | 123 req/s | 3,4× | 416 ms | 1.040 ms | 2,9 ms | 531% |
+| 3. Índices | com índice | 71,1 req/s | 2.488 req/s | 35× | 20,1 ms | 54,4 ms | 1,3 ms | 50% |
+
+Erros: 0% em todos os níveis de todas as execuções, como no Supabase.
+
+- **A viagem sumiu, e o gargalo passou a ser a CPU.** Sem cache, a ficha foi de 25,7 para 1.452
+  req/s com 50 VUs, e a CPU da API chegou a 359% dos 400% possíveis (quatro processos, cada um usa
+  no máximo um núcleo): cada ficha custa ~2,5 ms de CPU na API (as três consultas pelo ORM e a
+  resposta em JSON), e é esse custo, e não mais a espera pelo banco, que limita a vazão. Nas versões
+  rápidas dos cenários 2 e 3, a API ficou entre 278% e 335%, dividindo as 6 CPUs da máquina virtual
+  com o banco e o k6: somados, os contêineres usaram de 457% a 493%.
+- **O cache ganhou bem menos.** O cache quente ficou em 6.450 req/s, perto dos 6.765 do Supabase
+  (nos dois, sem consultas, o limite é a CPU), mas, como a ficha sem cache ficou muito mais barata,
+  o ganho caiu de 263 vezes para 4,4 vezes. O cache frio, que no Supabase quase não ajudou (14% de
+  acertos), aqui teve 83% de acertos e 3.613 req/s: com milhares de leituras por segundo, os livros
+  mais procurados (o k6 sorteia os livros com popularidade, como num catálogo real) são guardados
+  nos primeiros segundos depois de o cache ser esvaziado. A taxa de acerto depende de quantas
+  leituras se repetem dentro do TTL.
+- **O N+1 continuou sendo o pior caso, mas sem colapso.** As 41 consultas do LAZY custam agora
+  milissegundos, e ele atendeu 174 req/s com 50 VUs (p95 de 465 ms), contra 0,8 req/s no Supabase;
+  com 100 e 200 VUs, ainda estourou os limites do k6 (p95 de 2,6 s com 200 VUs). Ficou 6,3 vezes
+  abaixo do EAGER e 11,8 vezes abaixo da projeção, com a CPU da API no limite (380%): cada consulta
+  tem um custo fixo no driver e no ORM, e o LAZY gastou 21,9 ms de CPU por requisição, contra 2,8 ms
+  do EAGER.
+- **As 178 colunas pesaram de verdade.** Sem a viagem dominando, a vazão passou a seguir a CPU que
+  cada requisição gasta na API: EAGER, 1.101 req/s (2,8 ms de CPU por requisição); projeção, 2.057
+  req/s (1,5 ms), 1,9 vezes o EAGER; SQL nativo, 2.470 req/s (1,1 ms). No Supabase, as três ficavam
+  entre 72 e 74 req/s. O SQL nativo, que faz a mesma consulta da projeção, passou a ganhar dela: o
+  trabalho que o SQLAlchemy faz para montar a consulta e ler as linhas, invisível perto de 155 ms de
+  viagem, vira diferença de vazão quando a CPU da API é o limite.
+- **O índice teve o maior ganho do trabalho.** Sem índice, cada consulta varre a tabela inteira
+  (12.004 páginas), e as varreduras tomaram a máquina: o banco usou 531% de CPU, quase as 6 CPUs,
+  contra 36% da API; o banco executando chegou a 1.080% (mais consultas em execução que CPUs,
+  esperando a vez), e a vazão parou em 123 req/s. Com o índice, 2.488 req/s: 20 vezes mais, contra 2
+  vezes no Supabase, e o gargalo voltou a ser a CPU da API.
+
+**O que muda com o gargalo.** No Supabase, onde o custo é o número de viagens, a ordem dos ganhos
+com 50 VUs foi: cache (263 vezes), eliminar o N+1 (93 vezes), índice (2 vezes) e projeção (quase
+nada na vazão). Com o banco local, onde o custo é CPU, a ordem se inverteu em parte: índice (20
+vezes), eliminar o N+1 (12 vezes), cache (4,4 vezes) e projeção (1,9 vezes). As otimizações são as
+mesmas; o ganho de cada uma depende de onde está o gargalo, e por isso ele precisa ser medido, não
+suposto.
+
+**Observações sobre a execução.** A matriz parou uma vez, na execução 14 de 27, quando o Docker
+falhou ao recriar o contêiner da API; ela foi retomada com `--continuar`, que pula as execuções já
+gravadas, e o `executar.py` passou a tentar de novo antes de desistir. O banco local divide a
+máquina com a API e o k6: a CPU que ele usa (de 50% a 139% nas versões rápidas) deixa de estar
+disponível para a API, mas todas as versões rodaram nas mesmas condições, e a comparação entre elas
+continua justa. Outros contêineres da máquina, de fora do trabalho, usaram 2,3% de uma CPU em média
+(no máximo 30%, numa execução).
 
 ## 6. Discussão
 
 **Qual técnica apresentou os maiores ganhos de desempenho?** O cache, quando acerta: com 50 VUs, a
-ficha passou de 25 para 5.713 req/s (225 vezes) e de 2.009 para 8,6 ms de latência média, sem
+ficha passou de 26 para 6.765 req/s (263 vezes) e de 2.000 para 7,3 ms de latência média, sem
 nenhuma consulta ao banco. Em seguida vem a eliminação do N+1: com 10 VUs, a página de 20
-empréstimos passou de 0,8 req/s e 10,7 s de latência média (LAZY) para 45 a 58 req/s e 0,17 a
-0,23 s com uma consulta só; com 500 empréstimos e uma requisição por vez, de 158 s para 0,17 s
+empréstimos passou de 0,8 req/s e 11,4 s de latência média (LAZY) para 38 a 51 req/s e 0,20 a
+0,27 s com uma consulta só; com 500 empréstimos e uma requisição por vez, de 157 s para 0,17 s
 (seção 4.3). O índice teve o menor ganho relativo, mas foi a única otimização que tirou trabalho do
-próprio banco: 58% mais vazão com 50 VUs e um tempo de execução por consulta 33 vezes menor (de 77
-para 2,3 ms).
+próprio banco: o dobro da vazão com 50 VUs e um tempo de execução por consulta 16 vezes menor (de
+159 para 10 ms, segundo o `pg_stat_statements`). A ordem depende do gargalo: com o banco na mesma
+máquina (seção 5.4), o índice deu o maior ganho (20 vezes mais vazão), e o cache, 4,4 vezes.
 
 **Os ganhos foram mantidos quando a carga aumentou?** Sim, e em geral cresceram, porque as versões
-sem otimização saturam primeiro. Sem cache, a vazão parou em 25 req/s e a latência média foi de
-0,58 s para 8,8 s entre 10 e 200 VUs; o cache quente sustentou ~5.700 req/s com latência média
-abaixo de 35 ms. O LAZY entrou em colapso (com 200 VUs, nenhuma resposta dentro da janela),
-enquanto as versões de uma consulta mantiveram ~75 req/s. Sem índice, o banco saturou em ~50
-req/s; com ele, a API chegou ao teto das conexões. A exceção é o cache frio: o ganho dele depende
-da taxa de acerto (de 9% a 14% em 30 s), não da carga.
+sem otimização saturam primeiro. Sem cache, a vazão parou entre 21 e 26 req/s e a latência média
+foi de 0,59 s para 8,5 s entre 10 e 200 VUs; o cache quente sustentou de 5.800 a 6.800 req/s com
+latência média abaixo de 31 ms. O LAZY entrou em colapso (com 200 VUs, nenhuma resposta dentro da
+janela em duas das três repetições), enquanto as versões de uma consulta mantiveram de 62 a
+75 req/s. A vantagem da projeção sobre o EAGER também apareceu com a carga: do empate na vazão com
+50 VUs a 75 contra 62 req/s com 200 VUs (parte disso, numa lentidão da instância; seção 5.3). Sem
+índice, o banco saturou em ~36 req/s; com ele, a API chegou ao teto das conexões, com o dobro da
+vazão em todos os níveis a partir de 50 VUs. A exceção é o cache frio: o ganho dele depende da taxa
+de acerto (de 9% a 14% em 30 s), não da carga.
 
 **Houve diferenças relevantes entre latência média, p95 e p99?** Sem saturação, pouca: com 10 VUs,
-o EAGER teve média de 230 ms, p95 de 320 ms e p99 de 381 ms. Saturado, a cauda se afasta muito da
-média: sem cache com 100 VUs, média de 3,9 s, p95 de 10,6 s e p99 de 16,8 s; nas versões de uma
-consulta com 200 VUs, média de 2,7 s e p99 de 8,3 a 8,8 s. A espera não é igual para todos: cada
-VU mantém a sua conexão com um dos quatro processos da API, e cada processo tem só três conexões
-com o banco; quem cai num processo com mais VUs espera mais. No cache quente a cauda continuou
-curta (p99 de 102 ms com 200 VUs), porque a fila é de CPU, e não de conexões. O índice reduziu
-mais a cauda que a média (com 50 VUs, p95 66% menor e média 38% menor). A média sozinha esconderia
+a versão otimizada teve média de 198 ms, p95 de 289 ms e p99 de 370 ms. Saturado, a cauda se
+afasta muito da média: sem cache com 100 VUs, média de 4,1 s, p95 de 9,1 s e p99 de 12,6 s; nas
+versões de uma consulta com 200 VUs, média de 2,7 a 3,2 s e p99 de 8,5 a 10,6 s. A espera não é
+igual para todos: cada VU mantém a sua conexão com um dos quatro processos da API, e cada processo
+tem só três conexões com o banco; quem cai num processo com mais VUs espera mais. No cache quente a
+cauda continuou curta (p99 de 78 ms com 200 VUs), porque a fila é de CPU, e não de conexões. Em
+alguns casos, a diferença entre as versões só apareceu na cauda: com 50 VUs, o EAGER e a projeção
+tiveram médias quase iguais (703 e 684 ms), mas p95 de 1.100 e 843 ms. A média sozinha esconderia
 justamente o que os usuários mais lentos sentem; por isso os limites do k6 foram definidos sobre o
 p95 e o p99.
 
 **Alguma otimização apresentou resultados inferiores aos esperados?** Sim:
 
-- a projeção (8 colunas no lugar de 89) e o SQL nativo não ganharam do EAGER sob carga: os três
-  pararam em ~75 req/s, com as mesmas latências. Eles leem quase 13 vezes menos dados, custam menos
-  CPU na API e de um terço à metade do tempo de execução no banco, mas o gargalo era o número de
-  conexões vezes a viagem até o banco, não o volume de dados. Com a página de 20 empréstimos do
-  teste de carga, o ganho ficou nos recursos e não chegou ao usuário; no tempo de resposta, ele só
-  apareceu com páginas grandes (com 500 empréstimos, 167 contra 206 ms, seção 4.3);
+- a projeção (8 colunas no lugar de 178) lê 28 vezes menos dados que o EAGER, mas sob carga a
+  vazão quase não mudou até 50 VUs (74 contra 72 req/s) e, com 200 VUs, subiu 21%: o gargalo
+  continuou sendo o número de conexões vezes a viagem até o banco, não o volume de dados. O ganho
+  apareceu na latência com pouca carga (198 contra 268 ms com 10 VUs), na cauda (p95 23% menor com
+  50 VUs) e nos recursos (metade da CPU da API). O SQL nativo, que faz a mesma consulta da
+  projeção, não ganhou dela: escrever o SQL à mão não acelera uma consulta que o ORM já gera bem.
+  Com o banco local (seção 5.4), em que o gargalo passou a ser a CPU da API, os dois ganhos
+  apareceram: a projeção atendeu 1,9 vezes o EAGER, e o SQL nativo, 20% mais que a projeção;
 - o cache frio, com 9% a 14% de acertos, quase não aliviou o banco: com 10 VUs, a vazão foi a
   mesma de sem cache;
-- o índice, medido com uma requisição por vez, reduziu o histórico na API de 184 para 163 ms
-  (seção 4.5), muito menos que as 66 vezes medidas no banco, porque a viagem domina; o tamanho real
+- o índice, medido com uma requisição por vez, reduziu o histórico na API de 227 para 158 ms
+  (seção 4.5), muito menos que as 100 vezes medidas no banco, porque a viagem domina; o tamanho real
   do ganho só apareceu sob carga;
-- o `selectinload`, um EAGER sem N+1, fez 3 consultas e ficou três vezes mais lento que o JOIN
-  (485 contra 162 ms com 10 empréstimos, seção 4.3): com o banco longe, cada consulta a mais pesa.
+- o `selectinload`, um EAGER sem N+1, fez 3 consultas e ficou quase três vezes mais lento que o
+  JOIN (478 contra 164 ms com 10 empréstimos, seção 4.3): com o banco longe, cada consulta a mais
+  pesa.
 
 **Quais foram os principais gargalos identificados?**
 
@@ -1099,10 +1203,13 @@ p95 e o p99.
    consulta o banco.
 2. As 12 conexões com o banco, que fixam o teto de vazão em 12 ÷ (consultas × 0,155 s): 77, 26 e
    menos de 2 req/s para 1, 3 e 41 consultas por requisição.
-3. A CPU do banco, quando cada consulta percorre a tabela inteira (sem índice: quase quatro
-   varreduras ao mesmo tempo e ~50 req/s).
-4. A CPU da API, quando o banco sai do caminho (cache quente: perto de 300% dos 400% possíveis com
-   quatro processos). O k6 roda na mesma máquina e, nesse cenário, usou mais ~140% de um núcleo.
+3. A CPU do banco, quando cada consulta percorre a tabela inteira (sem índice: seis varreduras
+   ao mesmo tempo, em média, e ~36 req/s).
+4. A CPU da API, quando o banco sai do caminho (cache quente: de 300% a 320% dos 400% possíveis
+   com quatro processos). O k6 roda na mesma máquina e, nesse cenário, usou mais ~145% de um núcleo.
+   Com o banco local (seção 5.4), ela passou a ser o gargalo de quase todas as versões.
+5. O volume de dados, quando a consulta traz entidades inteiras: com as 178 colunas, o EAGER
+   prendeu cada conexão por mais tempo que a projeção e usou o dobro da CPU da API.
 
 Cada otimização eliminou um gargalo e revelou o seguinte: o cache trocou a fila por conexões pela
 fila de CPU da API; o índice trocou a CPU do banco pelo teto das conexões; eliminar o N+1 trocou as
@@ -1111,10 +1218,12 @@ fila de CPU da API; o índice trocou a CPU do banco pelo teto das conexões; eli
 **Como a redução das consultas ao banco influenciou o desempenho?** Foi o fator dominante. Com cada
 comando custando uma viagem, o tempo de uma requisição é, quase todo, o número de consultas vezes
 155 ms, e a vazão máxima é inversamente proporcional a ele. De 41 consultas (LAZY) para 1, a
-latência média com 10 VUs caiu de 10,7 s para 0,17 a 0,23 s e o teto subiu de menos de 2 para 77
-req/s; de 3 consultas para nenhuma (acerto no cache), a vazão foi de 25 para 5.700 req/s. Já
+latência média com 10 VUs caiu de 11,4 s para 0,20 a 0,27 s e o teto subiu de menos de 2 para 77
+req/s; de 3 consultas para nenhuma (acerto no cache), a vazão foi de 26 para 6.765 req/s. Já
 acelerar cada consulta só fez diferença quando o banco estava saturado, como no caso do índice.
-Neste ambiente, reduzir viagens valeu mais que reduzir o trabalho de cada consulta.
+Neste ambiente, reduzir viagens valeu mais que reduzir o trabalho de cada consulta. Com o banco
+na mesma máquina (seção 5.4), quando o gargalo passou a ser a CPU, reduzir trabalho valeu mais:
+o índice deu 20 vezes mais vazão, e a projeção, 1,9 vezes a do EAGER.
 
 **Quais são os possíveis custos ou riscos das otimizações adotadas?** Cada otimização troca um
 custo por outro (*trade-off*): o cache troca atualidade dos dados por velocidade, a projeção troca
@@ -1129,13 +1238,13 @@ controle, e o índice troca escrita e espaço por leitura.
   respondendo, sem erros, mas com o desempenho de sem cache, e o banco precisa aguentar a carga
   inteira enquanto isso.
 - *EAGER no mapeamento*: vale para todas as consultas da entidade, inclusive as que não usam os
-  relacionamentos (as versões "resumo" da seção 4.3 leram 13 vezes mais dados); com coleções, o
+  relacionamentos (as versões "resumo" da seção 4.3 leram 10 vezes mais dados); com coleções, o
   JOIN multiplica as linhas da consulta principal.
 - *Projeções*: uma consulta e um formato de resposta por tela, e o resultado não é uma entidade:
   não dá para alterá-lo e salvá-lo pelo ORM. O *SQL nativo* ainda perde a conferência do ORM e a
   portabilidade entre bancos (seção 4.4).
-- *Índices*: espaço (9 MB para o índice proposto), escrita mais cara (+14% por `INSERT` com um
-  índice, +28% com três) e mais trabalho de `VACUUM`; e o plano depende da configuração do banco
+- *Índices*: espaço (9 MB para o índice proposto), escrita mais cara (+44% por `INSERT` com um
+  índice, +99% com três) e mais trabalho de `VACUUM`; e o plano depende da configuração do banco
   (`random_page_cost`), não só do índice.
 - *Tabelas largas*: toda consulta que carrega a entidade inteira paga por todas as colunas. Quanto
   mais larga a tabela, mais importa buscar só o que a resposta usa.
@@ -1144,9 +1253,10 @@ controle, e o índice troca escrita e espaço por leitura.
 
 - O banco fica a ~155 ms da API, numa instância compartilhada do plano gratuito. Os resultados
   valem para esse ambiente: com o banco na mesma rede, a viagem cairia para menos de 1 ms, o N+1
-  continuaria sendo o pior caso, mas o volume das 89 colunas e o índice pesariam mais em relação à
-  viagem. A instância também teve trechos lentos e duas paradas, que obrigaram a refazer duas
-  execuções (seção 5.3).
+  continuaria sendo o pior caso, mas o volume das 178 colunas e o índice pesariam mais em relação à
+  viagem. A seção 5.4 mediu esse outro extremo, com o banco na mesma máquina: o índice passou a dar
+  20 vezes mais vazão, a projeção 1,9 vezes a do EAGER, e o cache, só 4,4 vezes. A instância também teve trechos lentos, em níveis isolados de algumas execuções
+  (seção 5.3).
 - O k6 roda na mesma máquina que a API e disputa a CPU com ela no cenário do cache quente: a vazão
   desse cenário é um limite inferior do que a API atenderia sozinha.
 - A CPU do servidor do banco não é acessível no Supabase; o comportamento dele foi medido pelo
@@ -1162,22 +1272,26 @@ Com o banco a ~155 ms da API, o custo de uma requisição é praticamente o núm
 banco, e a capacidade da API é o número de conexões dividido pelo tempo que cada requisição as
 prende. Daí os principais resultados:
 
-- o **cache** teve o maior ganho (de 25 para 5.713 req/s com 50 VUs) porque elimina as viagens,
+- o **cache** teve o maior ganho (de 26 para 6.765 req/s com 50 VUs) porque elimina as viagens,
   mas só no acerto: com o cache frio o ganho foi pequeno, e o preço é aceitar dados desatualizados
   por até um TTL. O que vai para o cache foi decidido pela volatilidade: a ficha vai, a
   disponibilidade não;
-- o **N+1** do LAZY transformou uma página de 20 empréstimos em 41 consultas e 10 s de espera, e a
+- o **N+1** do LAZY transformou uma página de 20 empréstimos em 41 consultas e 11 s de espera, e a
   API não sustentou nem 10 usuários. Declarar EAGER ou LAZY não diz quantas consultas serão feitas:
   o `joined` fez 1, o `selectinload` 3 e o `immediateload` 41. A regra que fica é manter o
   mapeamento LAZY e pedir o carregamento antecipado em cada consulta que precisa dele;
-- as **tabelas largas** mostraram o custo de carregar entidades inteiras: 89 colunas para usar 8. A
-  projeção leu quase 13 vezes menos dados e gastou menos CPU na API e no banco; com páginas de 500
-  empréstimos, respondeu em 167 ms contra 206 ms do EAGER. Sob carga, com páginas de 20, não
-  melhorou a latência, porque o gargalo era outro. Uma otimização só chega ao usuário quando ataca
-  o gargalo da vez;
+- as **tabelas largas** mostraram o custo de carregar entidades inteiras: 178 colunas para usar 8.
+  A projeção leu 28 vezes menos dados e gastou metade da CPU da API; com páginas de 500
+  empréstimos, respondeu em 169 ms contra 245 ms do EAGER. Sob carga, com páginas de 20, a vazão
+  quase não mudou até 50 VUs, porque o gargalo era outro, mas a cauda sim (p95 de 843 contra
+  1.100 ms), e com 200 VUs a projeção atendeu 21% mais. Uma otimização só chega inteira ao usuário
+  quando ataca o gargalo da vez;
 - o **índice** quase não mudou uma consulta isolada, porque a viagem domina, mas sob carga tirou o
-  banco da saturação: 58% mais vazão com 50 VUs. O `EXPLAIN ANALYZE` mostrou que ele é usado e
-  como, e o custo de escrita mostrou por que não vale indexar todas as colunas.
+  banco da saturação: o dobro da vazão com 50 VUs. O `EXPLAIN ANALYZE` mostrou que ele é usado e
+  como, e o custo de escrita mostrou por que não vale indexar todas as colunas;
+- o **banco local** (seção 5.4) mostrou que o ganho de cada técnica depende do gargalo: sem a viagem,
+  o índice passou a dar o maior ganho (20 vezes), a projeção chegou a 1,9 vezes a
+  vazão do EAGER, e o cache caiu para 4,4 vezes.
 
 **Como demonstrar, por meio de evidências, que uma mudança realmente melhorou o desempenho de um
 sistema?** É a pergunta que o enunciado deixa para o fim, e a resposta deste trabalho é o próprio
@@ -1231,8 +1345,8 @@ docker compose run --rm psql -c "DROP TABLE emprestimo, livro, leitor, autor, ca
 `banco-local`, que cria as tabelas e gera os dados sozinho na primeira subida:
 `docker compose --profile banco-local up -d --build` (para recomeçar do zero,
 `docker compose --profile banco-local down -v`). Os números deste relatório foram medidos com o
-banco no Supabase; com o banco local, os tempos são bem menores, porque a ida e volta até o banco
-cai de ~160 ms para menos de 1 ms.
+banco no Supabase, menos os da seção 5.4 e os do teste sob carga da seção 3.6; com o banco local,
+os tempos são bem menores, porque a ida e volta até o banco cai de ~160 ms para menos de 1 ms.
 
 ### 2. Subir o cache e a API
 
@@ -1291,9 +1405,13 @@ A ficha com cache sob carga, com o Redis parado (seção 3.6):
 
 ```bash
 docker compose stop cache
-docker compose run --rm k6 run k6/cache.js -e VERSAO=redis-fora -e CARGAS=10,50,200
+docker compose run --rm k6 run k6/cache.js -e VERSAO=redis-fora
 docker compose start cache
 ```
+
+Os números da seção 3.6 vêm de três execuções assim, alternadas com três da versão
+`sem-cache`, com a API recriada antes de cada uma e o banco local (abaixo, junto da matriz da
+seção 5.4, está como apontar a API para ele).
 
 A matriz completa, com repetições, medição de CPU e memória e geração de tabelas e gráficos:
 
@@ -1301,6 +1419,18 @@ A matriz completa, com repetições, medição de CPU e memória e geração de 
 python testes-carga/executar.py            # cerca de 2 horas; deixe a máquina sem outras tarefas
 python testes-carga/executar.py --rapido   # conferência do roteiro, uns 15 minutos
 ```
+
+A matriz da seção 5.4, com o banco local (no bash). As variáveis do ambiente valem mais que as do
+`.env`, e o `executar.py` recria a API com elas:
+
+```bash
+docker compose --profile banco-local up -d banco
+PGHOST=banco PGPORT=5432 PGUSER=biblioteca PGPASSWORD=biblioteca PGDATABASE=biblioteca PGSSLMODE=disable \
+  python testes-carga/executar.py --cenarios cache,persistencia,indice
+```
+
+Para um teste avulso com o banco local, como o do Redis parado, as mesmas variáveis vão na frente
+de `docker compose up -d --force-recreate api`; o mesmo comando sem elas devolve a API ao Supabase.
 
 A matriz também pode rodar em partes: `--minutos 9` faz o roteiro parar antes de começar uma
 execução que passaria desse tempo, e `--continuar testes-carga/resultados/<data e hora>` retoma
@@ -1366,7 +1496,7 @@ testes-carga/
   executar.py         roteiro que roda a matriz de testes de carga
   analisar.py         tabelas e gráficos a partir dos resultados
   graficos.py         gráficos em SVG, sem dependências externas (usado pelo analisar.py)
-  resultados/         resultados da matriz usada neste relatório e da carga com o Redis parado
+  resultados/         as matrizes do relatório (Supabase e banco local) e a carga com o Redis parado
 docker-compose.yml    cache (Redis), API, k6, psql e o PostgreSQL local opcional
 .env.exemplo          modelo do .env com a conexão ao banco no Supabase
 ```

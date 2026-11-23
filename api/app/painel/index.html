@@ -428,7 +428,8 @@
   <header class="cabeca">
     <p class="sobrancelha">Seções 6.6, 6.7 e 7 · matriz completa do k6</p>
     <h1 id="t-resultados">O que os testes de carga mostraram</h1>
-    <p class="lide">39 execuções do k6 em 20 e 21/11/2026, com o banco no Supabase. Cada número é a média de três
+    <p class="lide">39 execuções do k6 em 22/11/2026, com o banco no Supabase e as tabelas largas (178 colunas no EAGER), e mais 27 com o banco local, na
+      mesma máquina, para comparar (seletor <strong>Banco</strong> no gráfico). Cada número é a média de três
       repetições, com 10 s de aquecimento e 30 s de medição por nível. Nenhuma requisição falhou: 0% de erros em todos os
       níveis.</p>
   </header>
@@ -436,27 +437,31 @@
   <div class="destaques">
     <div class="destaque">
       <span class="rotulo">Cache quente, 50 VUs</span>
-      <span class="valor">5.713 req/s</span>
-      <span class="delta ganho">225× a vazão sem cache (25,4 req/s)</span>
-      <span class="sub">latência média de 8,6 ms contra 2.009 ms</span>
+      <span class="valor">6.765 req/s</span>
+      <span class="delta ganho">263× a vazão sem cache (25,7 req/s)</span>
+      <span class="sub">latência média de 7,3 ms contra 2.000 ms</span>
     </div>
     <div class="destaque">
       <span class="rotulo">Consulta otimizada, 50 VUs</span>
-      <span class="valor">76,8 req/s</span>
-      <span class="delta ganho">96× a vazão do LAZY (0,8 req/s)</span>
+      <span class="valor">74,1 req/s</span>
+      <span class="delta ganho">93× a vazão do LAZY (0,8 req/s)</span>
       <span class="sub">1 consulta por página no lugar de 41</span>
     </div>
     <div class="destaque">
       <span class="rotulo">Com o índice, 50 VUs</span>
-      <span class="valor">76,7 req/s</span>
-      <span class="delta ganho">+58% de vazão (48,5 req/s sem ele)</span>
-      <span class="sub">p95 de 765 ms contra 2.220 ms</span>
+      <span class="valor">71,1 req/s</span>
+      <span class="delta ganho">+97% de vazão (36,1 req/s sem ele)</span>
+      <span class="sub">p95 de 1.343 ms contra 2.326 ms</span>
     </div>
   </div>
 
   <section class="bloco" aria-labelledby="t-grafico">
     <h2 id="t-grafico">Por nível de carga</h2>
     <div class="filtros">
+      <div class="segmentos" role="radiogroup" aria-label="Banco" id="filtro-banco">
+        <button role="radio" aria-checked="true" data-valor="supabase">Supabase</button>
+        <button role="radio" aria-checked="false" data-valor="local">Banco local</button>
+      </div>
       <div class="segmentos" role="radiogroup" aria-label="Cenário" id="filtro-cenario">
         <button role="radio" aria-checked="true" data-valor="cache">Cenário 1 · cache</button>
         <button role="radio" aria-checked="false" data-valor="persistencia">Cenário 2 · persistência</button>
@@ -489,10 +494,13 @@
       <p class="formula">vazão máxima ≈ <span>12 conexões</span> ÷ (<span>consultas por requisição</span> × <span>0,155 s</span>)</p>
       <ul class="teto-linhas">
         <li><strong>1 consulta</strong> (EAGER, otimizada, SQL nativo, histórico com índice): cerca de 77 req/s; essas
-          versões pararam entre 71 e 77 req/s com 50 VUs</li>
+          versões pararam entre 71 e 74 req/s com 50 VUs</li>
         <li><strong>3 consultas</strong> (ficha sem cache): cerca de 26 req/s</li>
         <li><strong>41 consultas</strong> (LAZY): menos de 2 req/s</li>
-        <li><strong>0 consultas</strong> (cache quente): o limite passa a ser a CPU da API, perto de 5.700 req/s</li>
+        <li><strong>0 consultas</strong> (cache quente): o limite passa a ser a CPU da API, de 5.800 a 6.800 req/s</li>
+        <li><strong>Banco local</strong> (ida e volta de ~0,2 ms): o teto das conexões some, e o limite passa a ser a CPU da
+          API ou, sem índice, a do banco: 1.452 req/s na ficha sem cache, 1.101 no EAGER,
+          123 sem índice e 2.488 com ele</li>
       </ul>
       <p class="nota">Acima do teto, mais usuários só aumentam a fila: a vazão para de subir e a latência cresce com a
         carga. Por isso os ganhos se mantiveram e em geral cresceram com a carga, já que as versões sem otimização saturam
@@ -509,10 +517,11 @@
       <li><strong>LAZY × EAGER:</strong> o N+1 transformou uma página de 20 empréstimos em 41 consultas. Declarar EAGER
         não diz quantas consultas serão feitas: <code>joined</code> fez 1, <code>selectinload</code> 3 e
         <code>immediateload</code> 41.</li>
-      <li><strong>Projeção:</strong> 89 colunas para usar 8. A otimizada leu quase 13 vezes menos dados e gastou menos CPU,
-        mas sob carga empatou com o EAGER, porque o gargalo era a viagem. O SQL nativo não trouxe ganho sobre ela e custa
+      <li><strong>Projeção:</strong> 178 colunas para usar 8. A otimizada leu 28 vezes menos dados e gastou metade da CPU
+        da API. Sob carga, a vazão quase empatou com a do EAGER até 50 VUs, porque o gargalo era a viagem, mas a cauda não:
+        p95 de 843 contra 1.100 ms; com 200 VUs, 75 contra 62 req/s. O SQL nativo não trouxe ganho sobre ela e custa
         manutenção e portabilidade.</li>
-      <li><strong>Índice:</strong> quase não muda uma consulta isolada, mas tirou o banco da saturação: 58% mais vazão com
+      <li><strong>Índice:</strong> quase não muda uma consulta isolada, mas tirou o banco da saturação: o dobro da vazão com
         50 VUs. Cada índice extra encarece as escritas.</li>
     </ul>
     <blockquote class="pergunta">

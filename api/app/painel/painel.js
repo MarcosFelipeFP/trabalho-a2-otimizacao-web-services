@@ -1025,10 +1025,10 @@ const RESULTADOS = {
     cores: ['var(--serie-1)', 'var(--serie-2)', 'var(--serie-3)'],
     destaque: 2,
     dados: {
-      10: [[18, 577, 771, 1348, 3.0], [18, 578, 936, 1116, 2.7], [4626, 2.12, 4.51, 6.79, 0.0]],
-      50: [[25.4, 2009, 2888, 5433, 3.0], [30.6, 1662, 3611, 3638, 2.6], [5713, 8.60, 18.5, 28.9, 0.0]],
-      100: [[24, 3904, 10638, 16782, 3.0], [30, 3268, 6570, 6659, 2.6], [5700, 17.4, 36.2, 53.5, 0.0]],
-      200: [[18, 8764, 19313, 25153, 3.0], [27, 6866, 13558, 17881, 2.6], [5746, 34.6, 66.2, 102, 0.0]],
+      10: [[17, 594, 778, 1257, 3.0], [16, 655, 1142, 1408, 2.7], [5773, 1.63, 3.44, 5.31, 0.0]],
+      50: [[25.7, 2000, 2392, 3802, 3.0], [30.2, 1675, 3887, 4125, 2.6], [6765, 7.28, 15.1, 20.8, 0.0]],
+      100: [[24, 4065, 9091, 12640, 3.0], [30, 3181, 8514, 9428, 2.6], [6532, 15.3, 33.6, 48.4, 0.0]],
+      200: [[21, 8477, 18110, 22388, 3.0], [28, 6720, 11895, 15887, 2.6], [6579, 30.3, 51.8, 77.7, 0.0]],
     },
     nota: 'Cache frio: esvaziado antes de cada nível; em 30 s só os livros mais procurados se repetem, e a taxa de acerto ficou entre 9% e 14%.',
   },
@@ -1038,12 +1038,12 @@ const RESULTADOS = {
     cores: ['var(--serie-1)', 'var(--serie-2)', 'var(--serie-3)', 'var(--serie-4)'],
     destaque: 2,
     dados: {
-      10: [[0.8, 10714, 19156, 21092, 40.9], [45, 230, 320, 381, 1.0], [58, 172, 225, 281, 1.0], [48, 218, 305, 381, 1.0]],
-      50: [[0.8, 22453, 29729, 30050, 41.0], [75.0, 674, 808, 1217, 1.0], [76.8, 659, 922, 1140, 1.0], [71.1, 725, 1115, 1309, 1.0]],
-      100: [[0.2, 18353, 27627, 28617, 41.0], [74, 1379, 2802, 4624, 1.0], [77, 1335, 3476, 5059, 1.0], [77, 1320, 3299, 4928, 1.0]],
-      200: [[0.0, null, null, null, null], [73, 2746, 5613, 8336, 1.0], [75, 2698, 5957, 8695, 1.0], [76, 2671, 6417, 8810, 1.0]],
+      10: [[0.8, 11356, 22834, 25301, 41], [38, 268, 423, 546, 1.0], [51, 198, 289, 370, 1.0], [45, 230, 385, 503, 1.0]],
+      50: [[0.8, 21045, 29285, 29848, 41], [72.1, 703, 1100, 1418, 1.0], [74.1, 684, 843, 1230, 1.0], [73.4, 693, 882, 1177, 1.0]],
+      100: [[0.1, 17209, 22605, 23032, 41], [69, 1476, 3159, 5743, 1.0], [75, 1354, 3316, 5097, 1.0], [67, 1531, 4296, 7083, 1.0]],
+      200: [[0.0, 25976, 28562, 28707, 41], [62, 3241, 7273, 9659, 1.0], [75, 2688, 6188, 8508, 1.0], [66, 3183, 7474, 10569, 1.0]],
     },
-    nota: 'LAZY: só as requisições que terminaram dentro da janela de 30 s; com 200 VUs, nenhuma terminou.',
+    nota: 'LAZY: só as requisições que terminaram dentro da janela de 30 s; com 200 VUs, em duas das três repetições nenhuma terminou. EAGER × otimizada: vazão quase igual com 50 VUs, mas p95 de 1.100 contra 843 ms; com 200 VUs, 62 contra 75 req/s.',
   },
   indice: {
     titulo: 'Cenário 3 · histórico de empréstimos de um leitor, sem e com índice',
@@ -1051,14 +1051,49 @@ const RESULTADOS = {
     cores: ['var(--serie-1)', 'var(--serie-3)'],
     destaque: 1,
     dados: {
-      10: [[35, 321, 439, 669, 1.0], [54, 188, 254, 302, 1.0]],
-      50: [[48.5, 1059, 2220, 2479, 1.0], [76.7, 659, 765, 1118, 1.0]],
-      100: [[52, 1964, 4857, 7256, 1.0], [66, 1543, 4922, 7051, 1.0]],
-      200: [[49, 4030, 9367, 13085, 1.0], [75, 2683, 6228, 9002, 1.0]],
+      10: [[32, 319, 447, 615, 1.0], [48, 212, 351, 567, 1.0]],
+      50: [[36.1, 1414, 2326, 3776, 1.0], [71.1, 720, 1343, 1683, 1.0]],
+      100: [[37, 2741, 5320, 9473, 1.0], [75, 1360, 3565, 5366, 1.0]],
+      200: [[34, 5575, 12155, 16465, 1.0], [72, 2813, 6377, 8659, 1.0]],
     },
-    nota: 'Com 100 VUs, uma das repetições pegou o banco mais lento (a instância do Supabase tem CPU compartilhada), daí a vazão menor com o índice nesse nível.',
+    nota: 'Sem índice, o banco executou em média seis varreduras da tabela ao mesmo tempo, e a vazão parou em ~36 req/s; com o índice, a API chegou ao teto das conexões: o dobro da vazão a partir de 50 VUs.',
   },
 };
+// Banco local (README, seção 5.4): o mesmo código, os mesmos dados e a mesma matriz, com o banco num contêiner
+// na mesma máquina (ida e volta de ~0,2 ms em vez de ~155 ms). Mesmo formato de RESULTADOS.
+const RESULTADOS_LOCAL = {
+  cache: {
+    ...RESULTADOS.cache,
+    dados: {
+      10: [[1370, 7.39, 17.7, 24.3, 3.0], [3312, 2.96, 8.93, 13.8, 0.6], [5588, 1.69, 3.29, 5.1, 0.0]],
+      50: [[1451.5, 34.4, 72.7, 107, 3.0], [3612.7, 13.8, 41.1, 95.6, 0.5], [6449.8, 7.66, 16.4, 25.9, 0.0]],
+      100: [[1301, 76.8, 175, 265, 3.0], [3320, 30.6, 107, 251, 0.6], [6294, 16.3, 35.7, 62.1, 0.0]],
+      200: [[1297, 155, 353, 513, 3.0], [3072, 69, 241, 420, 0.6], [6089, 34.5, 63.8, 94.9, 0.0]],
+    },
+    nota: 'Banco local: sem cache, a ficha já sai a 1.452 req/s com 50 VUs, e o limite passa a ser a CPU da API; o cache quente (6.450 req/s) ganha 4,4 vezes, contra 263 no Supabase.',
+  },
+  persistencia: {
+    ...RESULTADOS.persistencia,
+    dados: {
+      10: [[166, 61.1, 104, 131, 41], [990, 10.4, 21.1, 29.6, 1.0], [2098, 4.64, 9.29, 13, 1.0], [2494, 3.92, 7.52, 11.4, 1.0]],
+      50: [[173.8, 291, 465, 665, 41], [1100.7, 45.5, 138, 227, 1.0], [2057.1, 24.3, 60.3, 94.4, 1.0], [2469.5, 20.5, 48.9, 77.4, 1.0]],
+      100: [[174, 587, 983, 1613, 41], [1008, 99.6, 274, 454, 1.0], [1944, 51.6, 123, 182, 1.0], [2225, 47.9, 115, 175, 1.0]],
+      200: [[164, 1275, 2587, 3403, 41], [1010, 201, 513, 751, 1.0], [1968, 102, 248, 362, 1.0], [2164, 94.1, 227, 334, 1.0]],
+    },
+    nota: 'Banco local: o LAZY não colapsa (174 req/s com 50 VUs), mas fica 6,3 vezes abaixo do EAGER. Sem a viagem, as 178 colunas pesam: a projeção atende 1,9 vezes o EAGER, e o SQL nativo, 2,2 vezes.',
+  },
+  indice: {
+    ...RESULTADOS.indice,
+    dados: {
+      10: [[119, 85.1, 146, 191, 1.0], [2194, 4.57, 8.36, 11.5, 1.0]],
+      50: [[122.6, 416, 1040, 1453, 1.0], [2488, 20.1, 54.4, 87.9, 1.0]],
+      100: [[135, 750, 1517, 2444, 1.0], [2427, 41.2, 98.2, 147, 1.0]],
+      200: [[135, 1527, 3022, 3960, 1.0], [2363, 85.4, 205, 304, 1.0]],
+    },
+    nota: 'Banco local: sem índice, as varreduras saturam a CPU do banco (123 req/s com 50 VUs); com o índice, 2.488 req/s, 20 vezes mais, contra 2 vezes no Supabase.',
+  },
+};
+
 const NIVEIS = [10, 50, 100, 200];
 const METRICAS = {
   vazao: { i: 0, nome: 'Vazão (req/s)', unidade: 'req/s' },
@@ -1066,9 +1101,10 @@ const METRICAS = {
   p95: { i: 2, nome: 'Latência p95 (ms)', unidade: 'ms' },
   p99: { i: 3, nome: 'Latência p99 (ms)', unidade: 'ms' },
 };
-const filtro = { cenario: 'cache', metrica: 'vazao' };
+const filtro = { banco: 'supabase', cenario: 'cache', metrica: 'vazao' };
+const resultadosAtuais = () => (filtro.banco === 'local' ? RESULTADOS_LOCAL : RESULTADOS)[filtro.cenario];
 
-const fmtVazao = (v) => (v < 1 || !Number.isInteger(v) ? fmt(v, 1) : fmt(v));
+const fmtVazao = (v) => (v < 1 || (v < 100 && !Number.isInteger(v)) ? fmt(v, 1) : fmt(v));
 const fmtMs = (v) => fmt(v, v < 10 ? 2 : v < 100 ? 1 : 0);
 const fmtValor = (v, metrica) => (metrica === 'vazao' ? fmtVazao(v) : fmtMs(v));
 
@@ -1091,7 +1127,7 @@ function caminhoBarra(x, y, w, h) {
 }
 
 function desenharGrafico() {
-  const c = RESULTADOS[filtro.cenario];
+  const c = resultadosAtuais();
   const m = METRICAS[filtro.metrica];
   const el = $('grafico');
   const largura = Math.max(320, el.clientWidth);
@@ -1140,9 +1176,10 @@ function desenharGrafico() {
 }
 
 function desenharResultados() {
-  const c = RESULTADOS[filtro.cenario];
+  const c = resultadosAtuais();
   const m = METRICAS[filtro.metrica];
-  $('grafico-titulo').textContent = `${m.nome} com 10, 50, 100 e 200 usuários virtuais · ${c.titulo}`;
+  $('grafico-titulo').textContent = `${m.nome} com 10, 50, 100 e 200 usuários virtuais · ${c.titulo} · `
+    + (filtro.banco === 'local' ? 'banco local, na mesma máquina' : 'banco no Supabase');
   $('grafico-legenda').innerHTML = c.versoes.map((v, i) => `<li><i style="background:${c.cores[i]}"></i>${esc(v)}</li>`).join('');
   const valores = NIVEIS.flatMap((v) => c.dados[v].map((l) => l[m.i])).filter((x) => x > 0);
   const rentes = valores.some((x) => x < Math.max(...valores) / 100)
@@ -1161,11 +1198,12 @@ function desenharResultados() {
   }).join('')).join('');
 }
 
-['filtro-cenario', 'filtro-metrica'].forEach((id) => $(id).addEventListener('click', (e) => {
+const FILTROS = { 'filtro-banco': 'banco', 'filtro-cenario': 'cenario', 'filtro-metrica': 'metrica' };
+Object.entries(FILTROS).forEach(([id, chave]) => $(id).addEventListener('click', (e) => {
   const botao = e.target.closest('[data-valor]');
   if (!botao) return;
   escolherNoGrupo($(id), botao);
-  filtro[id === 'filtro-cenario' ? 'cenario' : 'metrica'] = botao.dataset.valor;
+  filtro[chave] = botao.dataset.valor;
   desenharResultados();
 }));
 

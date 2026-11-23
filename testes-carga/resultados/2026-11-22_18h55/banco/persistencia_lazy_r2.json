@@ -1,0 +1,91 @@
+{
+  "total": {
+    "execucoes": 1210942,
+    "tempo_total_ms": 22309.48659098847,
+    "linhas": 1772544,
+    "blocos_em_memoria": 4384716,
+    "blocos_do_disco": 0
+  },
+  "comandos": [
+    {
+      "execucoes": 590853,
+      "tempo_total_ms": 11761.45059999528,
+      "linhas": 590853,
+      "blocos_em_memoria": 2452174,
+      "blocos_do_disco": 0,
+      "comando": "SELECT livro.id, livro.titulo, livro.isbn, livro.editora, livro.ano_publicacao, livro.paginas, livro.sinopse, livro.autor_id, livro.categoria_id, livro.total_exemplares, livro.exemplares_disponiveis, livro.atualizado_em, livro.subtitulo, livro.edicao, livro.ano_edicao, livro.local_publicacao, livro.idioma, livro.idioma_original, livro.tradutor, livro.ilustrador, livro.colecao, livro.volume, livro."
+    },
+    {
+      "execucoes": 590525,
+      "tempo_total_ms": 7890.882618993231,
+      "linhas": 590525,
+      "blocos_em_memoria": 1771575,
+      "blocos_do_disco": 0,
+      "comando": "SELECT leitor.id, leitor.nome, leitor.email, leitor.cadastrado_em, leitor.numero_carteirinha, leitor.data_nascimento, leitor.tipo, leitor.matricula, leitor.curso, leitor.unidade, leitor.logradouro, leitor.numero, leitor.complemento, leitor.bairro, leitor.cidade, leitor.uf, leitor.cep, leitor.validade_carteirinha, leitor.situacao, leitor.limite_emprestimos, leitor.multas_pendentes, leitor.aceita_no"
+    },
+    {
+      "execucoes": 26398,
+      "tempo_total_ms": 2345.9931879999594,
+      "linhas": 527960,
+      "blocos_em_memoria": 129961,
+      "blocos_do_disco": 0,
+      "comando": "SELECT emprestimo.id, emprestimo.livro_id, emprestimo.leitor_id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, emprestimo.canal, emprestimo.atendente, emprestimo.renovacoes, emprestimo.data_renovacao, emprestimo.multa, emprestimo.avaliacao, emprestimo.observacoes, emprestimo.registrado_em, emprestimo.protocolo, emprestimo.unidade, emprestimo.balcao, emprestimo.te"
+    },
+    {
+      "execucoes": 3160,
+      "tempo_total_ms": 279.4025789999989,
+      "linhas": 63200,
+      "blocos_em_memoria": 15453,
+      "blocos_do_disco": 0,
+      "comando": "SELECT emprestimo.id, emprestimo.livro_id, emprestimo.leitor_id, emprestimo.data_emprestimo, emprestimo.data_prevista, emprestimo.data_devolucao, emprestimo.canal, emprestimo.atendente, emprestimo.renovacoes, emprestimo.data_renovacao, emprestimo.multa, emprestimo.avaliacao, emprestimo.observacoes, emprestimo.registrado_em, emprestimo.protocolo, emprestimo.unidade, emprestimo.balcao, emprestimo.te"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 20.10396899999978,
+      "linhas": 1,
+      "blocos_em_memoria": 12004,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM emprestimo WHERE data_devolucao IS NULL"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 10.047135000000026,
+      "linhas": 1,
+      "blocos_em_memoria": 3468,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM emprestimo"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 0.768104000000001,
+      "linhas": 1,
+      "blocos_em_memoria": 34,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM livro"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 0.5196329999999989,
+      "linhas": 1,
+      "blocos_em_memoria": 30,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM leitor"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 0.309864000000001,
+      "linhas": 1,
+      "blocos_em_memoria": 16,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM autor"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 0.008900000000000019,
+      "linhas": 1,
+      "blocos_em_memoria": 1,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM categoria"
+    }
+  ]
+}

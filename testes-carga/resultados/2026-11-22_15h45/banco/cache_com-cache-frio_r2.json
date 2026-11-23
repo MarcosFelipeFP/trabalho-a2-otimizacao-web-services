@@ -1,0 +1,83 @@
+{
+  "total": {
+    "execucoes": 11936,
+    "tempo_total_ms": 53579.725448000245,
+    "linhas": 22201,
+    "blocos_em_memoria": 140316,
+    "blocos_do_disco": 0
+  },
+  "comandos": [
+    {
+      "execucoes": 3980,
+      "tempo_total_ms": 32831.493109999894,
+      "linhas": 3980,
+      "blocos_em_memoria": 67767,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) AS count_1, max(emprestimo.data_emprestimo) AS max_1 FROM emprestimo WHERE emprestimo.livro_id = $1::INTEGER"
+    },
+    {
+      "execucoes": 3977,
+      "tempo_total_ms": 13121.2002820001,
+      "linhas": 14249,
+      "blocos_em_memoria": 27784,
+      "blocos_do_disco": 0,
+      "comando": "SELECT livro.id, livro.titulo, livro.ano_publicacao FROM livro WHERE livro.autor_id = $1::INTEGER AND livro.id != $2::INTEGER ORDER BY livro.ano_publicacao DESC, livro.id LIMIT $3::INTEGER"
+    },
+    {
+      "execucoes": 3980,
+      "tempo_total_ms": 7562.049816000097,
+      "linhas": 3980,
+      "blocos_em_memoria": 32459,
+      "blocos_do_disco": 0,
+      "comando": "SELECT livro.id, livro.titulo, livro.isbn, livro.editora, livro.ano_publicacao, livro.paginas, livro.sinopse, livro.autor_id, livro.categoria_id, livro.total_exemplares, livro.exemplares_disponiveis, livro.atualizado_em, livro.subtitulo, livro.edicao, livro.ano_edicao, livro.local_publicacao, livro.idioma, livro.idioma_original, livro.tradutor, livro.ilustrador, livro.colecao, livro.volume, livro."
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 42.392205000000104,
+      "linhas": 1,
+      "blocos_em_memoria": 310,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM emprestimo"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 39.609021999989636,
+      "linhas": 1,
+      "blocos_em_memoria": 12004,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM emprestimo WHERE data_devolucao IS NULL"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 1.787890999999945,
+      "linhas": 1,
+      "blocos_em_memoria": 40,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM livro"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 1.0326840000000175,
+      "linhas": 1,
+      "blocos_em_memoria": 30,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM leitor"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 0.5411300000000665,
+      "linhas": 1,
+      "blocos_em_memoria": 16,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM autor"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 0.023443000000000325,
+      "linhas": 1,
+      "blocos_em_memoria": 1,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM categoria"
+    }
+  ]
+}

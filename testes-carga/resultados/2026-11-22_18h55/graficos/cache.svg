@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="930" viewBox="0 0 960 930" role="img" aria-labelledby="titulo descricao">
+<title id="titulo">Cenário 1: ficha do livro sem e com cache</title>
+<desc id="descricao">Média das repetições em cada nível de carga; na escala logarítmica, cada linha da grade vale 10 vezes a de baixo. Séries: sem cache, cache frio, cache quente. Eixo x: usuários virtuais (VUs) (10, 50, 100, 200).</desc>
+<style>
+svg { --fundo: #fcfcfb; --tinta1: #0b0b0b; --tinta2: #52514e; --tinta3: #898781;
+      --grade: #e1e0d9; --eixo: #c3c2b7; --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+@media (prefers-color-scheme: dark) {
+  svg { --fundo: #1a1a19; --tinta1: #f0efec; --tinta2: #c3c2b7; --tinta3: #898781;
+        --grade: #2c2c2a; --eixo: #383835; --s1: #3987e5; --s2: #d95926; --s3: #199e70; }
+}
+.fundo { fill: var(--fundo); }
+.grade { stroke: var(--grade); stroke-width: 1; }
+.eixo { stroke: var(--eixo); stroke-width: 1; }
+.t1 { fill: var(--tinta1); }
+.t2 { fill: var(--tinta2); }
+.t3 { fill: var(--tinta3); }
+.num { font-variant-numeric: tabular-nums; }
+.linha { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.ponto { stroke: var(--fundo); stroke-width: 2; }
+.c1 .linha { stroke: var(--s1); } .c1 .ponto { fill: var(--s1); }
+.c2 .linha { stroke: var(--s2); } .c2 .ponto { fill: var(--s2); }
+.c3 .linha { stroke: var(--s3); } .c3 .ponto { fill: var(--s3); }
+</style>
+<rect class="fundo" width="960" height="930" rx="8"/>
+<text class="t1" x="24" y="40" font-size="17" font-weight="600">Cenário 1: ficha do livro sem e com cache</text>
+<text class="t2" x="24" y="62" font-size="12">Média das repetições em cada nível de carga; na escala logarítmica, cada linha da grade vale 10 vezes a de baixo</text>
+<g class="c1"><line class="linha" x1="24" y1="84" x2="42" y2="84"/><circle class="ponto" cx="33" cy="84" r="4"/></g>
+<text class="t2" x="48" y="88" font-size="12">sem cache</text>
+<g class="c2"><line class="linha" x1="132.64" y1="84" x2="150.64" y2="84"/><circle class="ponto" cx="141.64" cy="84" r="4"/></g>
+<text class="t2" x="156.64" y="88" font-size="12">cache frio</text>
+<g class="c3"><line class="linha" x1="248.23999999999998" y1="84" x2="266.24" y2="84"/><circle class="ponto" cx="257.24" cy="84" r="4"/></g>
+<text class="t2" x="272.24" y="88" font-size="12">cache quente</text>
+<text class="t1" x="24.0" y="114" font-size="13" font-weight="600">Vazão (escala logarítmica)</text>
+<line class="eixo" x1="80.0" y1="310.0" x2="374.0" y2="310.0"/>
+<text class="t3 num" x="72.0" y="314.0" font-size="11" text-anchor="end">1 mil</text>
+<line class="grade" x1="80.0" y1="132.0" x2="374.0" y2="132.0"/>
+<text class="t3 num" x="72.0" y="136.0" font-size="11" text-anchor="end">10 mil</text>
+<text class="t3 num" x="94.0" y="327" font-size="11" text-anchor="middle">10</text>
+<text class="t3 num" x="182.7" y="327" font-size="11" text-anchor="middle">50</text>
+<text class="t3 num" x="271.3" y="327" font-size="11" text-anchor="middle">100</text>
+<text class="t3 num" x="360.0" y="327" font-size="11" text-anchor="middle">200</text>
+<text class="t3" x="227.0" y="343" font-size="11" text-anchor="middle">usuários virtuais (VUs)</text>
+<g class="c1"><path class="linha" d="M 94.0 285.7 L 182.7 281.2 L 271.3 289.6 L 360.0 289.9"/></g>
+<g class="c2"><path class="linha" d="M 94.0 217.4 L 182.7 210.7 L 271.3 217.2 L 360.0 223.2"/></g>
+<g class="c3"><path class="linha" d="M 94.0 177.0 L 182.7 165.9 L 271.3 167.8 L 360.0 170.4"/></g>
+<g class="c1"><circle class="ponto" cx="94.0" cy="285.7" r="4"><title>sem cache · 10 usuários · 1.370 req/s</title></circle><circle class="ponto" cx="182.7" cy="281.2" r="4"><title>sem cache · 50 usuários · 1.452 req/s</title></circle><circle class="ponto" cx="271.3" cy="289.6" r="4"><title>sem cache · 100 usuários · 1.301 req/s</title></circle><circle class="ponto" cx="360.0" cy="289.9" r="4"><title>sem cache · 200 usuários · 1.297 req/s</title></circle></g>
+<g class="c2"><circle class="ponto" cx="94.0" cy="217.4" r="4"><title>cache frio · 10 usuários · 3.312 req/s</title></circle><circle class="ponto" cx="182.7" cy="210.7" r="4"><title>cache frio · 50 usuários · 3.613 req/s</title></circle><circle class="ponto" cx="271.3" cy="217.2" r="4"><title>cache frio · 100 usuários · 3.320 req/s</title></circle><circle class="ponto" cx="360.0" cy="223.2" r="4"><title>cache frio · 200 usuários · 3.072 req/s</title></circle></g>
+<g class="c3"><circle class="ponto" cx="94.0" cy="177.0" r="4"><title>cache quente · 10 usuários · 5.588 req/s</title></circle><circle class="ponto" cx="182.7" cy="165.9" r="4"><title>cache quente · 50 usuários · 6.450 req/s</title></circle><circle class="ponto" cx="271.3" cy="167.8" r="4"><title>cache quente · 100 usuários · 6.294 req/s</title></circle><circle class="ponto" cx="360.0" cy="170.4" r="4"><title>cache quente · 200 usuários · 6.089 req/s</title></circle></g>
+<text class="t2" x="370.0" y="174.4" font-size="11">cache quente</text>
+<text class="t2" x="370.0" y="227.2" font-size="11">cache frio</text>
+<text class="t2" x="370.0" y="293.9" font-size="11">sem cache</text>
+<text class="t1" x="494.0" y="114" font-size="13" font-weight="600">Latência média (escala logarítmica)</text>
+<line class="eixo" x1="550.0" y1="310.0" x2="844.0" y2="310.0"/>
+<text class="t3 num" x="542.0" y="314.0" font-size="11" text-anchor="end">1</text>
+<line class="grade" x1="550.0" y1="250.7" x2="844.0" y2="250.7"/>
+<text class="t3 num" x="542.0" y="254.7" font-size="11" text-anchor="end">10</text>
+<line class="grade" x1="550.0" y1="191.3" x2="844.0" y2="191.3"/>
+<text class="t3 num" x="542.0" y="195.3" font-size="11" text-anchor="end">100</text>
+<line class="grade" x1="550.0" y1="132.0" x2="844.0" y2="132.0"/>
+<text class="t3 num" x="542.0" y="136.0" font-size="11" text-anchor="end">1 mil</text>
+<text class="t3 num" x="564.0" y="327" font-size="11" text-anchor="middle">10</text>
+<text class="t3 num" x="652.7" y="327" font-size="11" text-anchor="middle">50</text>
+<text class="t3 num" x="741.3" y="327" font-size="11" text-anchor="middle">100</text>
+<text class="t3 num" x="830.0" y="327" font-size="11" text-anchor="middle">200</text>
+<text class="t3" x="697.0" y="343" font-size="11" text-anchor="middle">usuários virtuais (VUs)</text>
+<g class="c1"><path class="linha" d="M 564.0 258.5 L 652.7 218.8 L 741.3 198.1 L 830.0 180.1"/></g>
+<g class="c2"><path class="linha" d="M 564.0 282.0 L 652.7 242.4 L 741.3 221.8 L 830.0 200.9"/></g>
+<g class="c3"><path class="linha" d="M 564.0 296.4 L 652.7 257.5 L 741.3 238.0 L 830.0 218.7"/></g>
+<g class="c1"><circle class="ponto" cx="564.0" cy="258.5" r="4"><title>sem cache · 10 usuários · 7,4 ms</title></circle><circle class="ponto" cx="652.7" cy="218.8" r="4"><title>sem cache · 50 usuários · 34,4 ms</title></circle><circle class="ponto" cx="741.3" cy="198.1" r="4"><title>sem cache · 100 usuários · 76,8 ms</title></circle><circle class="ponto" cx="830.0" cy="180.1" r="4"><title>sem cache · 200 usuários · 155 ms</title></circle></g>
+<g class="c2"><circle class="ponto" cx="564.0" cy="282.0" r="4"><title>cache frio · 10 usuários · 3,0 ms</title></circle><circle class="ponto" cx="652.7" cy="242.4" r="4"><title>cache frio · 50 usuários · 13,8 ms</title></circle><circle class="ponto" cx="741.3" cy="221.8" r="4"><title>cache frio · 100 usuários · 30,6 ms</title></circle><circle class="ponto" cx="830.0" cy="200.9" r="4"><title>cache frio · 200 usuários · 69,0 ms</title></circle></g>
+<g class="c3"><circle class="ponto" cx="564.0" cy="296.4" r="4"><title>cache quente · 10 usuários · 1,7 ms</title></circle><circle class="ponto" cx="652.7" cy="257.5" r="4"><title>cache quente · 50 usuários · 7,7 ms</title></circle><circle class="ponto" cx="741.3" cy="238.0" r="4"><title>cache quente · 100 usuários · 16,3 ms</title></circle><circle class="ponto" cx="830.0" cy="218.7" r="4"><title>cache quente · 200 usuários · 34,5 ms</title></circle></g>
+<text class="t2" x="840.0" y="184.1" font-size="11">sem cache</text>
+<text class="t2" x="840.0" y="204.9" font-size="11">cache frio</text>
+<text class="t2" x="840.0" y="222.7" font-size="11">cache quente</text>
+<text class="t1" x="24.0" y="392" font-size="13" font-weight="600">Latência p95 (escala logarítmica)</text>
+<line class="eixo" x1="80.0" y1="588.0" x2="374.0" y2="588.0"/>
+<text class="t3 num" x="72.0" y="592.0" font-size="11" text-anchor="end">1</text>
+<line class="grade" x1="80.0" y1="528.7" x2="374.0" y2="528.7"/>
+<text class="t3 num" x="72.0" y="532.7" font-size="11" text-anchor="end">10</text>
+<line class="grade" x1="80.0" y1="469.3" x2="374.0" y2="469.3"/>
+<text class="t3 num" x="72.0" y="473.3" font-size="11" text-anchor="end">100</text>
+<line class="grade" x1="80.0" y1="410.0" x2="374.0" y2="410.0"/>
+<text class="t3 num" x="72.0" y="414.0" font-size="11" text-anchor="end">1 mil</text>
+<text class="t3 num" x="94.0" y="605" font-size="11" text-anchor="middle">10</text>
+<text class="t3 num" x="182.7" y="605" font-size="11" text-anchor="middle">50</text>
+<text class="t3 num" x="271.3" y="605" font-size="11" text-anchor="middle">100</text>
+<text class="t3 num" x="360.0" y="605" font-size="11" text-anchor="middle">200</text>
+<text class="t3" x="227.0" y="621" font-size="11" text-anchor="middle">usuários virtuais (VUs)</text>
+<g class="c1"><path class="linha" d="M 94.0 513.9 L 182.7 477.5 L 271.3 454.9 L 360.0 436.9"/></g>
+<g class="c2"><path class="linha" d="M 94.0 531.6 L 182.7 492.3 L 271.3 467.6 L 360.0 446.6"/></g>
+<g class="c3"><path class="linha" d="M 94.0 557.3 L 182.7 516.0 L 271.3 495.9 L 360.0 480.9"/></g>
+<g class="c1"><circle class="ponto" cx="94.0" cy="513.9" r="4"><title>sem cache · 10 usuários · 17,7 ms</title></circle><circle class="ponto" cx="182.7" cy="477.5" r="4"><title>sem cache · 50 usuários · 72,7 ms</title></circle><circle class="ponto" cx="271.3" cy="454.9" r="4"><title>sem cache · 100 usuários · 175 ms</title></circle><circle class="ponto" cx="360.0" cy="436.9" r="4"><title>sem cache · 200 usuários · 353 ms</title></circle></g>
+<g class="c2"><circle class="ponto" cx="94.0" cy="531.6" r="4"><title>cache frio · 10 usuários · 8,9 ms</title></circle><circle class="ponto" cx="182.7" cy="492.3" r="4"><title>cache frio · 50 usuários · 41,1 ms</title></circle><circle class="ponto" cx="271.3" cy="467.6" r="4"><title>cache frio · 100 usuários · 107 ms</title></circle><circle class="ponto" cx="360.0" cy="446.6" r="4"><title>cache frio · 200 usuários · 241 ms</title></circle></g>
+<g class="c3"><circle class="ponto" cx="94.0" cy="557.3" r="4"><title>cache quente · 10 usuários · 3,3 ms</title></circle><circle class="ponto" cx="182.7" cy="516.0" r="4"><title>cache quente · 50 usuários · 16,4 ms</title></circle><circle class="ponto" cx="271.3" cy="495.9" r="4"><title>cache quente · 100 usuários · 35,7 ms</title></circle><circle class="ponto" cx="360.0" cy="480.9" r="4"><title>cache quente · 200 usuários · 63,8 ms</title></circle></g>
+<text class="t2" x="370.0" y="445.7" font-size="11">cache frio</text>
+<text class="t2" x="370.0" y="484.9" font-size="11">cache quente</text>
+<text class="t1" x="494.0" y="392" font-size="13" font-weight="600">Latência p99 (escala logarítmica)</text>
+<line class="eixo" x1="550.0" y1="588.0" x2="844.0" y2="588.0"/>
+<text class="t3 num" x="542.0" y="592.0" font-size="11" text-anchor="end">1</text>
+<line class="grade" x1="550.0" y1="528.7" x2="844.0" y2="528.7"/>
+<text class="t3 num" x="542.0" y="532.7" font-size="11" text-anchor="end">10</text>
+<line class="grade" x1="550.0" y1="469.3" x2="844.0" y2="469.3"/>
+<text class="t3 num" x="542.0" y="473.3" font-size="11" text-anchor="end">100</text>
+<line class="grade" x1="550.0" y1="410.0" x2="844.0" y2="410.0"/>
+<text class="t3 num" x="542.0" y="414.0" font-size="11" text-anchor="end">1 mil</text>
+<text class="t3 num" x="564.0" y="605" font-size="11" text-anchor="middle">10</text>
+<text class="t3 num" x="652.7" y="605" font-size="11" text-anchor="middle">50</text>
+<text class="t3 num" x="741.3" y="605" font-size="11" text-anchor="middle">100</text>
+<text class="t3 num" x="830.0" y="605" font-size="11" text-anchor="middle">200</text>
+<text class="t3" x="697.0" y="621" font-size="11" text-anchor="middle">usuários virtuais (VUs)</text>
+<g class="c1"><path class="linha" d="M 564.0 505.8 L 652.7 467.5 L 741.3 444.2 L 830.0 427.2"/></g>
+<g class="c2"><path class="linha" d="M 564.0 520.3 L 652.7 470.5 L 741.3 445.6 L 830.0 432.3"/></g>
+<g class="c3"><path class="linha" d="M 564.0 546.0 L 652.7 504.2 L 741.3 481.6 L 830.0 470.7"/></g>
+<g class="c1"><circle class="ponto" cx="564.0" cy="505.8" r="4"><title>sem cache · 10 usuários · 24,3 ms</title></circle><circle class="ponto" cx="652.7" cy="467.5" r="4"><title>sem cache · 50 usuários · 107 ms</title></circle><circle class="ponto" cx="741.3" cy="444.2" r="4"><title>sem cache · 100 usuários · 265 ms</title></circle><circle class="ponto" cx="830.0" cy="427.2" r="4"><title>sem cache · 200 usuários · 513 ms</title></circle></g>
+<g class="c2"><circle class="ponto" cx="564.0" cy="520.3" r="4"><title>cache frio · 10 usuários · 13,8 ms</title></circle><circle class="ponto" cx="652.7" cy="470.5" r="4"><title>cache frio · 50 usuários · 95,6 ms</title></circle><circle class="ponto" cx="741.3" cy="445.6" r="4"><title>cache frio · 100 usuários · 251 ms</title></circle><circle class="ponto" cx="830.0" cy="432.3" r="4"><title>cache frio · 200 usuários · 420 ms</title></circle></g>
+<g class="c3"><circle class="ponto" cx="564.0" cy="546.0" r="4"><title>cache quente · 10 usuários · 5,1 ms</title></circle><circle class="ponto" cx="652.7" cy="504.2" r="4"><title>cache quente · 50 usuários · 25,9 ms</title></circle><circle class="ponto" cx="741.3" cy="481.6" r="4"><title>cache quente · 100 usuários · 62,1 ms</title></circle><circle class="ponto" cx="830.0" cy="470.7" r="4"><title>cache quente · 200 usuários · 94,9 ms</title></circle></g>
+<text class="t2" x="840.0" y="433.8" font-size="11">cache frio</text>
+<text class="t2" x="840.0" y="474.7" font-size="11">cache quente</text>
+<text class="t1" x="24.0" y="670" font-size="13" font-weight="600">CPU da API (% de um núcleo)</text>
+<line class="eixo" x1="80.0" y1="866.0" x2="374.0" y2="866.0"/>
+<text class="t3 num" x="72.0" y="870.0" font-size="11" text-anchor="end">0</text>
+<line class="grade" x1="80.0" y1="821.5" x2="374.0" y2="821.5"/>
+<text class="t3 num" x="72.0" y="825.5" font-size="11" text-anchor="end">100</text>
+<line class="grade" x1="80.0" y1="777.0" x2="374.0" y2="777.0"/>
+<text class="t3 num" x="72.0" y="781.0" font-size="11" text-anchor="end">200</text>
+<line class="grade" x1="80.0" y1="732.5" x2="374.0" y2="732.5"/>
+<text class="t3 num" x="72.0" y="736.5" font-size="11" text-anchor="end">300</text>
+<line class="grade" x1="80.0" y1="688.0" x2="374.0" y2="688.0"/>
+<text class="t3 num" x="72.0" y="692.0" font-size="11" text-anchor="end">400</text>
+<text class="t3 num" x="94.0" y="883" font-size="11" text-anchor="middle">10</text>
+<text class="t3 num" x="182.7" y="883" font-size="11" text-anchor="middle">50</text>
+<text class="t3 num" x="271.3" y="883" font-size="11" text-anchor="middle">100</text>
+<text class="t3 num" x="360.0" y="883" font-size="11" text-anchor="middle">200</text>
+<text class="t3" x="227.0" y="899" font-size="11" text-anchor="middle">usuários virtuais (VUs)</text>
+<g class="c1"><path class="linha" d="M 94.0 724.7 L 182.7 706.1 L 271.3 710.2 L 360.0 709.7"/></g>
+<g class="c2"><path class="linha" d="M 94.0 727.7 L 182.7 715.9 L 271.3 717.4 L 360.0 716.2"/></g>
+<g class="c3"><path class="linha" d="M 94.0 736.3 L 182.7 725.3 L 271.3 727.8 L 360.0 722.9"/></g>
+<g class="c1"><circle class="ponto" cx="94.0" cy="724.7" r="4"><title>sem cache · 10 usuários · 318 %</title></circle><circle class="ponto" cx="182.7" cy="706.1" r="4"><title>sem cache · 50 usuários · 359 %</title></circle><circle class="ponto" cx="271.3" cy="710.2" r="4"><title>sem cache · 100 usuários · 350 %</title></circle><circle class="ponto" cx="360.0" cy="709.7" r="4"><title>sem cache · 200 usuários · 351 %</title></circle></g>
+<g class="c2"><circle class="ponto" cx="94.0" cy="727.7" r="4"><title>cache frio · 10 usuários · 311 %</title></circle><circle class="ponto" cx="182.7" cy="715.9" r="4"><title>cache frio · 50 usuários · 337 %</title></circle><circle class="ponto" cx="271.3" cy="717.4" r="4"><title>cache frio · 100 usuários · 334 %</title></circle><circle class="ponto" cx="360.0" cy="716.2" r="4"><title>cache frio · 200 usuários · 337 %</title></circle></g>
+<g class="c3"><circle class="ponto" cx="94.0" cy="736.3" r="4"><title>cache quente · 10 usuários · 291 %</title></circle><circle class="ponto" cx="182.7" cy="725.3" r="4"><title>cache quente · 50 usuários · 316 %</title></circle><circle class="ponto" cx="271.3" cy="727.8" r="4"><title>cache quente · 100 usuários · 311 %</title></circle><circle class="ponto" cx="360.0" cy="722.9" r="4"><title>cache quente · 200 usuários · 322 %</title></circle></g>
+<text class="t2" x="370.0" y="720.3" font-size="11">cache quente</text>
+<text class="t1" x="494.0" y="670" font-size="13" font-weight="600">Banco executando consultas (%)</text>
+<line class="eixo" x1="550.0" y1="866.0" x2="844.0" y2="866.0"/>
+<text class="t3 num" x="542.0" y="870.0" font-size="11" text-anchor="end">0</text>
+<line class="grade" x1="550.0" y1="806.7" x2="844.0" y2="806.7"/>
+<text class="t3 num" x="542.0" y="810.7" font-size="11" text-anchor="end">5</text>
+<line class="grade" x1="550.0" y1="747.3" x2="844.0" y2="747.3"/>
+<text class="t3 num" x="542.0" y="751.3" font-size="11" text-anchor="end">10</text>
+<line class="grade" x1="550.0" y1="688.0" x2="844.0" y2="688.0"/>
+<text class="t3 num" x="542.0" y="692.0" font-size="11" text-anchor="end">15</text>
+<text class="t3 num" x="564.0" y="883" font-size="11" text-anchor="middle">10</text>
+<text class="t3 num" x="652.7" y="883" font-size="11" text-anchor="middle">50</text>
+<text class="t3 num" x="741.3" y="883" font-size="11" text-anchor="middle">100</text>
+<text class="t3 num" x="830.0" y="883" font-size="11" text-anchor="middle">200</text>
+<text class="t3" x="697.0" y="899" font-size="11" text-anchor="middle">usuários virtuais (VUs)</text>
+<g class="c1"><path class="linha" d="M 564.0 717.1 L 652.7 696.8 L 741.3 703.0 L 830.0 690.3"/></g>
+<g class="c2"><path class="linha" d="M 564.0 793.7 L 652.7 782.9 L 741.3 782.8 L 830.0 780.8"/></g>
+<g class="c3"><path class="linha" d="M 564.0 866.0 L 652.7 866.0 L 741.3 862.6 L 830.0 866.0"/></g>
+<g class="c1"><circle class="ponto" cx="564.0" cy="717.1" r="4"><title>sem cache · 10 usuários · 12,6 %</title></circle><circle class="ponto" cx="652.7" cy="696.8" r="4"><title>sem cache · 50 usuários · 14,3 %</title></circle><circle class="ponto" cx="741.3" cy="703.0" r="4"><title>sem cache · 100 usuários · 13,7 %</title></circle><circle class="ponto" cx="830.0" cy="690.3" r="4"><title>sem cache · 200 usuários · 14,8 %</title></circle></g>
+<g class="c2"><circle class="ponto" cx="564.0" cy="793.7" r="4"><title>cache frio · 10 usuários · 6,1 %</title></circle><circle class="ponto" cx="652.7" cy="782.9" r="4"><title>cache frio · 50 usuários · 7,0 %</title></circle><circle class="ponto" cx="741.3" cy="782.8" r="4"><title>cache frio · 100 usuários · 7,0 %</title></circle><circle class="ponto" cx="830.0" cy="780.8" r="4"><title>cache frio · 200 usuários · 7,2 %</title></circle></g>
+<g class="c3"><circle class="ponto" cx="564.0" cy="866.0" r="4"><title>cache quente · 10 usuários · 0,0 %</title></circle><circle class="ponto" cx="652.7" cy="866.0" r="4"><title>cache quente · 50 usuários · 0,0 %</title></circle><circle class="ponto" cx="741.3" cy="862.6" r="4"><title>cache quente · 100 usuários · 0,3 %</title></circle><circle class="ponto" cx="830.0" cy="866.0" r="4"><title>cache quente · 200 usuários · 0,0 %</title></circle></g>
+<text class="t2" x="840.0" y="694.3" font-size="11">sem cache</text>
+<text class="t2" x="840.0" y="784.8" font-size="11">cache frio</text>
+<text class="t2" x="840.0" y="870.0" font-size="11">cache quente</text>
+</svg>

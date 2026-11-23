@@ -1,0 +1,99 @@
+{
+  "data": "2026-11-22T15:45:36",
+  "parametros": {
+    "api": "http://localhost:8000",
+    "cenarios": "cache,persistencia,indice,ttl",
+    "cargas": "10,50,100,200",
+    "repeticoes": 3,
+    "aquecimento": 10,
+    "duracao": 30,
+    "ttls": "5,30,120,600",
+    "carga_ttl": 50,
+    "duracao_ttl": 60,
+    "descanso": 5,
+    "k6": "docker",
+    "html": true,
+    "rapido": false,
+    "minutos": null,
+    "continuar": null
+  },
+  "maquina": {
+    "sistema": "Windows-11-10.0.26200-SP0",
+    "processador": "AMD Ryzen 5 5600X 6-Core Processor",
+    "nucleos_logicos": 12,
+    "memoria_gb": 23.9
+  },
+  "docker": "29.7.2 | VM com 6 CPUs e 6214619136 bytes de memória",
+  "k6": [
+    "k6 v2.3.0 (commit/e088784614, go1.27.1, linux/amd64)"
+  ],
+  "python_do_roteiro": "3.14.6",
+  "conteineres_em_execucao": [
+    "biblioteca-api (biblioteca-api)",
+    "biblioteca-cache (redis:8.10-alpine)",
+    "petmotion-pc-worker-1 (petmotion:local)",
+    "petmotion-pc-api-1 (petmotion:local)"
+  ],
+  "api": {
+    "tabelas": {
+      "categoria": 20,
+      "autor": 5000,
+      "livro": 20000,
+      "leitor": 10000,
+      "emprestimo": 300000
+    },
+    "emprestimos_em_aberto": 3722,
+    "tamanho_do_banco": "165 MB",
+    "indices_de_emprestimo": [
+      {
+        "nome": "emprestimo_pkey",
+        "definicao": "CREATE UNIQUE INDEX emprestimo_pkey ON public.emprestimo USING btree (id)",
+        "bytes": 6758400
+      },
+      {
+        "nome": "idx_emprestimo_livro",
+        "definicao": "CREATE INDEX idx_emprestimo_livro ON public.emprestimo USING btree (livro_id)",
+        "bytes": 2547712
+      }
+    ],
+    "banco": {
+      "servidor": "aws-1-us-east-2.pooler.supabase.com",
+      "versao": "17.12",
+      "max_connections": "60",
+      "shared_buffers": "224MB",
+      "work_mem": "2184kB",
+      "random_page_cost": "1.1",
+      "max_parallel_workers_per_gather": "1",
+      "usuario": "postgres"
+    },
+    "configuracao": {
+      "cache_ttl_segundos": 600,
+      "cache_tempo_limite_s": 0.5,
+      "cache_intervalo_da_vigia_s": 1.0,
+      "workers": 4,
+      "conexoes_por_worker": 3,
+      "threads_por_worker": 40
+    },
+    "versoes": {
+      "postgresql": "17.12",
+      "redis": "8.10.3",
+      "python": "3.14.10",
+      "bibliotecas_python": {
+        "fastapi": "0.163.1",
+        "uvicorn": "0.54.0",
+        "sqlalchemy": "2.1.8",
+        "psycopg": "3.3.9",
+        "redis": "8.1.0",
+        "orjson": "3.13.0"
+      }
+    }
+  },
+  "ida_e_volta_ao_banco": {
+    "vezes": 50,
+    "servidor_do_banco": "aws-1-us-east-2.pooler.supabase.com",
+    "mediana_ms": 152.69,
+    "minimo_ms": 148.96,
+    "p90_ms": 156.29,
+    "maximo_ms": 305.62
+  }
+}

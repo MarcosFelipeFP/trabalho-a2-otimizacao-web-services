@@ -1,0 +1,75 @@
+{
+  "total": {
+    "execucoes": 282955,
+    "tempo_total_ms": 99076.55446199793,
+    "linhas": 5658986,
+    "blocos_em_memoria": 35334463,
+    "blocos_do_disco": 0
+  },
+  "comandos": [
+    {
+      "execucoes": 252033,
+      "tempo_total_ms": 87998.78794199822,
+      "linhas": 5040660,
+      "blocos_em_memoria": 31460192,
+      "blocos_do_disco": 0,
+      "comando": "SELECT e.id, e.data_emprestimo, e.data_prevista, e.data_devolucao, l.id AS livro_id, l.titulo, r.id AS leitor_id, r.nome FROM emprestimo e JOIN livro l ON l.id = e.livro_id JOIN leitor r ON r.id = e.leitor_id WHERE e.id >= $1 ORDER BY e.id LIMIT $2"
+    },
+    {
+      "execucoes": 30916,
+      "tempo_total_ms": 11042.82165399981,
+      "linhas": 618320,
+      "blocos_em_memoria": 3858717,
+      "blocos_do_disco": 0,
+      "comando": "SELECT e.id, e.data_emprestimo, e.data_prevista, e.data_devolucao, l.id AS livro_id, l.titulo, r.id AS leitor_id, r.nome FROM emprestimo e JOIN livro l ON l.id = e.livro_id JOIN leitor r ON r.id = e.leitor_id WHERE e.id >= $1 ORDER BY e.id LIMIT $2"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 22.512241999999787,
+      "linhas": 1,
+      "blocos_em_memoria": 12004,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM emprestimo WHERE data_devolucao IS NULL"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 10.670730000000049,
+      "linhas": 1,
+      "blocos_em_memoria": 3469,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM emprestimo"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 0.8940970000000021,
+      "linhas": 1,
+      "blocos_em_memoria": 34,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM livro"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 0.5120909999999981,
+      "linhas": 1,
+      "blocos_em_memoria": 30,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM leitor"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 0.34274500000000074,
+      "linhas": 1,
+      "blocos_em_memoria": 16,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM autor"
+    },
+    {
+      "execucoes": 1,
+      "tempo_total_ms": 0.012961,
+      "linhas": 1,
+      "blocos_em_memoria": 1,
+      "blocos_do_disco": 0,
+      "comando": "SELECT count(*) FROM categoria"
+    }
+  ]
+}
