@@ -842,6 +842,16 @@ na tabela de empréstimos), está em
 [`testes-carga/resultados/2026-11-20_21h56/`](testes-carga/resultados/2026-11-20_21h56); ela aparece
 abaixo só para comparar.
 
+Em 24/11/2026, antes da entrega, uma rodada de conferência repetiu os três cenários com os mesmos quatro
+níveis de carga, 10 s de aquecimento e 30 s de medição, mas com uma repetição de cada versão (38 minutos):
+[`testes-carga/resultados/2026-11-24_01h52/`](testes-carga/resultados/2026-11-24_01h52), no mesmo formato.
+Com 50 VUs, os resultados se repetiram: sem cache, 24,3 req/s, e cache quente, 6.195 req/s (255 vezes mais);
+LAZY, 0,7 req/s, contra 71,1 do EAGER, 68,7 da projeção e 76,8 do SQL nativo (as três versões com uma
+consulta continuam empatadas perto do teto de vazão explicado abaixo); sem índice, 36,1 req/s, e com índice,
+73,6 req/s (o dobro). Nenhuma requisição falhou, e a ida e volta até o banco teve mediana de 158,6 ms. Com
+uma repetição só, essa rodada confirma a matriz, mas não a substitui: as tabelas desta seção continuam
+sendo as da matriz de 22/11.
+
 **Comparação das versões com 50 VUs**, a carga "média" da 6.3, no formato da tabela da 6.6:
 
 | Cenário | Versão | Latência média | p95 | p99 | Vazão | Erros | Consultas SQL por requisição |

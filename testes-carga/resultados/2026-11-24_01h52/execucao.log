@@ -1,0 +1,185 @@
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  cache / sem-cache  (aquecimento 0s, medição 5s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     50      18   3070.3  4641.0  4772.0   0.00%      3.0      -    ESTOURADO
+
+time="2026-11-24T04:53:25Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:50}' have been crossed"
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  cache / com-cache-frio  (aquecimento 0s, medição 5s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     50      33   1710.3  3126.0  3236.8   0.00%      2.9     3%    ESTOURADO
+
+time="2026-11-24T04:53:41Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:50}' have been crossed"
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  cache / com-cache-quente  (aquecimento 0s, medição 5s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     50    4248     11.3    27.9    40.6   0.00%      0.0   100%    ok
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  persistencia / lazy  (aquecimento 0s, medição 5s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     50       1   6926.0  6960.8  6963.8   0.00%     41.0      -    ESTOURADO
+
+time="2026-11-24T04:54:40Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:50}' have been crossed"
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+time="2026-11-24T04:55:29Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:50}' have been crossed"
+
+  persistencia / eager  (aquecimento 0s, medição 5s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     50      29   1911.5  3960.8  4478.5   0.00%      1.0      -    ESTOURADO
+
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  persistencia / otimizada  (aquecimento 0s, medição 5s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     50      35   1624.4  2486.6  2963.6   0.00%      1.0      -    ESTOURADO
+
+time="2026-11-24T04:56:30Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:50}' have been crossed"
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  persistencia / nativa  (aquecimento 0s, medição 5s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     50      70    803.0  2072.2  2457.9   0.00%      1.0      -    ESTOURADO
+
+time="2026-11-24T04:56:45Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:50}' have been crossed"
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  indice / sem-indice  (aquecimento 0s, medição 5s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     50      41   1389.4  1875.1  2043.2   0.00%      1.0      -    ESTOURADO
+
+time="2026-11-24T04:57:09Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:50}' have been crossed"
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  indice / com-indice  (aquecimento 0s, medição 5s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     50      72    791.8  1907.3  2064.7   0.00%      1.0      -    ESTOURADO
+
+time="2026-11-24T04:57:26Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:50}' have been crossed"
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  cache / sem-cache  (aquecimento 10s, medição 30s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     10      16    614.3   942.5  1140.6   0.00%      3.0      -    ok
+     50      24   2067.0  4361.0  4875.6   0.00%      3.0      -    ESTOURADO
+    100      17   6036.1 14954.7 16869.9   0.00%      3.0      -    ESTOURADO
+    200      20   8612.4 16936.8 25216.6   0.00%      3.0      -    ESTOURADO
+
+time="2026-11-24T05:00:33Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:100}, http_req_duration{fase:medicao,carga:200}, http_req_duration{fase:medicao,carga:50}' have been crossed"
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  cache / com-cache-frio  (aquecimento 10s, medição 30s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     10      23    433.3   491.4   946.5   0.00%      2.7    12%    ok
+     50      29   1738.3  2845.1  3446.3   0.00%      2.6    12%    ESTOURADO
+    100      28   3503.3  5681.0 12860.8   0.00%      2.6    13%    ESTOURADO
+    200      26   7231.9 13322.0 18120.3   0.00%      2.6    13%    ESTOURADO
+
+time="2026-11-24T05:04:02Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:100}, http_req_duration{fase:medicao,carga:200}, http_req_duration{fase:medicao,carga:50}' have been crossed"
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  cache / com-cache-quente  (aquecimento 10s, medição 30s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     10    5016      1.9     4.1     6.8   0.00%      0.0   100%    ok
+     50    6195      7.9    18.9    26.3   0.00%      0.0   100%    ok
+    100    6558     15.1    28.0    38.1   0.00%      0.0   100%    ok
+    200    6192     32.1    54.3    80.9   0.00%      0.0   100%    ok
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+time="2026-11-24T05:11:34Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:100}, http_req_duration{fase:medicao,carga:10}, http_req_duration{fase:medicao,carga:50}, http_reqs{fase:medicao,carga:200}' have been crossed"
+
+  persistencia / lazy  (aquecimento 10s, medição 30s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     10       1   8940.2 22974.1 26121.1   0.00%     41.0      -    ESTOURADO
+     50       1  21038.5 30717.4 31158.5   0.00%     41.0      -    ESTOURADO
+    100       0  20975.8 29432.0 30600.6   0.00%     41.0      -    ESTOURADO
+    200       0      0.0     0.0     0.0   0.00%      0.0      -    ok
+
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  persistencia / eager  (aquecimento 10s, medição 30s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     10      36    275.8   477.4   511.9   0.00%      1.0      -    ok
+     50      71    710.7   945.8  1424.1   0.00%      1.0      -    ok
+    100      72   1433.3  2280.6  4228.6   0.00%      1.0      -    ESTOURADO
+    200      69   2895.2  6655.4  9705.0   0.00%      1.0      -    ESTOURADO
+
+time="2026-11-24T05:16:06Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:100}, http_req_duration{fase:medicao,carga:200}' have been crossed"
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  persistencia / otimizada  (aquecimento 10s, medição 30s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     10      55    184.0   306.1   322.2   0.00%      1.0      -    ok
+     50      69    741.6  1612.4  1626.5   0.00%      1.0      -    ESTOURADO
+    100      74   1362.8  4812.1  6941.5   0.00%      1.0      -    ESTOURADO
+    200      73   2768.1  6568.9  8703.8   0.00%      1.0      -    ESTOURADO
+
+time="2026-11-24T05:19:34Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:100}, http_req_duration{fase:medicao,carga:200}, http_req_duration{fase:medicao,carga:50}' have been crossed"
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  persistencia / nativa  (aquecimento 10s, medição 30s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     10      62    162.0   168.9   277.5   0.00%      1.0      -    ok
+     50      77    657.7   817.8  1054.6   0.00%      1.0      -    ok
+    100      68   1490.7  3298.3  6980.8   0.00%      1.0      -    ESTOURADO
+    200      58   3461.3  7701.4 10311.0   0.00%      1.0      -    ESTOURADO
+
+time="2026-11-24T05:23:21Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:100}, http_req_duration{fase:medicao,carga:200}' have been crossed"
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  indice / sem-indice  (aquecimento 10s, medição 30s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     10      30    330.6   476.9   695.6   0.00%      1.0      -    ok
+     50      36   1420.7  2041.2  2737.4   0.00%      1.0      -    ESTOURADO
+    100      36   2763.6  6799.5 11857.3   0.00%      1.0      -    ESTOURADO
+    200      33   5750.9 13177.2 16972.3   0.00%      1.0      -    ESTOURADO
+
+time="2026-11-24T05:26:56Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:100}, http_req_duration{fase:medicao,carga:200}, http_req_duration{fase:medicao,carga:50}' have been crossed"
+
+ Container biblioteca-k6 Creating 
+ Container biblioteca-k6 Created 
+
+  indice / com-indice  (aquecimento 10s, medição 30s por nível)
+    VUs   req/s    média     p95     p99   erros  SQL/req  cache  limites
+     10      42    238.5   346.7   463.5   0.00%      1.0      -    ok
+     50      74    686.8   895.7  1157.3   0.00%      1.0      -    ok
+    100      73   1387.7  2257.3  4361.3   0.00%      1.0      -    ESTOURADO
+    200      75   2665.7  6291.8  8268.2   0.00%      1.0      -    ESTOURADO
+
+time="2026-11-24T05:30:16Z" level=error msg="thresholds on metrics 'http_req_duration{fase:medicao,carga:100}, http_req_duration{fase:medicao,carga:200}' have been crossed"
+
